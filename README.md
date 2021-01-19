@@ -14,6 +14,14 @@ Currently supported platforms are:
 * Limit maximum number of notification shown for any app
 * Only pure Python dependencies, no extension modules
 
+## Installtion
+
+From PyPI:
+
+```
+pip3 install -U desktop-notifier
+```
+
 ## Usage
 
 Basic usage only requires the user to specify a notification title and message:
