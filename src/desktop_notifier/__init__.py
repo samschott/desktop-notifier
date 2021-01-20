@@ -2,8 +2,6 @@
 from .main import DesktopNotifier, Notification, NotificationLevel
 
 
-__all__ = [
-    "Notification",
-    "NotificationLevel",
-    "DesktopNotifier",
-]
+__version__ = "1.0.0"
+__author__ = "Sam Schott"
+__url__ = "https://github.com/samschott/desktop-notifier"
