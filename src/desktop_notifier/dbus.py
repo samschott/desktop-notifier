@@ -28,6 +28,11 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     This implements the org.freedesktop.Notifications standard. The DBUS connection is
     created in a thread with a running asyncio loop to handle clicked notifications.
+
+    :param app_name: The name of the app. If it matches the application name in an
+        existing desktop entry, the icon from that entry will be used by default.
+    :param notification_limit: Maximum number of notifications to keep in the system's
+        notification center.
     """
 
     _to_native_urgency = {
@@ -36,8 +41,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         NotificationLevel.Critical: Variant("y", 2),
     }
 
-    def __init__(self, app_name: str) -> None:
-        super().__init__(app_name)
+    def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
+        super().__init__(app_name, notification_limit)
         self._loop = asyncio.get_event_loop()
         self.interface: Optional[ProxyInterface] = None
         self._did_attempt_connect = False
