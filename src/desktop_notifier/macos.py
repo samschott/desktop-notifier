@@ -386,4 +386,3 @@ elif Version(macos_version) < Version("12.0.0"):
 
     if NSUserNotificationCenter.defaultUserNotificationCenter:
         Impl = CocoaNotificationCenterLegacy
-
