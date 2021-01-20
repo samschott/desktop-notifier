@@ -10,9 +10,9 @@ Currently supported platforms are:
 
 * Clickable notifications (requires platform support)
 * Notifications with buttons (requires platform support)
-* Asyncio integration to execute callbacks when a notification is clicked
+* Asyncio integration to execute callbacks on user interaction
 * Limit maximum number of notification shown for any app
-* Only pure Python dependencies, no extension modules
+* Pure Python dependencies only, no extension modules
 
 ## Installtion
 
