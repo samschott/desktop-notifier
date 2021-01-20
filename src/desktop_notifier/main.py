@@ -51,12 +51,17 @@ class DesktopNotifier:
     the main thread* is required. Packages such as :mod:`rubicon.objc` can be used to
     integrate asyncio with a CFRunLoop.
 
-    :param app_name: Name of app which sends notifications.
+    :param app_name: Name to identify the application in the notification center. On
+        Linux, this should correspond to the application name in a desktop entry. On
+        macOS, this argument is ignored and the app is identified by the bundle ID of
+        the sending program (e.g., Python).
+    :param notification_limit: Maximum number of notifications to keep in the system's
+        notification center. This may be ignored by some implementations.
     """
 
-    def __init__(self, app_name: str = "Python") -> None:
+    def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
         self._lock = Lock()
-        self._impl = Impl(app_name)
+        self._impl = Impl(app_name, notification_limit)
 
     def send(
         self,

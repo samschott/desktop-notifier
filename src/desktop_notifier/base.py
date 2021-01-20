@@ -75,12 +75,9 @@ class DesktopNotifierBase:
     Notification levels CRITICAL, NORMAL and LOW may be used by some implementations to
     determine how a notification is displayed.
 
-    :param app_name: Name to identify the application in the notification center. On
-        Linux, this should correspond to the application name in a desktop entry. On
-        macOS, this field is discarded and the app is identified by the bundle id of the
-        sending program (e.g., Python).
+    :param app_name: Name to identify the application in the notification center.
     :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center. This may be ignored by some implementations.
+        notification center.
     """
 
     app_name: str
