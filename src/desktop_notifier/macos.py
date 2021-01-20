@@ -39,8 +39,12 @@ UNNotificationCategory = ObjCClass("UNNotificationCategory")
 
 NSSet = ObjCClass("NSSet")
 
-UNNotificationDefaultActionIdentifier = "com.apple.UNNotificationDefaultActionIdentifier"
-UNNotificationDismissActionIdentifier = "com.apple.UNNotificationDismissActionIdentifier"
+UNNotificationDefaultActionIdentifier = (
+    "com.apple.UNNotificationDefaultActionIdentifier"
+)
+UNNotificationDismissActionIdentifier = (
+    "com.apple.UNNotificationDismissActionIdentifier"
+)
 
 UNAuthorizationOptionBadge = 1 << 0
 UNAuthorizationOptionSound = 1 << 1
@@ -208,9 +212,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         )
 
         # Post the notification.
-        self.nc.addNotificationRequest(
-            notification_request, withCompletionHandler=None
-        )
+        self.nc.addNotificationRequest(notification_request, withCompletionHandler=None)
 
         # Store the notification for future replacement and to keep track of
         # user-supplied callbacks.
