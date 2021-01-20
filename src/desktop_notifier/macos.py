@@ -111,11 +111,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
         self.nc_delegate.interface = self
-
-        if self.nc:
-            self.nc.delegate = self.nc_delegate
-        else:
-            logger.warning("No notification center available")
+        self.nc.delegate = self.nc_delegate
 
         self._did_request_authorisation = False
         self._notification_categories = {}
@@ -173,9 +169,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :param notification: Notification to send.
         """
-
-        if not self.nc:
-            return
 
         if not self._did_request_authorisation:
             self._request_authorisation()

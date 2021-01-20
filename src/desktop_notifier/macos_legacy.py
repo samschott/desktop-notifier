@@ -86,11 +86,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self.nc = NSUserNotificationCenter.defaultUserNotificationCenter
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
         self.nc_delegate.interface = self
-
-        if self.nc:
-            self.nc.delegate = self.nc_delegate
-        else:
-            logger.warning("No notification center available")
+        self.nc.delegate = self.nc_delegate
 
     def send(self, notification: Notification) -> None:
         """
@@ -98,9 +94,6 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
         :param notification: Notification to send.
         """
-
-        if not self.nc:
-            return
 
         internal_nid = self._next_nid()
         notification_to_replace = self.current_notifications.get(internal_nid)
