@@ -7,13 +7,16 @@ the platform.
 # system imports
 import platform
 from threading import Lock
-from typing import Optional, Dict, Callable
+from typing import Type, Optional, Dict, Callable
 
 # external imports
 from packaging.version import Version
 
 # local imports
-from .base import NotificationLevel, Notification
+from .base import NotificationLevel, Notification, DesktopNotifierBase
+
+
+Impl: Type[DesktopNotifierBase]
 
 if platform.system() == "Darwin":
 
