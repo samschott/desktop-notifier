@@ -3,8 +3,9 @@ from setuptools import setup, find_packages
 
 
 requirements = [
-    "dbus-next>=0.1.4;sys_platform=='linux'",
-    "rubicon-objc>=0.3.1;sys_platform=='darwin'",
+    "dbus-next;sys_platform=='linux'",
+    "packaging",
+    "rubicon-objc;sys_platform=='darwin'",
 ]
 
 dev_requires = [
