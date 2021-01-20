@@ -5,6 +5,7 @@ the platform.
 """
 
 # system imports
+import os
 import platform
 from threading import Lock
 from typing import Type, Optional, Dict, Callable
@@ -18,7 +19,12 @@ from .base import NotificationLevel, Notification, DesktopNotifierBase
 
 Impl: Type[DesktopNotifierBase]
 
-if platform.system() == "Darwin":
+if os.environ.get("CI", False):
+    # don't attempt to initialise notification center in CIs such as github actions
+    # this may otherwise lead to segfaults on macOS test runners
+    from .base import DesktopNotifierBase as Impl
+
+elif platform.system() == "Darwin":
 
     macos_version, *_ = platform.mac_ver()
 
