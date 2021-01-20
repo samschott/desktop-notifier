@@ -9,8 +9,26 @@ import platform
 from threading import Lock
 from typing import Optional, Dict, Callable
 
+# external imports
+from packaging.version import Version
+
 # local imports
-from .base import DesktopNotifierBase, NotificationLevel, Notification
+from .base import NotificationLevel, Notification
+
+if platform.system() == "Darwin":
+
+    macos_version, *_ = platform.mac_ver()
+
+    if Version(macos_version) >= Version("10.14.0"):
+        from .macos import CocoaNotificationCenter as Impl
+    else:
+        from .macos_legacy import CocoaNotificationCenterLegacy as Impl
+
+elif platform.system() == "Linux":
+    from .dbus import DBusDesktopNotifier as Impl
+
+else:
+    from .base import DesktopNotifierBase as Impl
 
 
 __all__ = [
@@ -33,18 +51,8 @@ class DesktopNotifier:
     :param app_name: Name of app which sends notifications.
     """
 
-    _impl: DesktopNotifierBase
-
     def __init__(self, app_name: str = "Python") -> None:
         self._lock = Lock()
-
-        if platform.system() == "Darwin":
-            from .macos import Impl
-        elif platform.system() == "Linux":
-            from .linux import Impl  # type: ignore
-        else:
-            Impl = DesktopNotifierBase  # type: ignore
-
         self._impl = Impl(app_name)
 
     def send(
@@ -62,8 +70,9 @@ class DesktopNotifier:
 
         :param title: Notification title.
         :param message: Notification message.
-        :param urgency: Notification level: low, normal or critical. This is ignored by
-            some implementations.
+        :param urgency: Notification level: low, normal or critical. This may be
+            interpreted differently but some implementations, for instance causing the
+            notification to remain visible for longer, or may be ignored.
         :param icon: Path to an icon to use for the notification, typically the app
             icon. This is ignored by some implementations, e.g., on macOS where the icon
             of the app bundle is always used.

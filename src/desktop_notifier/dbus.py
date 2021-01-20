@@ -18,7 +18,7 @@ from dbus_next.aio import MessageBus, ProxyInterface  # type: ignore
 from .base import Notification, DesktopNotifierBase, NotificationLevel
 
 
-__all__ = ["Impl"]
+__all__ = ["DBusDesktopNotifier"]
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +148,3 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
                 if callback:
                     callback()
-
-
-Impl = DBusDesktopNotifier
