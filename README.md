@@ -14,10 +14,10 @@ Currently supported platforms are:
 * Clickable notifications (requires platform support)
 * Notifications with buttons (requires platform support)
 * Asyncio integration to execute callbacks on user interaction
-* Limit maximum number of notification shown for any app
+* Limit maximum number of notification shown in the notification history
 * Pure Python dependencies only, no extension modules
 
-## Installtion
+## Installation
 
 From PyPI:
 
@@ -42,7 +42,7 @@ allows specifying the app name, notification urgency, app icon, buttons and call
 ```Python
 from desktop_notifier import DesktopNotifier, NotificationLevel
 
-notifier = DesktopNotifier(app_name="Sample App")
+notifier = DesktopNotifier(app_name="Sample App", notification_limit=10)
 notifier.send(
     title="Hello from Python!",
     message="A horrible exception occured",
