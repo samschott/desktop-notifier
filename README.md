@@ -1,3 +1,6 @@
+[![PyPi Release](https://img.shields.io/pypi/v/desktop-notifier.svg)](https://pypi.org/project/desktop-notifier/)
+[![Pyversions](https://img.shields.io/pypi/pyversions/desktop-notifier.svg)](https://pypi.org/pypi/desktop-notifier/)
+
 # Desktop Notifier
 
 `desktop-notifier`  is a Python library for cross-platform desktop notifications.
