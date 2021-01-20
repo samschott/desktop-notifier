@@ -1,4 +1,4 @@
-name: Upload Python package to PyPI
+name: Publish to PyPI
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout prohect
+      - name: Checkout project
         uses: actions/checkout@v2
 
       - name: Set up Python
