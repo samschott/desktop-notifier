@@ -1,11 +1,6 @@
-#!/usr/bin/env python
-
-"""The setup script."""
-
+# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 
-with open("README.md") as readme_file:
-    readme = readme_file.read()
 
 requirements = [
     "dbus-next>=0.1.4;sys_platform=='linux'",
@@ -51,7 +46,8 @@ setup(
         "docs": docs_require,
     },
     license="MIT license",
-    long_description=readme,
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     include_package_data=True,
     keywords="desktop-notifier",
     name="desktop-notifier",
