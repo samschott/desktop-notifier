@@ -56,10 +56,11 @@ notifier.send(
 )
 ```
 
-Note that some platforms may not support all options. For instance, some Linux Desktop
-environments may not support notifications with buttons. On macOS, the app icon and name
-are always set to the application which calls the code. This will be Python when used
-interactively or any app name when run from a frozen and signed app bundle. Any options
+Note that some platforms may not support all options. For instance, some Linux desktop
+environments may not support notifications with buttons. macOS does not support
+manually setting the app icon or name. Instead, both are always determined by the
+application which uses the Library. This can be Python itself, when used interactively,
+or a frozen app bundle when packaged with PyInstaller or similar solutions. Any options
 or configurations which are not supported by the platform will be silently ignored.
 
 Execution of callbacks requires a running event loop. On Linux, it requires a running
@@ -80,7 +81,8 @@ loop = asyncio.get_event_loop()
 loop.run_forever()
 ```
 
-Full documentation can be found at https://rubicon-objc.readthedocs.io/en/latest/how-to/async.html.
+Please refer to the [Rubicon Objective-C docs](https://rubicon-objc.readthedocs.io/en/latest/how-to/async.html)
+for more information.
 
 ## Notes on macOS
 

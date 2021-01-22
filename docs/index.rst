@@ -44,12 +44,12 @@ allows specifying the app name, notification urgency, app icon, buttons and call
         },
     )
 
-Note that some platforms may not support all options. For instance, some Linux Desktop
-environments may not support notifications with buttons. macOS, does not support
-manually setting the app icon or name. Instead, both always determined by the
-application which calls the code. This will be Python when used interactively or any app
-name when run from a frozen app bundle. Any options or configurations which are not
-supported by the platform will be silently ignored.
+Note that some platforms may not support all options. For instance, some Linux desktop
+environments may not support notifications with buttons. macOS does not support
+manually setting the app icon or name. Instead, both are always determined by the
+application which uses the Library. This can be Python itself, when used interactively,
+or a frozen app bundle when packaged with PyInstaller or similar solutions. Any options
+or configurations which are not supported by the platform will be silently ignored.
 
 Execution of callbacks requires a running event loop. On Linux, it requires a running
 `asyncio <https://docs.python.org/3/library/asyncio.html>`__ loop and on macOS it
