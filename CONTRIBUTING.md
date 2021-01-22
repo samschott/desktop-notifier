@@ -30,8 +30,3 @@ is given at [https://pre-commit.com](https://pre-commit.com).
 ### Tests
 
 There are currently no tests. Contributions are very welcome!
-
-
-### Documentation
-
-There is currently no documentation. Contributions are very welcome!
