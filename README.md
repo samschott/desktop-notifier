@@ -52,7 +52,7 @@ notifier.send(
     action=lambda: print("notification clicked"),
     buttons={
         "Button 1": lambda: print("Button 1 clicked"),
-        "Button 2": lambda: print("Button 2 clicked")
+        "Button 2": lambda: print("Button 2 clicked"),
     },
 )
 ```
