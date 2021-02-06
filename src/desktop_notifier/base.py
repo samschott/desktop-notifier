@@ -131,7 +131,7 @@ class DesktopNotifierBase:
         Method to send a notification via the platform. This should be implemented by
         subclasses.
 
-        :returns: The platform's ID for scheduled notification.
+        :returns: The platform's ID for the scheduled notification.
         """
         pass
 
