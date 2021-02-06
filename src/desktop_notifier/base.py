@@ -89,7 +89,7 @@ class DesktopNotifierBase:
         notification center.
     """
 
-    def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
+    def __init__(self, app_name: str = "Python", notification_limit: int = 10) -> None:
         self.app_name = app_name
         self.notification_limit = notification_limit
         self._current_notifications: Dict[int, Notification] = dict()
