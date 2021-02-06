@@ -106,8 +106,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         notification center.
     """
 
-    _notification_categories: Dict[Tuple[str, ...], str]
-
     def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
         super().__init__(app_name, notification_limit)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
@@ -116,7 +114,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc.delegate = self.nc_delegate
 
         self._did_request_authorisation = False
-        self._notification_categories = {}
+        self._notification_categories: Dict[Tuple[str, ...], str] = {}
 
     def request_authorisation(self) -> None:
         """

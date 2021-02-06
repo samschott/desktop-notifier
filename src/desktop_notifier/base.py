@@ -67,8 +67,8 @@ class Notification:
     @property
     def identifier(self) -> Union[str, int, None]:
         """
-        An identifier which gets assigned to the notification after it is sent. This may
-        be a str or int, depending on the type of identifier used by the platform.
+        An platform identifier which gets assigned to the notification after it was
+        sent. This may be a str or int.
         """
         return self._identifier
 
@@ -84,9 +84,6 @@ class Notification:
 class DesktopNotifierBase:
     """Base class for desktop notifier implementations
 
-    Notification levels CRITICAL, NORMAL and LOW may be used by some implementations to
-    determine how a notification is displayed.
-
     :param app_name: Name to identify the application in the notification center.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
@@ -101,7 +98,9 @@ class DesktopNotifierBase:
     def send(self, notification: Notification) -> None:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the
-        implementation.
+        implementation. This is a wrapper function which mostly performs housekeeping of
+        notifications ID and uses :meth:`_send` to actually schedule the notification.
+        Platform implementations should therefore override :meth:`_send`.
 
         :param notification: Notification to send.
         """
@@ -139,8 +138,8 @@ class DesktopNotifierBase:
     def current_nid(self) -> int:
         """
         The ID of the last notification which was sent. This ID is an integer between
-        0 and the ``notification_limit - 1``. This may differ from any internal ID
-        assigned to the notification by the platform.
+        0 and ``notification_limit - 1``. This may differ from any internal ID assigned
+        to the notification by the platform.
         """
         return self._current_nid
 
@@ -156,7 +155,7 @@ class DesktopNotifierBase:
         """
         Returns the notification ID to be used for the next notification. This may
         return the ID of a notification which was already presented, when exceeding out
-        `:attr:`notification_limit`, in which case the old notification should be
+        :attr:`notification_limit`, in which case the old notification should be
         removed or replaced.
         """
         return (self.current_nid + 1) % self.notification_limit
