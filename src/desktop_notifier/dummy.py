@@ -22,3 +22,6 @@ class DummyNotificationCenter(DesktopNotifierBase):
         notification_to_replace: Optional[Notification],
     ) -> str:
         pass
+
+    def _clear_all(self) -> None:
+        pass

@@ -270,3 +270,14 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             categories.release()
 
             return category_id
+
+    def _clear_all(self) -> None:
+        """
+        Clears all notifications from notification center
+
+        The method executes asynchronously, returning immediately and removing the
+        notifications on a background thread. This method does not affect any
+        notification requests that are scheduled, but have not yet been delivered.
+        """
+
+        self.nc.removeAllDeliveredNotifications()

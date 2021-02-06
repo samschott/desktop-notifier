@@ -98,9 +98,9 @@ class DesktopNotifierBase:
     def send(self, notification: Notification) -> None:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the
-        implementation. This is a wrapper function which mostly performs housekeeping of
-        notifications ID and uses :meth:`_send` to actually schedule the notification.
-        Platform implementations should therefore override :meth:`_send`.
+        implementation. This is a wrapper method which mostly performs housekeeping of
+        notifications ID and calls :meth:`_send` to actually schedule the notification.
+        Platform implementations must implement :meth:`_send`.
 
         :param notification: Notification to send.
         """
@@ -130,6 +130,8 @@ class DesktopNotifierBase:
         Method to send a notification via the platform. This should be implemented by
         subclasses.
 
+        :param notification: Notification to send.
+        :param notification_to_replace: Notification to replace, if any.
         :returns: The platform's ID for the scheduled notification.
         """
         raise NotImplementedError()
@@ -159,3 +161,22 @@ class DesktopNotifierBase:
         removed or replaced.
         """
         return (self.current_nid + 1) % self.notification_limit
+
+    def clear_all(self) -> None:
+        """
+        Clears all notifications from the notification center. This is a wrapper method
+        which mostly performs housekeeping of notifications ID and calls
+        :meth:`_clear_all` to actually clear the notification. Platform implementations
+        must implement :meth:`_clear_all`.
+        """
+
+        self._clear_all()
+        self._current_notifications.clear()
+        self._current_nid = self.notification_limit - 1
+
+    def _clear_all(self) -> None:
+        """
+        Clears all notifications from the notification center. Should be implemented by
+        subclasses.
+        """
+        raise NotImplementedError()

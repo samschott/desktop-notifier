@@ -99,3 +99,11 @@ class DesktopNotifier:
 
         with self._lock:
             self._impl.send(notification)
+
+    def clear_all(self) -> None:
+        """
+        Clears all currently displayed notifications for this app from the notification
+        center.
+        """
+        with self._lock:
+            self._impl.clear_all()

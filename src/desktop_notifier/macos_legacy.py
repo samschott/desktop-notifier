@@ -126,3 +126,10 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self.nc.scheduleNotification(n)
 
         return platform_nid
+
+    def _clear_all(self) -> None:
+        """
+        Clears all notifications from notification center
+        """
+
+        self.nc.removeAllDeliveredNotifications()

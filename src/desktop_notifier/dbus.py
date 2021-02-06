@@ -161,3 +161,26 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
                 if callback:
                     callback()
+
+    def _clear_all(self) -> None:
+        """
+        Synchronously clears all notifications from notification center
+
+        The org.freedesktop.Notifications specification does not support retrieving or
+        or clearing all notifications for an app name directly. We therefore rely on our
+        cache of already delivered notifications and clear them individually. Since this
+        is not persistent between Python sessions, notifications delivered in a previous
+        session will not be cleared.
+        """
+        self._run_coco_sync(self._clear_all_async())
+
+    async def _clear_all_async(self) -> None:
+        """
+        Asynchronously clears all notifications from notification center
+        """
+
+        if not self.interface:
+            return
+
+        for notification in self.current_notifications.values():
+            await self.interface.call_close_notification(notification.identifier)
