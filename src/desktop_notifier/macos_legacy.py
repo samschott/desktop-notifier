@@ -12,6 +12,7 @@ NSUserNotificationCenter backend for macOS.
 import uuid
 import platform
 import logging
+from typing import Optional
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -90,18 +91,19 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self.nc_delegate.interface = self
         self.nc.delegate = self.nc_delegate
 
-    def send(self, notification: Notification) -> None:
+    def _send(
+        self,
+        notification: Notification,
+        notification_to_replace: Optional[Notification],
+    ) -> str:
         """
         Sends a notification.
 
         :param notification: Notification to send.
         """
 
-        internal_nid = self._next_nid()
-        notification_to_replace = self.current_notifications.get(internal_nid)
-
         if notification_to_replace:
-            platform_nid = notification_to_replace.identifier
+            platform_nid = str(notification_to_replace.identifier)
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -109,7 +111,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         n.title = notification.title
         n.informativeText = notification.message
         n.identifier = platform_nid
-        n.userInfo = {"internal_nid": internal_nid}
+        n.userInfo = {"internal_nid": self.next_nid()}
         n.deliveryDate = NSDate.dateWithTimeInterval(0, sinceDate=NSDate.date())
 
         if notification.buttons:
@@ -122,5 +124,4 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
         self.nc.scheduleNotification(n)
 
-        notification.identifier = platform_nid
-        self.current_notifications[internal_nid] = notification
+        return platform_nid

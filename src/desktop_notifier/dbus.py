@@ -8,7 +8,7 @@ event loop.
 # system imports
 import asyncio
 import logging
-from typing import Optional, Coroutine
+from typing import Optional, Coroutine, TypeVar
 
 # external imports
 from dbus_next import Variant  # type: ignore
@@ -21,6 +21,8 @@ from .base import Notification, DesktopNotifierBase, NotificationLevel
 __all__ = ["DBusDesktopNotifier"]
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 
 class DBusDesktopNotifier(DesktopNotifierBase):
@@ -47,12 +49,18 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         self.interface: Optional[ProxyInterface] = None
         self._did_attempt_connect = False
 
-    def _force_run_in_loop(self, coro: Coroutine) -> None:
+    def _run_coco_sync(self, coro: Coroutine[None, None, T]) -> T:
+        """
+        Runs the given coroutine and returns the result synchronuously.
+        """
 
         if self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(coro, self._loop)
+            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+            res = future.result()
         else:
-            self._loop.run_until_complete(coro)
+            res = self._loop.run_until_complete(coro)
+
+        return res
 
     async def _init_dbus(self) -> None:
 
@@ -77,28 +85,31 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         finally:
             self._did_attempt_connect = True
 
-    def send(self, notification: Notification) -> None:
+    def _send(
+        self,
+        notification: Notification,
+        notification_to_replace: Optional[Notification],
+    ) -> int:
         """
         Sends a notification.
 
         :param notification: Notification to send.
         """
-        self._force_run_in_loop(self._send(notification))
+        return self._run_coco_sync(
+            self._send_async(notification, notification_to_replace)
+        )
 
-    async def _send(self, notification: Notification) -> None:
+    async def _send_async(
+        self,
+        notification: Notification,
+        notification_to_replace: Optional[Notification],
+    ) -> int:
 
         if not self._did_attempt_connect:
             await self._init_dbus()
 
         if not self.interface:
-            return
-
-        # Get an internal ID for the notifications. This will recycle an old ID if we
-        # are above the max number of notifications.
-        internal_nid = self._next_nid()
-
-        # Get the old notification to replace, if any.
-        notification_to_replace = self.current_notifications.get(internal_nid)
+            raise RuntimeError("No DBus interface")
 
         if notification_to_replace:
             replaces_nid = notification_to_replace.identifier
@@ -111,28 +122,19 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         for button_name in notification.buttons.keys():
             actions += [button_name, button_name]
 
-        try:
-            # Post the new notification and record the platform ID assigned to it.
-            platform_nid = await self.interface.call_notify(
-                self.app_name,  # app_name
-                replaces_nid,  # replaces_id
-                notification.icon or "",  # app_icon
-                notification.title,  # summary
-                notification.message,  # body
-                actions,  # actions
-                {"urgency": self._to_native_urgency[notification.urgency]},  # hints
-                -1,  # expire_timeout (-1 = default)
-            )
-        except Exception:
-            # This may fail for several reasons: there may not be a systemd service
-            # file for 'org.freedesktop.Notifications' or the system configuration
-            # may have changed after DesktopNotifierFreedesktopDBus was initialized.
-            logger.warning("Notification failed", exc_info=True)
-        else:
-            # Store the notification for future replacement and to keep track of
-            # user-supplied callbacks.
-            notification.identifier = platform_nid
-            self.current_notifications[internal_nid] = notification
+        # Post the new notification and record the platform ID assigned to it.
+        platform_nid = await self.interface.call_notify(
+            self.app_name,  # app_name
+            replaces_nid,  # replaces_id
+            notification.icon or "",  # app_icon
+            notification.title,  # summary
+            notification.message,  # body
+            actions,  # actions
+            {"urgency": self._to_native_urgency[notification.urgency]},  # hints
+            -1,  # expire_timeout (-1 = default)
+        )
+
+        return platform_nid
 
     def _on_action(self, nid, action_key) -> None:
 

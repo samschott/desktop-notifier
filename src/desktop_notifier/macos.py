@@ -165,7 +165,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return authorized
 
-    def send(self, notification: Notification) -> None:
+    def _send(
+        self,
+        notification: Notification,
+        notification_to_replace: Optional[Notification],
+    ) -> str:
         """
         Sends a notification.
 
@@ -176,17 +180,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             self._request_authorisation()
 
         if not self._has_authorisation:
-            return
-
-        # Get an internal ID for the notifications. This will recycle an old ID if
-        # we are above the max number of notifications.
-        internal_nid = self._next_nid()
-
-        # Get the old notification to replace, if any.
-        notification_to_replace = self.current_notifications.get(internal_nid)
+            raise RuntimeError("Not authorised")
 
         if notification_to_replace:
-            platform_nid = notification_to_replace.identifier
+            platform_nid = str(notification_to_replace.identifier)
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -200,7 +197,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         content.title = notification.title
         content.body = notification.message
         content.categoryIdentifier = category_id
-        content.userInfo = {"internal_nid": internal_nid}
+        content.userInfo = {"internal_nid": self.next_nid()}
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
             platform_nid, content=content, trigger=None
@@ -209,10 +206,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         # Post the notification.
         self.nc.addNotificationRequest(notification_request, withCompletionHandler=None)
 
-        # Store the notification for future replacement and to keep track of
-        # user-supplied callbacks.
-        notification.identifier = platform_nid
-        self.current_notifications[internal_nid] = notification
+        return platform_nid
 
     def _category_id_for_button_names(
         self, button_names: Tuple[str, ...]
