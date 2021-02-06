@@ -220,6 +220,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
         Creates and registers a new notification category with the given buttons
         or retrieves an existing one.
+
+        :returns: UNUserNotificationCenter ID for a new or an exiting category. Returns
+            None if a notification category without buttons is requested.
         """
 
         if not button_names:
