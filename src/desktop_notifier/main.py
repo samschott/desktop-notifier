@@ -22,7 +22,7 @@ Impl: Type[DesktopNotifierBase]
 if os.environ.get("CI", False):
     # don't attempt to initialise notification center in CIs such as github actions
     # this may otherwise lead to segfaults on macOS test runners
-    from .base import DesktopNotifierBase as Impl
+    from .dummy import DummyNotificationCenter as Impl
 
 elif platform.system() == "Darwin":
 
@@ -37,7 +37,7 @@ elif platform.system() == "Linux":
     from .dbus import DBusDesktopNotifier as Impl
 
 else:
-    from .base import DesktopNotifierBase as Impl
+    from .dummy import DummyNotificationCenter as Impl
 
 
 __all__ = [

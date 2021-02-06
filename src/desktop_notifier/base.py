@@ -132,7 +132,7 @@ class DesktopNotifierBase:
 
         :returns: The platform's ID for the scheduled notification.
         """
-        pass
+        raise NotImplementedError()
 
     @property
     def current_nid(self) -> int:
