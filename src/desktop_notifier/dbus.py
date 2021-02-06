@@ -47,7 +47,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         super().__init__(app_name, notification_limit)
         self._loop = asyncio.get_event_loop()
         self.interface: Optional[ProxyInterface] = None
-        self._did_attempt_connect = False
 
     def _run_coco_sync(self, coro: Coroutine[None, None, T]) -> T:
         """
@@ -62,28 +61,25 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         return res
 
-    async def _init_dbus(self) -> None:
+    async def _init_dbus(self) -> ProxyInterface:
 
-        try:
-            self.bus = await MessageBus().connect()
-            introspection = await self.bus.introspect(
-                "org.freedesktop.Notifications", "/org/freedesktop/Notifications"
-            )
-            self.proxy_object = self.bus.get_proxy_object(
-                "org.freedesktop.Notifications",
-                "/org/freedesktop/Notifications",
-                introspection,
-            )
-            self.interface = self.proxy_object.get_interface(
-                "org.freedesktop.Notifications"
-            )
-            if hasattr(self.interface, "on_action_invoked"):
-                # some older interfaces may not support notification actions
-                self.interface.on_action_invoked(self._on_action)
-        except Exception as exc:
-            logger.warning("Could not connect to DBUS interface: %s", exc.args[0])
-        finally:
-            self._did_attempt_connect = True
+        self.bus = await MessageBus().connect()
+        introspection = await self.bus.introspect(
+            "org.freedesktop.Notifications", "/org/freedesktop/Notifications"
+        )
+        self.proxy_object = self.bus.get_proxy_object(
+            "org.freedesktop.Notifications",
+            "/org/freedesktop/Notifications",
+            introspection,
+        )
+        self.interface = self.proxy_object.get_interface(
+            "org.freedesktop.Notifications"
+        )
+        if hasattr(self.interface, "on_action_invoked"):
+            # some older interfaces may not support notification actions
+            self.interface.on_action_invoked(self._on_action)
+
+        return self.interface
 
     def _send(
         self,
@@ -111,11 +107,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
-        if not self._did_attempt_connect:
-            await self._init_dbus()
-
         if not self.interface:
-            raise RuntimeError("No DBus interface")
+            self.interface = await self._init_dbus()
 
         if notification_to_replace:
             replaces_nid = notification_to_replace.identifier
