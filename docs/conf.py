@@ -50,6 +50,7 @@ autoapi_options = [
     "show-inheritance",
     "show-module-summary",
     "undoc-members",
+    "private-members",
 ]
 autoapi_add_toctree_entry = False
 
