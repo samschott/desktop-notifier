@@ -118,7 +118,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self._did_request_authorisation = False
         self._notification_categories = {}
 
-    def _request_authorisation(self) -> None:
+    def request_authorisation(self) -> None:
+        """
+        Request authorisation to send user notifications. This method returns
+        immediately but authorisation will only be granted once the user has accepted
+        the prompt. Use :attr:`has_authorisation` to check if we are authorised.
+        """
+
         def on_auth_completed(granted: bool, error: objc_id) -> None:
             if granted:
                 logger.debug("Authorisation granted")
@@ -139,7 +145,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self._did_request_authorisation = True
 
     @property
-    def _has_authorisation(self) -> bool:
+    def has_authorisation(self) -> bool:
+        """Whether we have authorisation to send notifications."""
 
         # get existing notification categories
 
@@ -171,15 +178,16 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         notification_to_replace: Optional[Notification],
     ) -> str:
         """
-        Sends a notification.
+        Uses UNUserNotificationCenter to schedule a notification.
 
         :param notification: Notification to send.
+        :param notification_to_replace: Notification to replace, if any.
         """
 
         if not self._did_request_authorisation:
-            self._request_authorisation()
+            self.request_authorisation()
 
-        if not self._has_authorisation:
+        if not self.has_authorisation:
             raise RuntimeError("Not authorised")
 
         if notification_to_replace:
