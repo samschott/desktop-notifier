@@ -97,9 +97,10 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         notification_to_replace: Optional[Notification],
     ) -> str:
         """
-        Sends a notification.
+        Uses NSUserNotificationCenter to schedule a notification.
 
         :param notification: Notification to send.
+        :param notification_to_replace: Notification to replace, if any.
         """
 
         if notification_to_replace:

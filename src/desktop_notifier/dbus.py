@@ -51,7 +51,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     def _run_coco_sync(self, coro: Coroutine[None, None, T]) -> T:
         """
-        Runs the given coroutine and returns the result synchronuously.
+        Runs the given coroutine and returns the result synchronously.
         """
 
         if self._loop.is_running():
@@ -91,9 +91,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         notification_to_replace: Optional[Notification],
     ) -> int:
         """
-        Sends a notification.
+        Synchronously sends a notification via the Dbus interface.
 
         :param notification: Notification to send.
+        :param notification_to_replace: Notification to replace, if any.
         """
         return self._run_coco_sync(
             self._send_async(notification, notification_to_replace)
@@ -104,7 +105,12 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         notification: Notification,
         notification_to_replace: Optional[Notification],
     ) -> int:
+        """
+        Asynchronously sends a notification via the Dbus interface.
 
+        :param notification: Notification to send.
+        :param notification_to_replace: Notification to replace, if any.
+        """
         if not self._did_attempt_connect:
             await self._init_dbus()
 
