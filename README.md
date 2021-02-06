@@ -52,7 +52,7 @@ notifier.send(
     action=lambda: print("notification clicked"),
     buttons={
         "Button 1": lambda: print("Button 1 clicked"),
-        "Button 2": lambda: print("Button 2 clicked")
+        "Button 2": lambda: print("Button 2 clicked"),
     },
 )
 ```
@@ -68,7 +68,8 @@ Execution of callbacks requires a running event loop. On Linux, it requires a ru
 [asyncio](https://docs.python.org/3/library/asyncio.html) loop and on macOS it requires
 a running
 [CFRunLoop](https://developer.apple.com/documentation/corefoundation/cfrunloop-rht). You
-can use rubicon-objc to integrate a Core Foundation CFRunLoop with asyncio:
+can use [rubicon-objc](https://github.com/beeware/rubicon-objc) to integrate a Core
+Foundation CFRunLoop with asyncio:
 
 ```Python
 import asyncio
