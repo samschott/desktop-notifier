@@ -15,7 +15,8 @@ Currently supported platforms are:
 * Clickable notifications (requires platform support)
 * Notifications with buttons (requires platform support)
 * Asyncio integration to execute callbacks on user interaction
-* Limit maximum number of notification shown in the notification history
+* Notification sounds
+* Limit maximum number of notifications shown in the notification center
 * Pure Python dependencies only, no extension modules
 
 ## Installation
@@ -42,7 +43,7 @@ notifier.clear_all()  # removes all notifications for this app
 
 By default, "Python" will be used as the app name for all notifications, but you can also
 manually specify an app name and icon. Advanced usage also allows setting different
-notification options, such as notification urgency, buttons, callbacks, etc:
+notification options such as urgency, buttons, callbacks, etc:
 
 ```Python
 from desktop_notifier import DesktopNotifier, NotificationLevel
@@ -50,7 +51,7 @@ from desktop_notifier import DesktopNotifier, NotificationLevel
 notifier = DesktopNotifier(
     app_name="Sample App",
     icon="file:///path/to/icon.png",
-    notification_limit=10
+    notification_limit=10,
 )
 
 notifier.send(
@@ -104,10 +105,11 @@ On macOS 10.14 and higher, the implementation uses the `UNUserNotificationCenter
 instead of the deprecated `NSUserNotificationCenter`. `UNUserNotificationCenter`
 restricts sending desktop notifications to signed executables. This means that
 notifications will only work the Python executable or bundled app has been signed. Note
-that the installer from python.org provides a properly signed Python framework but
-**homebrew does not**.
+that the installer from [python.org](https://python.org) provides a properly signed
+Python framework but **homebrew does not** (manually signing the executable installed
+by homebrew _should_ work as well).
 
-If you freeze your code with a PyInstaller or a similar package, you must sign the
+If you freeze your code with PyInstaller or a similar package, you must sign the
 resulting app bundle for notifications to work. An ad-hoc signature will be sufficient
 but signing with an Apple developer certificate is recommended for distribution.
 
