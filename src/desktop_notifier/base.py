@@ -8,7 +8,7 @@ must inherit from :class:`DesktopNotifierBase`.
 import logging
 from enum import Enum
 from collections import deque
-from typing import Optional, Dict, Callable, Union, Deque
+from typing import Optional, Dict, Callable, Union, Deque, List
 
 
 logger = logging.getLogger(__name__)
@@ -156,7 +156,7 @@ class DesktopNotifierBase:
         raise NotImplementedError()
 
     @property
-    def current_notifications(self) -> list:
+    def current_notifications(self) -> List[Notification]:
         """
         A list of all notifications which currently displayed in the notification center
         """

@@ -8,7 +8,7 @@ the platform.
 import os
 import platform
 from threading import Lock
-from typing import Type, Optional, Dict, Callable
+from typing import Type, Optional, Dict, Callable, List
 
 # external imports
 from packaging.version import Version
@@ -117,6 +117,11 @@ class DesktopNotifier:
             self._impl.send(notification)
 
         return notification
+
+    @property
+    def current_notifications(self) -> List[Notification]:
+        """A list of all currently displayed notifications for this app"""
+        return self._impl.current_notifications
 
     def clear(self, notification: Notification) -> None:
         """
