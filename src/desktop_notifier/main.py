@@ -77,7 +77,7 @@ class DesktopNotifier:
         icon: Optional[str] = None,
         action: Optional[Callable] = None,
         buttons: Optional[Dict[str, Callable]] = None,
-    ) -> None:
+    ) -> Notification:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the
         backend.
@@ -94,11 +94,15 @@ class DesktopNotifier:
             by some implementations.
         :param buttons: A dictionary with button names and callbacks to show in the
             notification. This is ignored by some implementations.
+
+        :returns: The scheduled notification instance.
         """
         notification = Notification(title, message, urgency, icon, action, buttons)
 
         with self._lock:
             self._impl.send(notification)
+
+        return notification
 
     def clear_all(self) -> None:
         """
