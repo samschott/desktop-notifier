@@ -36,6 +36,7 @@ UNMutableNotificationContent = ObjCClass("UNMutableNotificationContent")
 UNNotificationRequest = ObjCClass("UNNotificationRequest")
 UNNotificationAction = ObjCClass("UNNotificationAction")
 UNNotificationCategory = ObjCClass("UNNotificationCategory")
+UNNotificationSound = ObjCClass("UNNotificationSound")
 
 NSSet = ObjCClass("NSSet")
 
@@ -201,6 +202,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         content.title = notification.title
         content.body = notification.message
         content.categoryIdentifier = category_id
+
+        if notification.sound:
+            content.sound = UNNotificationSound.defaultSound
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
             platform_nid, content=content, trigger=None

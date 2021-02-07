@@ -77,6 +77,7 @@ class DesktopNotifier:
         icon: Optional[str] = None,
         action: Optional[Callable] = None,
         buttons: Optional[Dict[str, Callable]] = None,
+        sound: bool = False,
     ) -> Notification:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the
@@ -94,10 +95,14 @@ class DesktopNotifier:
             by some implementations.
         :param buttons: A dictionary with button names and callbacks to show in the
             notification. This is ignored by some implementations.
+        :param sound: A sound to play when showing the notification. Can be a predefined
+            sound or the path to a sound file.
 
         :returns: The scheduled notification instance.
         """
-        notification = Notification(title, message, urgency, icon, action, buttons)
+        notification = Notification(
+            title, message, urgency, icon, action, buttons, sound
+        )
 
         with self._lock:
             self._impl.send(notification)

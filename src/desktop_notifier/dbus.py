@@ -121,6 +121,12 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         for button_name in notification.buttons.keys():
             actions += [button_name, button_name]
 
+        # sound
+        if notification.sound:
+            sound = Variant("s", "message-new-instant")
+        else:
+            sound = Variant("s", "")
+
         # Post the new notification and record the platform ID assigned to it.
         platform_nid = await self.interface.call_notify(
             self.app_name,  # app_name
@@ -129,7 +135,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             notification.title,  # summary
             notification.message,  # body
             actions,  # actions
-            {"urgency": self._to_native_urgency[notification.urgency]},  # hints
+            {
+                "urgency": self._to_native_urgency[notification.urgency],
+                "sound-name": sound,
+            },  # hints
             -1,  # expire_timeout (-1 = default)
         )
 

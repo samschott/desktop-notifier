@@ -37,6 +37,8 @@ NSUserNotificationActivationTypeContentsClicked = 1
 NSUserNotificationActivationTypeActionButtonClicked = 2
 NSUserNotificationActivationTypeAdditionalActionClicked = 4
 
+NSUserNotificationDefaultSoundName = "DefaultSoundName"
+
 
 class NotificationCenterDelegate(NSObject):  # type: ignore
     """Delegate to handle user interactions with notifications"""
@@ -113,6 +115,9 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         n.informativeText = notification.message
         n.identifier = platform_nid
         n.deliveryDate = NSDate.dateWithTimeInterval(0, sinceDate=NSDate.date())
+
+        if n.sound:
+            n.soundName = NSUserNotificationDefaultSoundName
 
         if notification.buttons:
             if len(notification.buttons) > 1:
