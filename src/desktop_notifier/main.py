@@ -109,9 +109,18 @@ class DesktopNotifier:
 
         return notification
 
+    def clear(self, notification: Notification) -> None:
+        """
+        Removes the given notification from the notification center.
+
+        :param notification: Notification to clear.
+        """
+        with self._lock:
+            self._impl.clear(notification)
+
     def clear_all(self) -> None:
         """
-        Clears all currently displayed notifications for this app from the notification
+        Removes all currently displayed notifications for this app from the notification
         center.
         """
         with self._lock:

@@ -161,6 +161,24 @@ class DBusDesktopNotifier(DesktopNotifierBase):
                 if callback:
                     callback()
 
+    def _clear(self, notification: Notification) -> None:
+        """
+        Synchronously removes a notifications from the notification center
+
+        :param notification: Notification to clear.
+        """
+        self._run_coco_sync(self._clear_async(notification))
+
+    async def _clear_async(self, notification: Notification) -> None:
+        """
+        Asynchronously removes a notification from the notification center
+        """
+
+        if not self.interface:
+            return
+
+        await self.interface.call_close_notification(notification.identifier)
+
     def _clear_all(self) -> None:
         """
         Synchronously clears all notifications from notification center

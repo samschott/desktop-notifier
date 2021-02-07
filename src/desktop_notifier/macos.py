@@ -272,6 +272,14 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
             return category_id
 
+    def _clear(self, notification: Notification) -> None:
+        """
+        Removes a notifications from the notification center
+
+        :param notification: Notification to clear.
+        """
+        self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
+
     def _clear_all(self) -> None:
         """
         Clears all notifications from notification center

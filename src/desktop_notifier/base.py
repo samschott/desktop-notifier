@@ -152,11 +152,35 @@ class DesktopNotifierBase:
         """
         return list(self._current_notifications)
 
+    def clear(self, notification: Notification) -> None:
+        """
+        Removes the given notification from the notification center. This is a wrapper
+        method which mostly performs housekeeping of notifications ID and calls
+        :meth:`_clear` to actually clear the notification. Platform implementations
+        must implement :meth:`_clear`.
+
+        :param notification: Notification to clear.
+        """
+
+        if notification.identifier:
+            self._clear(notification)
+            self._current_notifications.remove(notification)
+            self._notification_for_nid.pop(notification.identifier)
+
+    def _clear(self, notification: Notification) -> None:
+        """
+        Removes the given notification from the notification center. Should be
+        implemented by subclasses.
+
+        :param notification: Notification to clear.
+        """
+        raise NotImplementedError()
+
     def clear_all(self) -> None:
         """
         Clears all notifications from the notification center. This is a wrapper method
         which mostly performs housekeeping of notifications ID and calls
-        :meth:`_clear_all` to actually clear the notification. Platform implementations
+        :meth:`_clear_all` to actually clear the notifications. Platform implementations
         must implement :meth:`_clear_all`.
         """
 

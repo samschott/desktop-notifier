@@ -116,6 +116,9 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         n.identifier = platform_nid
         n.deliveryDate = NSDate.dateWithTimeInterval(0, sinceDate=NSDate.date())
 
+        # store the notification instance for clearing
+        notification._native = n  # type: ignore
+
         if n.sound:
             n.soundName = NSUserNotificationDefaultSoundName
 
@@ -130,6 +133,16 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self.nc.scheduleNotification(n)
 
         return platform_nid
+
+    def _clear(self, notification: Notification) -> None:
+        """
+        Removes a notifications from the notification center
+
+        :param notification: Notification to clear.
+        """
+
+        if hasattr(notification, "_native"):
+            self.nc.removeDeliveredNotification(notification._native)  # type: ignore
 
     def _clear_all(self) -> None:
         """
