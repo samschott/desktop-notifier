@@ -95,17 +95,17 @@ class DesktopNotifier:
         :param title: Notification title.
         :param message: Notification message.
         :param urgency: Notification level: low, normal or critical. This may be
-            interpreted differently but some implementations, for instance causing the
+            interpreted differently by some implementations, for instance causing the
             notification to remain visible for longer, or may be ignored.
         :param icon: Path to an icon to use for the notification, typically the app
             icon. This is ignored by some implementations, e.g., on macOS where the icon
             of the app bundle is always used.
-        :param action: Handler to call when the notification is clicked. This is ignored
-            by some implementations.
+        :param action: Callback to call when the notification is clicked. This is
+            ignored by some implementations.
         :param buttons: A dictionary with button names and callbacks to show in the
             notification. This is ignored by some implementations.
-        :param sound: A sound to play when showing the notification. Can be a predefined
-            sound or the path to a sound file.
+        :param sound: Whether to play a sound when the notification is shown. The
+            platform's default sound will be used, where available.
 
         :returns: The scheduled notification instance.
         """
