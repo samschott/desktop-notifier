@@ -14,7 +14,7 @@ UNUserNotificationCenter backend for macOS.
 import uuid
 import logging
 from concurrent.futures import Future, wait
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Callable
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -122,11 +122,17 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self._did_request_authorisation = False
         self._notification_categories: Dict[Tuple[str, ...], str] = {}
 
-    def request_authorisation(self) -> None:
+    def request_authorisation(self, callback: Optional[Callable] = None) -> None:
         """
         Request authorisation to send user notifications. This method returns
         immediately but authorisation will only be granted once the user has accepted
-        the prompt. Use :attr:`has_authorisation` to check if we are authorised.
+        the prompt. Use :attr:`has_authorisation` to check if we are authorised or pass
+        a callback to be called when the request has been processed.
+
+        :param callback: A method to call when the authorisation request has been
+            granted or denied. The callback will be called with two arguments: a bool
+            indicating if authorisation was granted and a string describing failure
+            reasons for the request.
         """
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
@@ -135,9 +141,16 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             else:
                 logger.debug("Authorisation denied")
 
-            if error:
-                error = py_from_ns(error)
-                logger.warning("Authorisation error %s", str(error))
+            ns_error = py_from_ns(error)
+
+            if ns_error:
+                error_description = ns_error.localizedDescription
+                logger.warning("Authorisation error: %s", error_description)
+            else:
+                error_description = ""
+
+            if callback:
+                callback(granted, error_description)
 
         self.nc.requestAuthorizationWithOptions(
             UNAuthorizationOptionAlert
@@ -152,7 +165,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     def has_authorisation(self) -> bool:
         """Whether we have authorisation to send notifications."""
 
-        # get existing notification categories
+        # Get existing notification categories.
 
         future: Future = Future()
 
@@ -217,8 +230,23 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             platform_nid, content=content, trigger=None
         )
 
+        future: Future = Future()
+
+        def handler(error: objc_id) -> None:
+            ns_error = py_from_ns(error)
+            error_description = ns_error.localizedDescription if ns_error else ""
+            future.set_result(error_description)
+
         # Post the notification.
-        self.nc.addNotificationRequest(notification_request, withCompletionHandler=None)
+        self.nc.addNotificationRequest(
+            notification_request, withCompletionHandler=handler
+        )
+
+        wait([future])
+        error = future.result()
+
+        if error != "":
+            raise RuntimeError(error)
 
         return platform_nid
 
@@ -247,7 +275,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 )
                 actions.append(action)
 
-            # get existing notification categories
+            # Get existing notification categories.
 
             future: Future = Future()
 
@@ -261,7 +289,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             wait([future])
             categories = future.result()
 
-            # add category for new set of buttons
+            # Add category for new set of buttons.
 
             category_id = str(uuid.uuid4())
             new_categories = categories.setByAddingObject(
