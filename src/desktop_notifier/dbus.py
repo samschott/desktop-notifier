@@ -33,6 +33,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     :param app_name: The name of the app. If it matches the application name in an
         existing desktop entry, the icon from that entry will be used by default.
+    :param app_icon: The default icon to use for notifications. Will take precedence
+        over any icon from the desktop file. Should be a URI or a name in a
+        freedesktop.org-compliant icon theme.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
@@ -43,8 +46,13 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         NotificationLevel.Critical: Variant("y", 2),
     }
 
-    def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(
+        self,
+        app_name: str = "Python",
+        app_icon: Optional[str] = None,
+        notification_limit: Optional[int] = None,
+    ) -> None:
+        super().__init__(app_name, app_icon, notification_limit)
         self._loop = asyncio.get_event_loop()
         self.interface: Optional[ProxyInterface] = None
 

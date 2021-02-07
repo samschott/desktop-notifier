@@ -14,8 +14,13 @@ from .base import Notification, DesktopNotifierBase
 class DummyNotificationCenter(DesktopNotifierBase):
     """A dummy backend for unsupported platforms"""
 
-    def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(
+        self,
+        app_name: str = "Python",
+        app_icon: Optional[str] = None,
+        notification_limit: Optional[int] = None,
+    ) -> None:
+        super().__init__(app_name, app_icon, notification_limit)
 
     def _send(
         self,

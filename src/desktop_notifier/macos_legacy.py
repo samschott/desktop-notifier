@@ -81,12 +81,19 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
     :param app_name: The name of the app. Does not have any effect because the app
         name is automatically determined from the bundle or framework.
+    :param app_icon: The icon of the app. Does not have any effect because the app
+        icon is automatically determined from the bundle or framework.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
 
-    def __init__(self, app_name: str = "Python", notification_limit: int = 5) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(
+        self,
+        app_name: str = "Python",
+        app_icon: Optional[str] = None,
+        notification_limit: Optional[int] = None,
+    ) -> None:
+        super().__init__(app_name, app_icon, notification_limit)
 
         self.nc = NSUserNotificationCenter.defaultUserNotificationCenter
         self.nc_delegate = NotificationCenterDelegate.alloc().init()

@@ -61,15 +61,22 @@ class DesktopNotifier:
         Linux, this should correspond to the application name in a desktop entry. On
         macOS, this argument is ignored and the app is identified by the bundle ID of
         the sending program (e.g., Python).
+    :param app_icon: Default icon to use for notifications. This may be be either an URI
+        (file:// is the only URI schema supported right now) or a name in a
+        freedesktop.org-compliant icon theme. On macOS, this argument is ignored and the
+        app icon is identified by the bundle ID of the sending program (e.g., Python).
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center. This may be ignored by some implementations.
     """
 
     def __init__(
-        self, app_name: str = "Python", notification_limit: Optional[int] = None
+        self,
+        app_name: str = "Python",
+        app_icon: Optional[str] = None,
+        notification_limit: Optional[int] = None,
     ) -> None:
         self._lock = Lock()
-        self._impl = Impl(app_name, notification_limit)
+        self._impl = Impl(app_name, app_icon, notification_limit)
 
     def send(
         self,
