@@ -68,15 +68,13 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
     ) -> None:
 
         # Get the notification which was clicked from the platform ID.
-        internal_nid = py_from_ns(
-            response.notification.request.content.userInfo["internal_nid"]
-        )
-        notification = self.interface.current_notifications[internal_nid]
+        platform_nid = py_from_ns(response.notification.request.identifier)
+        py_notification = self.interface._notification_for_nid[platform_nid]
 
         # Get and call the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
 
-            callback = notification.action
+            callback = py_notification.action
 
             if callback:
                 callback()
@@ -85,7 +83,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
 
             action_id_str = py_from_ns(response.actionIdentifier)
 
-            callback = notification.buttons.get(action_id_str)
+            callback = py_notification.buttons.get(action_id_str)
 
             if callback:
                 callback()
@@ -203,7 +201,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         content.title = notification.title
         content.body = notification.message
         content.categoryIdentifier = category_id
-        content.userInfo = {"internal_nid": self.next_nid()}
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
             platform_nid, content=content, trigger=None

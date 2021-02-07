@@ -7,7 +7,8 @@ must inherit from :class:`DesktopNotifierBase`.
 # system imports
 import logging
 from enum import Enum
-from typing import Optional, Dict, Callable, Union
+from collections import deque
+from typing import Optional, Dict, Callable, Union, Deque
 
 
 logger = logging.getLogger(__name__)
@@ -92,8 +93,8 @@ class DesktopNotifierBase:
     def __init__(self, app_name: str = "Python", notification_limit: int = 10) -> None:
         self.app_name = app_name
         self.notification_limit = notification_limit
-        self._current_notifications: Dict[int, Notification] = dict()
-        self._current_nid = notification_limit - 1
+        self._current_notifications: Deque[Notification] = deque([], notification_limit)
+        self._notification_for_nid: Dict[Union[str, int], Notification] = {}
 
     def send(self, notification: Notification) -> None:
         """
@@ -105,8 +106,12 @@ class DesktopNotifierBase:
         :param notification: Notification to send.
         """
 
-        internal_nid = self.next_nid()
-        notification_to_replace = self.current_notifications.get(internal_nid)
+        notification_to_replace: Optional[Notification]
+
+        if len(self._current_notifications) == self.notification_limit:
+            notification_to_replace = self._current_notifications.popleft()
+        else:
+            notification_to_replace = None
 
         try:
             platform_nid = self._send(notification, notification_to_replace)
@@ -115,17 +120,19 @@ class DesktopNotifierBase:
             # The dbus service may not be available, we might be in a headless session,
             # etc. Since notifications are not critical to an application, we only emit
             # a warning.
+            if notification_to_replace:
+                self._current_notifications.appendleft(notification_to_replace)
             logger.warning("Notification failed", exc_info=True)
         else:
             notification.identifier = platform_nid
-            self._current_notifications[internal_nid] = notification
-            self._current_nid = internal_nid
+            self._current_notifications.append(notification)
+            self._notification_for_nid[platform_nid] = notification
 
     def _send(
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
-    ) -> Union[str, int, None]:
+    ) -> Union[str, int]:
         """
         Method to send a notification via the platform. This should be implemented by
         subclasses.
@@ -137,30 +144,11 @@ class DesktopNotifierBase:
         raise NotImplementedError()
 
     @property
-    def current_nid(self) -> int:
+    def current_notifications(self) -> list:
         """
-        The ID of the last notification which was sent. This ID is an integer between
-        0 and ``notification_limit - 1``. This may differ from any internal ID assigned
-        to the notification by the platform.
+        A list of all notifications which currently displayed in the notification center
         """
-        return self._current_nid
-
-    @property
-    def current_notifications(self) -> Dict[int, Notification]:
-        """
-        A dictionary of all notifications which are set to be displayed in the
-        notification center. Keys are integer notification IDs.
-        """
-        return self._current_notifications
-
-    def next_nid(self) -> int:
-        """
-        Returns the notification ID to be used for the next notification. This may
-        return the ID of a notification which was already presented, when exceeding out
-        :attr:`notification_limit`, in which case the old notification should be
-        removed or replaced.
-        """
-        return (self.current_nid + 1) % self.notification_limit
+        return list(self._current_notifications)
 
     def clear_all(self) -> None:
         """
@@ -172,7 +160,7 @@ class DesktopNotifierBase:
 
         self._clear_all()
         self._current_notifications.clear()
-        self._current_nid = self.notification_limit - 1
+        self._notification_for_nid.clear()
 
     def _clear_all(self) -> None:
         """

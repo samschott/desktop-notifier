@@ -46,16 +46,16 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         self, center, notification
     ) -> None:
 
-        internal_nid = py_from_ns(notification.userInfo["internal_nid"])
-        notification_info = self.interface.current_notifications[internal_nid]
+        platform_nid = py_from_ns(notification.identifier)
+        py_notification = self.interface._notification_for_nid[platform_nid]
 
         if (
             notification.activationType
             == NSUserNotificationActivationTypeContentsClicked
         ):
 
-            if notification_info.action:
-                notification_info.action()
+            if py_notification.action:
+                py_notification.action()
 
         elif (
             notification.activationType
@@ -63,7 +63,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         ):
 
             button_title = py_from_ns(notification.actionButtonTitle)
-            callback = notification_info.buttons.get(button_title)
+            callback = py_notification.buttons.get(button_title)
 
             if callback:
                 callback()
@@ -112,7 +112,6 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         n.title = notification.title
         n.informativeText = notification.message
         n.identifier = platform_nid
-        n.userInfo = {"internal_nid": self.next_nid()}
         n.deliveryDate = NSDate.dateWithTimeInterval(0, sinceDate=NSDate.date())
 
         if notification.buttons:

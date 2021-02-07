@@ -140,10 +140,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Get the notification instance from the platform ID.
         nid = int(nid)
         action_key = str(action_key)
-        notification = next(
-            iter(n for n in self.current_notifications.values() if n.identifier == nid),
-            None,
-        )
+        notification = self._notification_for_nid[nid]
 
         # Execute any callbacks for button clicks.
         if notification:
@@ -175,5 +172,5 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        for notification in self.current_notifications.values():
+        for notification in self.current_notifications:
             await self.interface.call_close_notification(notification.identifier)

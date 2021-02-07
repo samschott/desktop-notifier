@@ -4,6 +4,7 @@ Dummy backend for unsupported platforms.
 """
 
 # system imports
+import uuid
 from typing import Optional
 
 # local imports
@@ -21,7 +22,10 @@ class DummyNotificationCenter(DesktopNotifierBase):
         notification: Notification,
         notification_to_replace: Optional[Notification],
     ) -> str:
-        pass
+        if notification_to_replace:
+            return str(notification_to_replace.identifier)
+        else:
+            return str(uuid.uuid4())
 
     def _clear_all(self) -> None:
         pass
