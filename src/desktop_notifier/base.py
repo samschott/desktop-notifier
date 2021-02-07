@@ -92,7 +92,9 @@ class DesktopNotifierBase:
         notification center.
     """
 
-    def __init__(self, app_name: str = "Python", notification_limit: int = 10) -> None:
+    def __init__(
+        self, app_name: str = "Python", notification_limit: Optional[int] = None
+    ) -> None:
         self.app_name = app_name
         self.notification_limit = notification_limit
         self._current_notifications: Deque[Notification] = deque([], notification_limit)

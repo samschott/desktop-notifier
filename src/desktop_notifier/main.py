@@ -65,7 +65,9 @@ class DesktopNotifier:
         notification center. This may be ignored by some implementations.
     """
 
-    def __init__(self, app_name: str = "Python", notification_limit: int = 10) -> None:
+    def __init__(
+        self, app_name: str = "Python", notification_limit: Optional[int] = None
+    ) -> None:
         self._lock = Lock()
         self._impl = Impl(app_name, notification_limit)
 
