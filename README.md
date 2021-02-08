@@ -8,7 +8,7 @@
 Currently supported platforms are:
 
 * Linux via the dbus service org.freedesktop.Notifications
-* macOS via the Notification Center framework
+* macOS and iOS via the Notification Center framework
 
 ## Features
 
