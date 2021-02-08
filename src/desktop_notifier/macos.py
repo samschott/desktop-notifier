@@ -37,8 +37,9 @@ UNNotificationRequest = ObjCClass("UNNotificationRequest")
 UNNotificationAction = ObjCClass("UNNotificationAction")
 UNNotificationCategory = ObjCClass("UNNotificationCategory")
 UNNotificationSound = ObjCClass("UNNotificationSound")
+UNNotificationAttachment = ObjCClass("UNNotificationAttachment")
 
-NSSet = ObjCClass("NSSet")
+NSURL = ObjCClass("NSURL")
 
 UNNotificationDefaultActionIdentifier = (
     "com.apple.UNNotificationDefaultActionIdentifier"
@@ -210,6 +211,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         if notification.sound:
             content.sound = UNNotificationSound.defaultSound
+
+        if notification.attachment:
+            url = NSURL.fileURLWithPath(notification.attachment)
+            attachment = UNNotificationAttachment.attachmentWithIdentifier(
+                "", URL=url, options={}, error=None
+            )
+            content.attachments = [attachment]
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
             platform_nid, content=content, trigger=None

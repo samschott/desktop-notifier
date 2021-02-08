@@ -138,6 +138,7 @@ class DesktopNotifier:
         icon: Optional[str] = None,
         action: Optional[Callable] = None,
         buttons: Optional[Dict[str, Callable]] = None,
+        attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
     ) -> Notification:
@@ -150,13 +151,18 @@ class DesktopNotifier:
         :param urgency: Notification level: low, normal or critical. This may be
             interpreted differently by some implementations, for instance causing the
             notification to remain visible for longer, or may be ignored.
-        :param icon: Path to an icon to use for the notification, typically the app
-            icon. This is ignored by some implementations, e.g., on macOS where the icon
-            of the app bundle is always used.
+        :param icon: URI or icon name to use for the notification, typically the app
+            icon. This will replace the icon specified by :attr:`app_icon`. Will be
+            ignored on macOS.
         :param action: Callback to call when the notification is clicked. This is
             ignored by some implementations.
         :param buttons: A dictionary with button names and callbacks to show in the
             notification. This is ignored by some implementations.
+        :param attachment: A path to an attachment for the notification such as an
+            image, movie, or audio file. A preview of this attachment may be displayed
+            together with the notification. Different platforms and Linux notification
+            servers support different types of attachments. Please consult the platform
+            support section of the documentation.
         :param sound: Whether to play a sound when the notification is shown. The
             platform's default sound will be used, where available.
         :param thread: An identifier to group related notifications together. This is
@@ -166,7 +172,7 @@ class DesktopNotifier:
         """
 
         notification = Notification(
-            title, message, urgency, icon, action, buttons, sound, thread
+            title, message, urgency, icon, action, buttons, attachment, sound, thread
         )
 
         with self._lock:

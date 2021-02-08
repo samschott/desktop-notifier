@@ -35,16 +35,14 @@ class Notification:
 
     :param title: Notification title.
     :param message: Notification message.
-    :param urgency: Notification level: low, normal or critical. This is ignored by some
-        implementations.
+    :param urgency: Notification level: low, normal or critical.
     :param icon: Path to an icon to use for the notification, typically the app icon.
-        This is ignored by some implementations, e.g., on macOS where the icon of the
-        app bundle is always used.
-    :param action: Handler to call when the notification is clicked. This is ignored by
-        some implementations.
-    :param buttons: A dictionary with button names to show in the notification and
-        handler to call when the respective button is clicked. This is ignored by some
-        implementations.
+    :param action: Handler to call when the notification is clicked.
+    :param buttons: A dictionary where keys are button names to show in the notification
+        and values are handlers to call when the respective button is clicked.
+    :param attachment: A path to an attachment for the notification.
+    :param sound: Whether to play a sound when the notification is shown.
+    :param thread: An identifier to group related notifications together.
     """
 
     def __init__(
@@ -55,6 +53,7 @@ class Notification:
         icon: Optional[str] = None,
         action: Optional[Callable] = None,
         buttons: Optional[Dict[str, Callable]] = None,
+        attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
     ) -> None:
@@ -66,6 +65,7 @@ class Notification:
         self.icon = icon
         self.action = action
         self.buttons = buttons or dict()
+        self.attachment = attachment
         self.sound = sound
         self.thread = thread
 
