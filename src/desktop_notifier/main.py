@@ -123,6 +123,7 @@ class DesktopNotifier:
         action: Optional[Callable] = None,
         buttons: Optional[Dict[str, Callable]] = None,
         sound: bool = False,
+        thread: Optional[str] = None,
     ) -> Notification:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the
@@ -142,12 +143,14 @@ class DesktopNotifier:
             notification. This is ignored by some implementations.
         :param sound: Whether to play a sound when the notification is shown. The
             platform's default sound will be used, where available.
+        :param thread: An identifier to group related notifications together. This is
+            ignored on Linux.
 
         :returns: The scheduled notification instance.
         """
 
         notification = Notification(
-            title, message, urgency, icon, action, buttons, sound
+            title, message, urgency, icon, action, buttons, sound, thread
         )
 
         with self._lock:

@@ -206,6 +206,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         content.title = notification.title
         content.body = notification.message
         content.categoryIdentifier = category_id
+        content.threadIdentifier = notification.thread
 
         if notification.sound:
             content.sound = UNNotificationSound.defaultSound

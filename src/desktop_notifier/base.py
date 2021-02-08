@@ -56,6 +56,7 @@ class Notification:
         action: Optional[Callable] = None,
         buttons: Optional[Dict[str, Callable]] = None,
         sound: bool = False,
+        thread: Optional[str] = None,
     ) -> None:
 
         self._identifier: Union[str, int, None] = None
@@ -66,6 +67,7 @@ class Notification:
         self.action = action
         self.buttons = buttons or dict()
         self.sound = sound
+        self.thread = thread
 
     @property
     def identifier(self) -> Union[str, int, None]:

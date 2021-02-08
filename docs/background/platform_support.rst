@@ -22,7 +22,9 @@ The table below gives an overview over supported functionality for different pla
    "action", "A callback when the notification is clicked", "✓ [#f2]_", "✓"
    "buttons", "Support for one or more buttons with callbacks", "✓ [#f2]_", "✓ [#f3]_"
    "sound", "Play a default sound when showing the notification", "✓ [#f2]_", "✓"
+   "thread", "An identifier to group notifications together", "--", "✓ [#f4]_"
 
 .. [#f1] App name and icon on macOS are automatically determined by the calling application.
 .. [#f2] May be ignored by some notification servers, depending on the desktop environment.
 .. [#f3] Only a single button is supported by our implementation for macOS 10.13 and lower.
+.. [#f4] Only supported on macOS 10.14 and higher.
