@@ -105,6 +105,19 @@ class DesktopNotifierBase:
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
         self._notification_for_nid: Dict[Union[str, int], Notification] = {}
 
+    def request_authorisation(self, callback: Optional[Callable]) -> None:
+        """
+        Request authorisation to send notifications.
+        """
+        raise NotImplementedError()
+
+    @property
+    def has_authorisation(self) -> bool:
+        """
+        Whether we have authorisation to send notifications.
+        """
+        raise NotImplementedError()
+
     def send(self, notification: Notification) -> None:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the

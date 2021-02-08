@@ -8,7 +8,7 @@ event loop.
 # system imports
 import asyncio
 import logging
-from typing import Optional, Coroutine, TypeVar
+from typing import Optional, Coroutine, TypeVar, Callable
 
 # external imports
 from dbus_next import Variant  # type: ignore
@@ -55,6 +55,19 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         super().__init__(app_name, app_icon, notification_limit)
         self._loop = asyncio.get_event_loop()
         self.interface: Optional[ProxyInterface] = None
+
+    def request_authorisation(self, callback: Optional[Callable]) -> None:
+        """
+        Request authorisation to send notifications.
+        """
+        pass
+
+    @property
+    def has_authorisation(self) -> bool:
+        """
+        Whether we have authorisation to send notifications.
+        """
+        return True
 
     def _run_coco_sync(self, coro: Coroutine[None, None, T]) -> T:
         """

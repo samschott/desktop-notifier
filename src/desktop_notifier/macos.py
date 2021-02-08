@@ -119,7 +119,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc_delegate.interface = self
         self.nc.delegate = self.nc_delegate
 
-        self._did_request_authorisation = False
         self._notification_categories: Dict[Tuple[str, ...], str] = {}
 
     def request_authorisation(self, callback: Optional[Callable] = None) -> None:
@@ -136,20 +135,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
-            if granted:
-                logger.debug("Authorisation granted")
-            else:
-                logger.debug("Authorisation denied")
-
-            ns_error = py_from_ns(error)
-
-            if ns_error:
-                error_description = ns_error.localizedDescription
-                logger.warning("Authorisation error: %s", error_description)
-            else:
-                error_description = ""
 
             if callback:
+                ns_error = py_from_ns(error)
+                error_description = ns_error.localizedDescription if ns_error else ""
                 callback(granted, error_description)
 
         self.nc.requestAuthorizationWithOptions(
@@ -158,8 +147,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             | UNAuthorizationOptionBadge,
             completionHandler=on_auth_completed,
         )
-
-        self._did_request_authorisation = True
 
     @property
     def has_authorisation(self) -> bool:
@@ -200,9 +187,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
-
-        if not self._did_request_authorisation:
-            self.request_authorisation()
 
         if not self.has_authorisation:
             raise RuntimeError("Not authorised")

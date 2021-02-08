@@ -7,7 +7,8 @@ the platform.
 # system imports
 import os
 import platform
-from threading import Lock
+from threading import RLock
+import logging
 from typing import Type, Optional, Dict, Callable, List
 
 # external imports
@@ -46,6 +47,8 @@ __all__ = [
     "DesktopNotifier",
 ]
 
+logger = logging.getLogger(__name__)
+
 
 class DesktopNotifier:
     """Cross-platform desktop notification emitter
@@ -75,8 +78,41 @@ class DesktopNotifier:
         app_icon: Optional[str] = None,
         notification_limit: Optional[int] = None,
     ) -> None:
-        self._lock = Lock()
+
+        self._app_name = app_name
+        self._app_icon = app_icon
+        self._lock = RLock()
         self._impl = Impl(app_name, app_icon, notification_limit)
+        self._did_request_authorisation = False
+
+    def request_authorisation(self, callback: Optional[Callable]) -> None:
+        """
+        Requests authorisation to send user notifications. This will be automatically
+        called for you when sending a notification for the first time but it may be
+        useful to call :meth:`request_authorisation` manually to control when an
+        authorisation prompt is displayed to the user.
+
+        On some platforms, such as macOS and iOS, a prompt will be shown to the user
+        when this method is called for the first time. This method does nothing on
+        platforms where user authorisation is not required.
+
+        This method returns immediately. You can provide a callback to run once
+        authorisation has been granted or rejected and use :attr:`has_authorisation` to
+        verify permissions.
+
+        :param callback: A method to call when the authorisation request has been
+            granted or denied. The callback will be called with two arguments: a bool
+            indicating if authorisation was granted and a string describing failure
+            reasons for the request.
+        """
+
+        with self._lock:
+            self._impl.request_authorisation(callback)
+
+    @property
+    def has_authorisation(self) -> bool:
+        """Whether we have authorisation to send notifications."""
+        return self._impl.has_authorisation
 
     def send(
         self,
@@ -109,12 +145,30 @@ class DesktopNotifier:
 
         :returns: The scheduled notification instance.
         """
+
         notification = Notification(
             title, message, urgency, icon, action, buttons, sound
         )
 
         with self._lock:
-            self._impl.send(notification)
+
+            if self.has_authorisation:
+                self._impl.send(notification)
+
+            elif not self._did_request_authorisation:
+                self._did_request_authorisation = True
+
+                def send_delayed(granted: bool, error: str, n=notification) -> None:
+                    if granted:
+                        with self._lock:
+                            self._impl.send(n)
+                    else:
+                        logger.warning("Not authorised: %s", error)
+
+                self.request_authorisation(callback=send_delayed)
+
+            else:
+                logger.warning("Not authorised")
 
         return notification
 
