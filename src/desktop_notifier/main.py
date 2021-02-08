@@ -78,21 +78,37 @@ class DesktopNotifier:
         app_icon: Optional[str] = None,
         notification_limit: Optional[int] = None,
     ) -> None:
-
-        self._app_name = app_name
-        self._app_icon = app_icon
         self._lock = RLock()
         self._impl = Impl(app_name, app_icon, notification_limit)
         self._did_request_authorisation = False
+
+    @property
+    def app_name(self) -> str:
+        """The application name"""
+        return self._impl.app_name
+
+    @app_name.setter
+    def app_name(self, value: str) -> None:
+        """Setter: app_name"""
+        self._impl.app_name = value
+
+    @property
+    def app_icon(self) -> Optional[str]:
+        """The application icon: a URI for a local file or an icon name."""
+        return self._impl.app_icon
+
+    @app_icon.setter
+    def app_icon(self, value: str) -> None:
+        """Setter: app_icon"""
+        self._impl.app_icon = value
 
     def request_authorisation(self, callback: Optional[Callable]) -> None:
         """
         Requests authorisation to send user notifications. This will be automatically
         called for you when sending a notification for the first time but it may be
-        useful to call :meth:`request_authorisation` manually to control when an
-        authorisation prompt is displayed to the user.
+        useful to call manually to request authorisation in advance.
 
-        On some platforms, such as macOS and iOS, a prompt will be shown to the user
+        On some platforms such as macOS and iOS, a prompt will be shown to the user
         when this method is called for the first time. This method does nothing on
         platforms where user authorisation is not required.
 
