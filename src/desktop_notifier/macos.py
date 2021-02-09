@@ -13,8 +13,8 @@ UNUserNotificationCenter backend for macOS.
 # system imports
 import uuid
 import logging
-from concurrent.futures import Future, wait
-from typing import Optional, Dict, Tuple, Callable, Any
+from concurrent.futures import Future
+from typing import Optional, Callable, Any
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -35,11 +35,13 @@ UNUserNotificationCenter = ObjCClass("UNUserNotificationCenter")
 UNMutableNotificationContent = ObjCClass("UNMutableNotificationContent")
 UNNotificationRequest = ObjCClass("UNNotificationRequest")
 UNNotificationAction = ObjCClass("UNNotificationAction")
+UNTextInputNotificationAction = ObjCClass("UNTextInputNotificationAction")
 UNNotificationCategory = ObjCClass("UNNotificationCategory")
 UNNotificationSound = ObjCClass("UNNotificationSound")
 UNNotificationAttachment = ObjCClass("UNNotificationAttachment")
 
 NSURL = ObjCClass("NSURL")
+NSSet = ObjCClass("NSSet")
 
 UNNotificationDefaultActionIdentifier = (
     "com.apple.UNNotificationDefaultActionIdentifier"
@@ -123,7 +125,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc_delegate.interface = self
         self.nc.delegate = self.nc_delegate
 
-        self._notification_categories: Dict[Tuple[str, ...], str] = {}
+        self._clear_notification_categories()
 
     def request_authorisation(
         self, callback: Optional[Callable[[bool, str], Any]] = None
@@ -169,7 +171,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self.nc.getNotificationSettingsWithCompletionHandler(handler)
 
-        wait([future])
         settings = future.result()
 
         authorized = settings.authorizationStatus in (
@@ -202,10 +203,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         else:
             platform_nid = str(uuid.uuid4())
 
-        # Set up buttons for notification. On macOS, we need need to register a new
-        # notification category for every unique set of buttons.
-        button_names = tuple(notification.buttons.keys())
-        category_id = self._category_id_for_button_names(button_names)
+        # On macOS, we need need to register a new notification category for every
+        # unique set of buttons.
+        category_id = self._create_category_for_notification(notification)
 
         # Create the native notification + notification request.
         content = UNMutableNotificationContent.alloc().init()
@@ -240,7 +240,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             notification_request, withCompletionHandler=handler
         )
 
-        wait([future])
         error = future.result()
 
         if error != "":
@@ -248,49 +247,44 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return platform_nid
 
-    def _category_id_for_button_names(
-        self, button_names: Tuple[str, ...]
+    def _create_category_for_notification(
+        self, notification: Notification
     ) -> Optional[str]:
         """
-        Creates and registers a new notification category with the given buttons
-        or retrieves an existing one.
+        Registers a new notification category with UNNotificationCenter for the given
+        notification or retrieves an existing one if it exists for our set of buttons.
 
-        :returns: UNUserNotificationCenter ID for a new or an exiting category. Returns
-            None if a notification category without buttons is requested.
+        :param notification: Notification instance.
+        :returns: The identifier of the existing or created notification category.
         """
 
-        if not button_names:
+        if not notification.buttons:
             return None
 
-        try:
-            return self._notification_categories[button_names]
-        except KeyError:
+        button_hash = hash(tuple(notification.buttons.keys()))
+        category_id = f"desktop-notifier: {button_hash}"
+
+        # Retrieve existing categories. We do not cache this value because it may be
+        # modified by other Python processes using desktop-notifier.
+
+        categories = self._get_notification_categories()
+        category_ids = set(py_from_ns(c.identifier) for c in categories.allObjects())  # type: ignore
+
+        # Register new category if necessary.
+        if category_id not in category_ids:
+
+            # Create action for each button.
             actions = []
 
-            for name in button_names:
+            for name in notification.buttons:
                 action = UNNotificationAction.actionWithIdentifier(
                     name, title=name, options=UNNotificationActionOptionNone
                 )
                 actions.append(action)
 
-            # Get existing notification categories.
-
-            future: Future = Future()
-
-            def handler(categories: objc_id) -> None:
-                categories = py_from_ns(categories)
-                categories.retain()
-                future.set_result(categories)
-
-            self.nc.getNotificationCategoriesWithCompletionHandler(handler)
-
-            wait([future])
-            categories = future.result()
-
             # Add category for new set of buttons.
 
-            category_id = str(uuid.uuid4())
-            new_categories = categories.setByAddingObject(
+            new_categories = categories.setByAddingObject(  # type: ignore
                 UNNotificationCategory.categoryWithIdentifier(
                     category_id,
                     actions=actions,
@@ -299,11 +293,30 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 )
             )
             self.nc.setNotificationCategories(new_categories)
-            self._notification_categories[button_names] = category_id
 
-            categories.release()
+        return category_id
 
-            return category_id
+    def _get_notification_categories(self) -> NSSet:  # type: ignore
+        """Returns the registered notification categories for this app / Python."""
+
+        future: Future = Future()
+
+        def handler(categories: objc_id) -> None:
+            categories = py_from_ns(categories)
+            categories.retain()
+            future.set_result(categories)
+
+        self.nc.getNotificationCategoriesWithCompletionHandler(handler)
+
+        categories = future.result()
+        categories.autorelease()
+
+        return categories
+
+    def _clear_notification_categories(self) -> None:
+        """Clears all registered notification categories for this application."""
+        empty_set = NSSet.alloc().init()
+        self.nc.setNotificationCategories(empty_set)
 
     def _clear(self, notification: Notification) -> None:
         """
