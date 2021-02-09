@@ -19,15 +19,17 @@ The table below gives an overview over supported functionality for different pla
    "title", "The notification title", "✓", "✓"
    "message", "The notification message", "✓", "✓"
    "urgency", "Urgency level that determines how the notification is displayed", "✓", "--"
-   "action", "A callback when the notification is clicked", "✓ [#f2]_", "✓"
    "buttons", "Support for one or more buttons with callbacks", "✓ [#f2]_", "✓ [#f3]_"
+   "reply_field", "Whether to show a reply field", "--", "✓"
+   "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f2]_", "✓"
+   "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f2]_", "✓"
+   "on_replied", "A callback to invoke when the user replies", "--", "✓"
    "sound", "Play a default sound when showing the notification", "✓ [#f2]_", "✓"
-   "thread", "An identifier to group notifications together", "--", "✓ [#f4]_"
+   "thread", "An identifier to group notifications together", "--", "✓"
 
 .. [#f1] App name and icon on macOS are automatically determined by the calling application.
 .. [#f2] May be ignored by some notification servers, depending on the desktop environment.
 .. [#f3] Only a single button is supported by our implementation for macOS 10.13 and lower.
-.. [#f4] Only supported on iOS and macOS 10.14 and higher.
 
 
 Callbacks
@@ -48,6 +50,14 @@ number of buttons. Gnome desktops typically support up to three buttons.
 
 When an implementation or a platform supports only a limited number of buttons, any
 additional buttons specified in the notification request will be silently ignored.
+
+Reply field
+***********
+
+Reply fields are supported on macOS and iOS. If ``reply_field`` is set to True, a
+"Reply" button and text input field will be show. The button will always placed first,
+before any other buttons. The placeholder and button text are currently not
+customisable, even when allowed by the native platform APIs.
 
 Attachments
 ***********

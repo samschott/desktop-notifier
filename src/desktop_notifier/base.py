@@ -8,7 +8,7 @@ must inherit from :class:`DesktopNotifierBase`.
 import logging
 from enum import Enum
 from collections import deque
-from typing import Optional, Dict, Callable, Union, Deque, List
+from typing import Optional, Dict, Callable, Any, Union, Deque, List
 
 
 logger = logging.getLogger(__name__)
@@ -37,10 +37,16 @@ class Notification:
     :param message: Notification message.
     :param urgency: Notification level: low, normal or critical.
     :param icon: Path to an icon to use for the notification, typically the app icon.
-    :param action: Handler to call when the notification is clicked.
-    :param buttons: A dictionary where keys are button names to show in the notification
-        and values are handlers to call when the respective button is clicked.
-    :param attachment: A path to an attachment for the notification.
+    :param buttons: A dictionary with button titles and callbacks to show in the
+        notification.
+    :param reply_field: Whether to show a reply field.
+    :param on_clicked: Callback to call when the notification is clicked. The
+        callback will be called without any arguments.
+    :param on_dismissed: Callback to call when the notification is dismissed. The
+        callback will be called without any arguments.
+    :param on_replied: If ``reply_field`` is True, a callback to call once the
+        user has replied. The callback will be called a single argument: a string
+        with the user reply.
     :param sound: Whether to play a sound when the notification is shown.
     :param thread: An identifier to group related notifications together.
     """
@@ -51,8 +57,11 @@ class Notification:
         message: str,
         urgency: NotificationLevel = NotificationLevel.Normal,
         icon: Optional[str] = None,
-        action: Optional[Callable] = None,
-        buttons: Optional[Dict[str, Callable]] = None,
+        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
+        reply_field: bool = False,
+        on_clicked: Optional[Callable[[], Any]] = None,
+        on_dismissed: Optional[Callable[[], Any]] = None,
+        on_replied: Optional[Callable[[str], Any]] = None,
         attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
@@ -63,8 +72,11 @@ class Notification:
         self.message = message
         self.urgency = urgency
         self.icon = icon
-        self.action = action
         self.buttons = buttons or dict()
+        self.reply_field = reply_field
+        self.on_clicked = on_clicked
+        self.on_dismissed = on_dismissed
+        self.on_replied = on_replied
         self.attachment = attachment
         self.sound = sound
         self.thread = thread

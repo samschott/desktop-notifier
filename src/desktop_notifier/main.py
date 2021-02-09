@@ -114,7 +114,7 @@ class DesktopNotifier:
         self._impl.app_icon = value
 
     def request_authorisation(
-        self, callback: Optional[Callable[[bool, str], Any]]
+        self, callback: Optional[Callable[[bool, str], Any]] = None
     ) -> None:
         """
         Requests authorisation to send user notifications. This will be automatically
@@ -149,8 +149,11 @@ class DesktopNotifier:
         message: str,
         urgency: NotificationLevel = NotificationLevel.Normal,
         icon: Optional[str] = None,
-        action: Optional[Callable[[], Any]] = None,
-        buttons: Optional[Dict[str, Callable]] = None,
+        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
+        reply_field: bool = False,
+        on_clicked: Optional[Callable[[], Any]] = None,
+        on_dismissed: Optional[Callable[[], Any]] = None,
+        on_replied: Optional[Callable[[str], Any]] = None,
         attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
@@ -167,10 +170,19 @@ class DesktopNotifier:
         :param icon: URI or icon name to use for the notification, typically the app
             icon. This will replace the icon specified by :attr:`app_icon`. Will be
             ignored on macOS.
-        :param action: Callback to call when the notification is clicked. This is
-            ignored by some implementations.
-        :param buttons: A dictionary with button names and callbacks to show in the
+        :param buttons: A dictionary with button titles and callbacks to show in the
             notification. This is ignored by some implementations.
+        :param reply_field: Whether to show a reply field, for instance for a chat
+            message. This is ignored on Linux.
+        :param on_clicked: Callback to call when the notification is clicked. The
+            callback will be called without any arguments. This is ignored by some
+            implementations.
+        :param on_dismissed: Callback to call when the notification is dismissed. The
+            callback will be called without any arguments. This is ignored by some
+            implementations.
+        :param on_replied: If ``reply_field`` is True, a callback to call once the
+            user has replied. The callback will be called a single argument: a string
+            with the user reply.
         :param attachment: A path to an attachment for the notification such as an
             image, movie, or audio file. A preview of this attachment may be displayed
             together with the notification. Different platforms and Linux notification
@@ -185,7 +197,18 @@ class DesktopNotifier:
         """
 
         notification = Notification(
-            title, message, urgency, icon, action, buttons, attachment, sound, thread
+            title,
+            message,
+            urgency,
+            icon,
+            buttons,
+            reply_field,
+            on_clicked,
+            on_dismissed,
+            on_replied,
+            attachment,
+            sound,
+            thread,
         )
 
         with self._lock:

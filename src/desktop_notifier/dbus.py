@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+NOTIFICATION_CLOSED_EXPIRED = 1
+NOTIFICATION_CLOSED_DISMISSED = 2
+NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
+NOTIFICATION_CLOSED_UNDEFINED = 4
+
 
 class DBusDesktopNotifier(DesktopNotifierBase):
     """DBus notification backend for Linux
@@ -96,6 +101,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         self.interface = self.proxy_object.get_interface(
             "org.freedesktop.Notifications"
         )
+
+        self.interface.on_notification_closed(self._on_closed)
+
         if hasattr(self.interface, "on_action_invoked"):
             # some older interfaces may not support notification actions
             self.interface.on_action_invoked(self._on_action)
@@ -171,17 +179,29 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Get the notification instance from the platform ID.
         nid = int(nid)
         action_key = str(action_key)
-        notification = self._notification_for_nid[nid]
+        notification = self._notification_for_nid.get(nid)
 
         # Execute any callbacks for button clicks.
         if notification:
-            if action_key == "default" and notification.action:
-                notification.action()
+            if action_key == "default" and notification.on_clicked:
+                notification.on_clicked()
             else:
                 callback = notification.buttons.get(action_key)
 
                 if callback:
                     callback()
+
+    def _on_closed(self, nid, reason) -> None:
+
+        # Get the notification instance from the platform ID.
+        nid = int(nid)
+        reason = int(reason)
+        notification = self._notification_for_nid.get(nid)
+
+        # Execute callback for user dismissal.
+        if notification:
+            if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
+                notification.on_dismissed()
 
     def _clear(self, notification: Notification) -> None:
         """

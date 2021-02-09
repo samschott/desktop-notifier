@@ -14,7 +14,7 @@ UNUserNotificationCenter backend for macOS.
 import uuid
 import logging
 from concurrent.futures import Future
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, cast
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -66,6 +66,9 @@ UNAuthorizationStatusProvisional = 3
 UNAuthorizationStatusEphemeral = 4
 
 
+ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
+
+
 class NotificationCenterDelegate(NSObject):  # type: ignore
     """Delegate to handle user interactions with notifications"""
 
@@ -77,19 +80,28 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         # Get the notification which was clicked from the platform ID.
         platform_nid = py_from_ns(response.notification.request.identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
+        py_notification = cast(Notification, py_notification)
 
-        # Get and call the callback which corresponds to the user interaction.
+        # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
 
-            callback = py_notification.action
+            if py_notification.on_clicked:
+                py_notification.on_clicked()
 
-            if callback:
-                callback()
+        elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
 
-        elif response.actionIdentifier != UNNotificationDismissActionIdentifier:
+            if py_notification.on_dismissed:
+                py_notification.on_dismissed()
+
+        elif response.actionIdentifier == ReplyActionIdentifier:
+
+            if py_notification.on_replied:
+                reply_text = py_from_ns(response.userText)
+                py_notification.on_replied(reply_text)
+
+        else:
 
             action_id_str = py_from_ns(response.actionIdentifier)
-
             callback = py_notification.buttons.get(action_id_str)
 
             if callback:
@@ -258,11 +270,12 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :returns: The identifier of the existing or created notification category.
         """
 
-        if not notification.buttons:
+        if not (notification.buttons or notification.reply_field):
             return None
 
-        button_hash = hash(tuple(notification.buttons.keys()))
-        category_id = f"desktop-notifier: {button_hash}"
+        button_titles = tuple(notification.buttons)
+        ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
+        category_id = f"desktop-notifier: {ui_repr}"
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
@@ -275,6 +288,16 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
             # Create action for each button.
             actions = []
+
+            if notification.reply_field:
+                action = UNTextInputNotificationAction.actionWithIdentifier(
+                    ReplyActionIdentifier,
+                    title="Reply",
+                    options=UNNotificationActionOptionNone,
+                    textInputButtonTitle="Reply",
+                    textInputPlaceholder="",
+                )
+                actions.append(action)
 
             for name in notification.buttons:
                 action = UNNotificationAction.actionWithIdentifier(

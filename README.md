@@ -14,6 +14,7 @@ Currently supported platforms are:
 
 * Clickable notifications (requires platform support)
 * Notifications with buttons (requires platform support)
+* Notifications with reply fields  
 * Asyncio integration to execute callbacks on user interaction
 * Notification sounds
 * Limit maximum number of notifications shown in the notification center
@@ -50,19 +51,22 @@ from desktop_notifier import DesktopNotifier, NotificationLevel
 
 notifier = DesktopNotifier(
     app_name="Sample App",
-    icon="file:///path/to/icon.png",
+    app_icon="file:///path/to/app_icon.png",
     notification_limit=10,
 )
 
 notifier.send(
-    title="Hello from Python!",
-    message="A horrible exception occured",
+    title="Julius Caesar",
+    message="Et tu, Brute?",
     urgency=NotificationLevel.Critical,
-    action=lambda: print("notification clicked"),
     buttons={
-        "Button 1": lambda: print("Button 1 clicked"),
-        "Button 2": lambda: print("Button 2 clicked"),
+        "Mark as read": lambda: print("Marked as read"),
     },
+    reply_field=True,
+    on_replied=lambda text: print("Brutus replied:", text),
+    on_clicked=lambda: print("Notification clicked"),
+    on_dismissed=lambda: print("Notification dismissed"),
+    attachment="file:///path/to/cute_dog.png",
     sound=True,
 )
 ```

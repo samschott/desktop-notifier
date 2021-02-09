@@ -12,7 +12,7 @@ NSUserNotificationCenter backend for macOS.
 import uuid
 import platform
 import logging
-from typing import Optional, Callable
+from typing import Optional, Callable, cast
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -50,14 +50,15 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
 
         platform_nid = py_from_ns(notification.identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
+        py_notification = cast(Notification, py_notification)
 
         if (
             notification.activationType
             == NSUserNotificationActivationTypeContentsClicked
         ):
 
-            if py_notification.action:
-                py_notification.action()
+            if py_notification.on_clicked:
+                py_notification.on_clicked()
 
         elif (
             notification.activationType
