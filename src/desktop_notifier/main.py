@@ -11,6 +11,12 @@ from threading import RLock
 import logging
 from typing import Type, Optional, Dict, Callable, List
 
+try:
+    from importlib.resources import files  # type: ignore
+except ImportError:
+    from importlib_resources import files  # type: ignore
+
+
 # external imports
 from packaging.version import Version
 
@@ -50,6 +56,11 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+# load python.png path
+
+PYTHON_ICON_PATH = os.path.join(files("maestral"), "resources", "maestral.png")
+
+
 class DesktopNotifier:
     """Cross-platform desktop notification emitter
 
@@ -75,7 +86,7 @@ class DesktopNotifier:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Optional[str] = None,
+        app_icon: Optional[str] = PYTHON_ICON_PATH,
         notification_limit: Optional[int] = None,
     ) -> None:
         self._lock = RLock()
