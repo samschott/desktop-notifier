@@ -73,6 +73,10 @@ notifier.send(
 )
 ```
 
+The above code will give the following result on macOS:
+
+![gif](screenshots/macOS.gif)
+
 Note that some platforms may not support all options. For instance, some Linux desktop
 environments may not support notifications with buttons. macOS does not support
 manually setting the app icon or name. Instead, both are always determined by the
