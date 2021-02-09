@@ -14,7 +14,7 @@ UNUserNotificationCenter backend for macOS.
 import uuid
 import logging
 from concurrent.futures import Future, wait
-from typing import Optional, Dict, Tuple, Callable
+from typing import Optional, Dict, Tuple, Callable, Any
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -125,7 +125,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self._notification_categories: Dict[Tuple[str, ...], str] = {}
 
-    def request_authorisation(self, callback: Optional[Callable] = None) -> None:
+    def request_authorisation(
+        self, callback: Optional[Callable[[bool, str], Any]] = None
+    ) -> None:
         """
         Request authorisation to send user notifications. This method returns
         immediately but authorisation will only be granted once the user has accepted

@@ -9,7 +9,7 @@ import os
 import platform
 from threading import RLock
 import logging
-from typing import Type, Optional, Dict, Callable, List
+from typing import Type, Optional, Dict, Callable, List, Any
 
 try:
     from importlib.resources import files  # type: ignore
@@ -113,7 +113,9 @@ class DesktopNotifier:
         """Setter: app_icon"""
         self._impl.app_icon = value
 
-    def request_authorisation(self, callback: Optional[Callable]) -> None:
+    def request_authorisation(
+        self, callback: Optional[Callable[[bool, str], Any]]
+    ) -> None:
         """
         Requests authorisation to send user notifications. This will be automatically
         called for you when sending a notification for the first time but it may be
@@ -147,7 +149,7 @@ class DesktopNotifier:
         message: str,
         urgency: NotificationLevel = NotificationLevel.Normal,
         icon: Optional[str] = None,
-        action: Optional[Callable] = None,
+        action: Optional[Callable[[], Any]] = None,
         buttons: Optional[Dict[str, Callable]] = None,
         attachment: Optional[str] = None,
         sound: bool = False,
