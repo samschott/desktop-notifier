@@ -12,9 +12,11 @@ Currently supported platforms are:
 
 ## Features
 
-* Clickable notifications (requires platform support)
-* Notifications with buttons (requires platform support)
-* Notifications with reply fields  
+Where supported by the native platform APIs:
+
+* Clickable notifications
+* Notifications with buttons
+* Notifications with reply fields
 * Asyncio integration to execute callbacks on user interaction
 * Notification sounds
 * Limit maximum number of notifications shown in the notification center
