@@ -68,7 +68,6 @@ notifier.send(
     on_replied=lambda text: print("Brutus replied:", text),
     on_clicked=lambda: print("Notification clicked"),
     on_dismissed=lambda: print("Notification dismissed"),
-    attachment="file:///path/to/cute_dog.png",
     sound=True,
 )
 ```
