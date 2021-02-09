@@ -52,6 +52,8 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
 
+        self.interface._clear_notification_from_cache(py_notification)
+
         if (
             notification.activationType
             == NSUserNotificationActivationTypeContentsClicked

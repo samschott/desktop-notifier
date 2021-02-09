@@ -82,6 +82,8 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
 
+        self.interface._clear_notification_from_cache(py_notification)
+
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
 

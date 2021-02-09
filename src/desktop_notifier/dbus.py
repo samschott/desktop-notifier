@@ -174,35 +174,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         return platform_nid
 
-    def _on_action(self, nid, action_key) -> None:
-
-        # Get the notification instance from the platform ID.
-        nid = int(nid)
-        action_key = str(action_key)
-        notification = self._notification_for_nid.get(nid)
-
-        # Execute any callbacks for button clicks.
-        if notification:
-            if action_key == "default" and notification.on_clicked:
-                notification.on_clicked()
-            else:
-                callback = notification.buttons.get(action_key)
-
-                if callback:
-                    callback()
-
-    def _on_closed(self, nid, reason) -> None:
-
-        # Get the notification instance from the platform ID.
-        nid = int(nid)
-        reason = int(reason)
-        notification = self._notification_for_nid.get(nid)
-
-        # Execute callback for user dismissal.
-        if notification:
-            if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
-                notification.on_dismissed()
-
     def _clear(self, notification: Notification) -> None:
         """
         Synchronously removes a notifications from the notification center
@@ -243,3 +214,41 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         for notification in self.current_notifications:
             await self.interface.call_close_notification(notification.identifier)
+
+    # Note that _on_action and _on_closed might be called for the same notification
+    # with some notification servers. This is not a problem because the _on_action
+    # call will come first, in which case we are no longer interested in calling the
+    # on_dismissed callback.
+
+    def _on_action(self, nid, action_key) -> None:
+
+        # Get the notification instance from the platform ID.
+        nid = int(nid)
+        action_key = str(action_key)
+        notification = self._notification_for_nid.get(nid)
+
+        # Execute any callbacks for button clicks.
+        if notification:
+            self._clear_notification_from_cache(notification)
+
+            if action_key == "default" and notification.on_clicked:
+                notification.on_clicked()
+            else:
+                callback = notification.buttons.get(action_key)
+
+                if callback:
+                    callback()
+
+    def _on_closed(self, nid, reason) -> None:
+
+        # Get the notification instance from the platform ID.
+        nid = int(nid)
+        reason = int(reason)
+        notification = self._notification_for_nid.get(nid)
+
+        # Execute callback for user dismissal.
+        if notification:
+            self._clear_notification_from_cache(notification)
+
+            if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
+                notification.on_dismissed()

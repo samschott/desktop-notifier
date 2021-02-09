@@ -167,6 +167,22 @@ class DesktopNotifierBase:
             self._current_notifications.append(notification)
             self._notification_for_nid[platform_nid] = notification
 
+    def _clear_notification_from_cache(self, notification: Notification) -> None:
+        """
+        Removes the notification from our cache. Should be called by backends when the
+        notification is closed.
+        """
+        try:
+            self._current_notifications.remove(notification)
+        except ValueError:
+            pass
+
+        if notification.identifier:
+            try:
+                self._notification_for_nid.pop(notification.identifier)
+            except KeyError:
+                pass
+
     def _send(
         self,
         notification: Notification,
@@ -201,8 +217,8 @@ class DesktopNotifierBase:
 
         if notification.identifier:
             self._clear(notification)
-            self._current_notifications.remove(notification)
-            self._notification_for_nid.pop(notification.identifier)
+
+        self._clear_notification_from_cache(notification)
 
     def _clear(self, notification: Notification) -> None:
         """
