@@ -52,7 +52,10 @@ UNAuthorizationOptionBadge = 1 << 0
 UNAuthorizationOptionSound = 1 << 1
 UNAuthorizationOptionAlert = 1 << 2
 
+UNNotificationActionOptionAuthenticationRequired = 1 << 0
+UNNotificationActionOptionDestructive = 1 << 1
 UNNotificationActionOptionForeground = 1 << 2
+UNNotificationActionOptionNone = 0
 
 UNNotificationCategoryOptionNone = 0
 
@@ -264,7 +267,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
             for name in button_names:
                 action = UNNotificationAction.actionWithIdentifier(
-                    name, title=name, options=UNNotificationActionOptionForeground
+                    name, title=name, options=UNNotificationActionOptionNone
                 )
                 actions.append(action)
 
