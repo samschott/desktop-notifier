@@ -59,6 +59,6 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     url="https://github.com/samschott/desktop-notifier",
-    version="2.0.2",
+    version="2.0.3",
     zip_safe=False,
 )
