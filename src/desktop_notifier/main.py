@@ -137,6 +137,7 @@ class DesktopNotifier:
         """
 
         with self._lock:
+            self._did_request_authorisation = True
             self._impl.request_authorisation(callback)
 
     @property
@@ -214,23 +215,10 @@ class DesktopNotifier:
 
         with self._lock:
 
-            if self.has_authorisation:
-                self._impl.send(notification)
+            if not self._did_request_authorisation:
+                self.request_authorisation()
 
-            elif not self._did_request_authorisation:
-                self._did_request_authorisation = True
-
-                def send_delayed(granted: bool, error: str, n=notification) -> None:
-                    if granted:
-                        with self._lock:
-                            self._impl.send(n)
-                    else:
-                        logger.warning("Not authorised: %s", error)
-
-                self.request_authorisation(callback=send_delayed)
-
-            else:
-                logger.warning("Not authorised")
+            self._impl.send(notification)
 
         return notification
 
