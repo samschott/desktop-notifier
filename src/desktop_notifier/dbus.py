@@ -103,10 +103,12 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             "org.freedesktop.Notifications"
         )
 
-        self.interface.on_notification_closed(self._on_closed)
+        # Some older interfaces may not support notification actions.
+
+        if hasattr(self.interface, "on_notification_closed"):
+            self.interface.on_notification_closed(self._on_closed)
 
         if hasattr(self.interface, "on_action_invoked"):
-            # some older interfaces may not support notification actions
             self.interface.on_action_invoked(self._on_action)
 
         return self.interface
