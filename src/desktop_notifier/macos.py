@@ -224,9 +224,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification_to_replace: Notification to replace, if any.
         """
 
-        if not self.has_authorisation:
-            raise AuthorisationError("Not authorised")
-
         if notification_to_replace:
             platform_nid = str(notification_to_replace.identifier)
         else:
