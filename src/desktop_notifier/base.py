@@ -14,6 +14,10 @@ from typing import Optional, Dict, Callable, Any, Union, Deque, List
 logger = logging.getLogger(__name__)
 
 
+class AuthorisationError(Exception):
+    """Raised when we are not authorised to send notifications"""
+
+
 class NotificationLevel(Enum):
     """Enumeration of notification levels
 
@@ -193,6 +197,11 @@ class DesktopNotifierBase:
         """
         Method to send a notification via the platform. This should be implemented by
         subclasses.
+
+        Implementations must raise an exception when the notification could not be
+        delivered. If the notification could be delivered but not fully as intended,
+        e.g., because associated resources could not be loaded, implementations should
+        emit a log message of level warning.
 
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.

@@ -13,6 +13,7 @@ UNUserNotificationCenter backend for macOS.
 # system imports
 import uuid
 import logging
+import enum
 from concurrent.futures import Future
 from typing import Optional, Callable, Any, cast
 
@@ -21,7 +22,7 @@ from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: i
 from rubicon.objc.runtime import load_library, objc_id, objc_block  # type: ignore
 
 # local imports
-from .base import Notification, DesktopNotifierBase
+from .base import Notification, DesktopNotifierBase, AuthorisationError
 
 
 __all__ = ["CocoaNotificationCenter"]
@@ -43,12 +44,15 @@ UNNotificationAttachment = ObjCClass("UNNotificationAttachment")
 NSURL = ObjCClass("NSURL")
 NSSet = ObjCClass("NSSet")
 
+# UserNotifications.h
+
 UNNotificationDefaultActionIdentifier = (
     "com.apple.UNNotificationDefaultActionIdentifier"
 )
 UNNotificationDismissActionIdentifier = (
     "com.apple.UNNotificationDismissActionIdentifier"
 )
+ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 UNAuthorizationOptionBadge = 1 << 0
 UNAuthorizationOptionSound = 1 << 1
@@ -65,8 +69,19 @@ UNAuthorizationStatusAuthorized = 2
 UNAuthorizationStatusProvisional = 3
 UNAuthorizationStatusEphemeral = 4
 
+UNErrorDomain = "UNErrorDomain"
 
-ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
+
+class UNErrorCode(enum.Enum):
+    NotificationsNotAllowed = 1
+    AttachmentInvalidURL = 100
+    AttachmentUnrecognizedType = 101
+    AttachmentInvalidFileSize = 102
+    AttachmentNotInDataStore = 103
+    AttachmentMoveIntoDataStoreFailed = 104
+    AttachmentCorrupt = 105
+    NotificationInvalidNoDate = 1400
+    NotificationInvalidNoContent = 1401
 
 
 class NotificationCenterDelegate(NSObject):  # type: ignore
@@ -210,7 +225,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
 
         if not self.has_authorisation:
-            raise RuntimeError("Not authorised")
+            raise AuthorisationError("Not authorised")
 
         if notification_to_replace:
             platform_nid = str(notification_to_replace.identifier)
@@ -246,18 +261,38 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         def handler(error: objc_id) -> None:
             ns_error = py_from_ns(error)
-            error_description = ns_error.localizedDescription if ns_error else ""
-            future.set_result(error_description)
+            if ns_error:
+                ns_error.retain()
+            future.set_result(ns_error)
 
         # Post the notification.
         self.nc.addNotificationRequest(
             notification_request, withCompletionHandler=handler
         )
 
+        # Error handling.
+
         error = future.result()
 
-        if error != "":
-            raise RuntimeError(error)
+        if error:
+            error.autorelease()
+
+            if error.domain == UNErrorDomain:
+                if error.code == UNErrorCode.NotificationsNotAllowed:
+                    raise AuthorisationError("Not authorised")
+                elif error.code == UNErrorCode.NotificationInvalidNoDate:
+                    raise RuntimeError("Missing notification date")
+                elif error.code == UNErrorCode.NotificationInvalidNoContent:
+                    raise RuntimeError("Missing notification content")
+                else:
+                    # In case of attachment errors, the notification will still be
+                    # delivered, just without an attachment. We therefore do not raise
+                    # the error.
+                    logger.warning(
+                        f"{error.localizedDescription}: {notification.attachment}"
+                    )
+            else:
+                raise RuntimeError(error.localizedDescription)
 
         return platform_nid
 
