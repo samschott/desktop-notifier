@@ -58,7 +58,8 @@ logger = logging.getLogger(__name__)
 
 # load python.png path
 
-PYTHON_ICON_PATH = os.path.join(files("maestral"), "resources", "maestral.png")
+PYTHON_ICON_PATH = os.path.join(files("desktop_notifier"), "resources", "python.png")
+PYTHON_ICON_URI = f"file://{PYTHON_ICON_PATH}"
 
 
 class DesktopNotifier:
@@ -86,7 +87,7 @@ class DesktopNotifier:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Optional[str] = PYTHON_ICON_PATH,
+        app_icon: Optional[str] = PYTHON_ICON_URI,
         notification_limit: Optional[int] = None,
     ) -> None:
         self._lock = RLock()

@@ -47,6 +47,9 @@ setup(
         "dev": dev_requires,
         "docs": docs_require,
     },
+    package_data={
+        "desktop_notifier": ["resources/*"],
+    },
     license="MIT license",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
