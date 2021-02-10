@@ -12,7 +12,7 @@ NSUserNotificationCenter backend for macOS.
 import uuid
 import platform
 import logging
-from typing import Optional, Callable, cast
+from typing import Optional, Callable, Any, cast
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -103,11 +103,14 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self.nc_delegate.interface = self
         self.nc.delegate = self.nc_delegate
 
-    def request_authorisation(self, callback: Optional[Callable]) -> None:
+    def request_authorisation(
+        self, callback: Optional[Callable[[bool, str], Any]]
+    ) -> None:
         """
         Request authorisation to send notifications.
         """
-        pass
+        if callback:
+            callback(True, "")
 
     @property
     def has_authorisation(self) -> bool:

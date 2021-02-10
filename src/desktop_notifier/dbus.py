@@ -65,7 +65,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         """
         Request authorisation to send notifications.
         """
-        pass
+        if callback:
+            callback(True, "")
 
     @property
     def has_authorisation(self) -> bool:

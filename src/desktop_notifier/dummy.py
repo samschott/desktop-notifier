@@ -5,7 +5,7 @@ Dummy backend for unsupported platforms.
 
 # system imports
 import uuid
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 
 # local imports
 from .base import Notification, DesktopNotifierBase
@@ -22,11 +22,14 @@ class DummyNotificationCenter(DesktopNotifierBase):
     ) -> None:
         super().__init__(app_name, app_icon, notification_limit)
 
-    def request_authorisation(self, callback: Optional[Callable]) -> None:
+    def request_authorisation(
+        self, callback: Optional[Callable[[bool, str], Any]]
+    ) -> None:
         """
         Request authorisation to send notifications.
         """
-        pass
+        if callback:
+            callback(True, "")
 
     @property
     def has_authorisation(self) -> bool:
