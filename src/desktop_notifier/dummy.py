@@ -48,5 +48,8 @@ class DummyNotificationCenter(DesktopNotifierBase):
         else:
             return str(uuid.uuid4())
 
+    def _clear(self, notification: Notification) -> None:
+        pass
+
     def _clear_all(self) -> None:
         pass
