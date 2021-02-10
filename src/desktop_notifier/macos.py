@@ -14,7 +14,7 @@ UNUserNotificationCenter backend for macOS.
 import uuid
 import logging
 import enum
-from concurrent.futures import Future
+import asyncio
 from typing import Optional, Callable, Any, cast
 
 # external imports
@@ -156,7 +156,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self._clear_notification_categories()
 
-    def request_authorisation(
+    async def request_authorisation(
         self, callback: Optional[Callable[[bool, str], Any]] = None
     ) -> None:
         """
@@ -185,13 +185,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             completionHandler=on_auth_completed,
         )
 
-    @property
-    def has_authorisation(self) -> bool:
+    async def has_authorisation(self) -> bool:
         """Whether we have authorisation to send notifications."""
 
         # Get existing notification categories.
 
-        future: Future = Future()
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
 
         def handler(settings: objc_id) -> None:
             settings = py_from_ns(settings)
@@ -200,7 +200,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self.nc.getNotificationSettingsWithCompletionHandler(handler)
 
-        settings = future.result()
+        settings = await future
 
         authorized = settings.authorizationStatus in (
             UNAuthorizationStatusAuthorized,
@@ -212,7 +212,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return authorized
 
-    def _send(
+    async def _send(
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
@@ -231,7 +231,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # On macOS, we need need to register a new notification category for every
         # unique set of buttons.
-        category_id = self._create_category_for_notification(notification)
+        category_id = await self._create_category_for_notification(notification)
 
         # Create the native notification + notification request.
         content = UNMutableNotificationContent.alloc().init()
@@ -254,7 +254,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             platform_nid, content=content, trigger=None
         )
 
-        future: Future = Future()
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
 
         def handler(error: objc_id) -> None:
             ns_error = py_from_ns(error)
@@ -269,7 +270,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Error handling.
 
-        error = future.result()
+        error = await future
 
         if error:
             error.autorelease()
@@ -293,7 +294,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return platform_nid
 
-    def _create_category_for_notification(
+    async def _create_category_for_notification(
         self, notification: Notification
     ) -> Optional[str]:
         """
@@ -314,7 +315,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
 
-        categories = self._get_notification_categories()
+        categories = await self._get_notification_categories()
         category_ids = set(py_from_ns(c.identifier) for c in categories.allObjects())  # type: ignore
 
         # Register new category if necessary.
@@ -353,10 +354,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return category_id
 
-    def _get_notification_categories(self) -> NSSet:  # type: ignore
+    async def _get_notification_categories(self) -> NSSet:  # type: ignore
         """Returns the registered notification categories for this app / Python."""
 
-        future: Future = Future()
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
 
         def handler(categories: objc_id) -> None:
             categories = py_from_ns(categories)
@@ -365,7 +367,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self.nc.getNotificationCategoriesWithCompletionHandler(handler)
 
-        categories = future.result()
+        categories = await future
         categories.autorelease()
 
         return categories
@@ -375,7 +377,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         empty_set = NSSet.alloc().init()
         self.nc.setNotificationCategories(empty_set)
 
-    def _clear(self, notification: Notification) -> None:
+    async def _clear(self, notification: Notification) -> None:
         """
         Removes a notifications from the notification center
 
@@ -383,13 +385,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
         self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
 
-    def _clear_all(self) -> None:
+    async def _clear_all(self) -> None:
         """
-        Clears all notifications from notification center
-
-        The method executes asynchronously, returning immediately and removing the
-        notifications on a background thread. This method does not affect any
-        notification requests that are scheduled, but have not yet been delivered.
+        Clears all notifications from notification center. This method does not affect
+        any notification requests that are scheduled, but have not yet been delivered.
         """
-
         self.nc.removeAllDeliveredNotifications()

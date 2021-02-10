@@ -12,7 +12,7 @@ NSUserNotificationCenter backend for macOS.
 import uuid
 import platform
 import logging
-from typing import Optional, Callable, Any, cast
+from typing import Optional, cast
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -103,23 +103,19 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self.nc_delegate.interface = self
         self.nc.delegate = self.nc_delegate
 
-    def request_authorisation(
-        self, callback: Optional[Callable[[bool, str], Any]]
-    ) -> None:
+    async def request_authorisation(self) -> None:
         """
         Request authorisation to send notifications.
         """
-        if callback:
-            callback(True, "")
+        pass
 
-    @property
-    def has_authorisation(self) -> bool:
+    async def has_authorisation(self) -> bool:
         """
         Whether we have authorisation to send notifications.
         """
         return True
 
-    def _send(
+    async def _send(
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
@@ -160,7 +156,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
         return platform_nid
 
-    def _clear(self, notification: Notification) -> None:
+    async def _clear(self, notification: Notification) -> None:
         """
         Removes a notifications from the notification center
 
@@ -170,7 +166,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         if hasattr(notification, "_native"):
             self.nc.removeDeliveredNotification(notification._native)  # type: ignore
 
-    def _clear_all(self) -> None:
+    async def _clear_all(self) -> None:
         """
         Clears all notifications from notification center
         """
