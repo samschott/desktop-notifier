@@ -35,6 +35,14 @@ class Urgency(Enum):
 
 
 class Button:
+    """
+    A button for interactive notifications
+
+    :param title: The button title.
+    :param on_pressed: Callback to invoke when the button is pressed. This is called
+        without any arguments.
+    """
+
     def __init__(
         self, title: str, on_pressed: Optional[Callable[[], Any]] = None
     ) -> None:
@@ -46,6 +54,16 @@ class Button:
 
 
 class ReplyField:
+    """
+    A reply field for interactive notifications
+
+    :param title: A title for the field itself. On macOS, this will be the title of a
+        button to show the field.
+    :param button_title: The title of the button to send the reply.
+    :param on_replied: Callback to invoke when the button is pressed. This is called
+        without any arguments.
+    """
+
     def __init__(
         self,
         title: str = "Reply",
