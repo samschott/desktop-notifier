@@ -70,12 +70,22 @@ PYTHON_ICON_PATH = os.path.join(files("desktop_notifier"), "resources", "python.
 PYTHON_ICON_URI = f"file://{PYTHON_ICON_PATH}"
 
 
-def _run_coco_sync(coro: Coroutine[None, None, T]) -> T:
+default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
+
+
+def run_coro_sync(coro: Coroutine[None, None, T]) -> T:
     """
-    Runs the given coroutine and returns the result synchronously.
+    Runs the given coroutine and returns the result synchronously. This is used as a
+    wrapper to conveniently convert the async API calls to synchronous ones.
     """
 
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        # If we are running in a thread, create a new event loop. Use the default
+        # event loop policy so that we don't interfere with anything set in the main
+        # thread.
+        loop = default_event_loop_policy.new_event_loop()
 
     if loop.is_running():
         future = asyncio.run_coroutine_threadsafe(coro, loop)
@@ -264,7 +274,7 @@ class DesktopNotifier:
             thread,
         )
 
-        return _run_coco_sync(coro)
+        return run_coro_sync(coro)
 
     @property
     def current_notifications(self) -> List[Notification]:
