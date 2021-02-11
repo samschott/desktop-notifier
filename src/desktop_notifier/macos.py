@@ -15,6 +15,7 @@ import uuid
 import logging
 import enum
 import asyncio
+from concurrent.futures import Future
 from typing import Optional, Callable, Any, cast
 
 # external imports
@@ -190,8 +191,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Get existing notification categories.
 
-        loop = asyncio.get_event_loop()
-        future = loop.create_future()
+        future: Future = Future()
 
         def handler(settings: objc_id) -> None:
             settings = py_from_ns(settings)
@@ -200,7 +200,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self.nc.getNotificationSettingsWithCompletionHandler(handler)
 
-        settings = await future
+        settings = await asyncio.wrap_future(future)
 
         authorized = settings.authorizationStatus in (
             UNAuthorizationStatusAuthorized,
@@ -254,8 +254,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             platform_nid, content=content, trigger=None
         )
 
-        loop = asyncio.get_event_loop()
-        future = loop.create_future()
+        future: Future = Future()
 
         def handler(error: objc_id) -> None:
             ns_error = py_from_ns(error)
@@ -270,7 +269,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Error handling.
 
-        error = await future
+        error = await asyncio.wrap_future(future)
 
         if error:
             error.autorelease()
@@ -357,8 +356,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     async def _get_notification_categories(self) -> NSSet:  # type: ignore
         """Returns the registered notification categories for this app / Python."""
 
-        loop = asyncio.get_event_loop()
-        future = loop.create_future()
+        future: Future = Future()
 
         def handler(categories: objc_id) -> None:
             categories = py_from_ns(categories)
@@ -367,7 +365,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self.nc.getNotificationCategoriesWithCompletionHandler(handler)
 
-        categories = await future
+        categories = await asyncio.wrap_future(future)
         categories.autorelease()
 
         return categories
