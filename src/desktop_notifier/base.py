@@ -8,7 +8,7 @@ must inherit from :class:`DesktopNotifierBase`.
 import logging
 from enum import Enum
 from collections import deque
-from typing import Optional, Dict, Callable, Any, Union, Deque, List
+from typing import Optional, Dict, Callable, Any, Union, Deque, List, Sequence
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class AuthorisationError(Exception):
     """Raised when we are not authorised to send notifications"""
 
 
-class NotificationLevel(Enum):
+class Urgency(Enum):
     """Enumeration of notification levels
 
     The interpretation and visuals will depend on the platform.
@@ -34,6 +34,32 @@ class NotificationLevel(Enum):
     """Low priority notification."""
 
 
+class Button:
+    def __init__(
+        self, title: str, on_pressed: Optional[Callable[[], Any]] = None
+    ) -> None:
+        self.title = title
+        self.on_pressed = on_pressed
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}(title='{self.title}', on_pressed={self.on_pressed})>"
+
+
+class ReplyField:
+    def __init__(
+        self,
+        title: str = "Reply",
+        button_title: str = "Send",
+        on_replied: Optional[Callable[[str], Any]] = None,
+    ) -> None:
+        self.title = title
+        self.button_title = button_title
+        self.on_replied = on_replied
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}(title='{self.title}', on_replied={self.on_replied})>"
+
+
 class Notification:
     """A desktop notification
 
@@ -41,16 +67,12 @@ class Notification:
     :param message: Notification message.
     :param urgency: Notification level: low, normal or critical.
     :param icon: Path to an icon to use for the notification, typically the app icon.
-    :param buttons: A dictionary with button titles and callbacks to show in the
-        notification.
-    :param reply_field: Whether to show a reply field.
+    :param buttons: A list of buttons for the notification.
+    :param reply_field: An optional reply field/
     :param on_clicked: Callback to call when the notification is clicked. The
         callback will be called without any arguments.
     :param on_dismissed: Callback to call when the notification is dismissed. The
         callback will be called without any arguments.
-    :param on_replied: If ``reply_field`` is True, a callback to call once the
-        user has replied. The callback will be called a single argument: a string
-        with the user reply.
     :param sound: Whether to play a sound when the notification is shown.
     :param thread: An identifier to group related notifications together.
     """
@@ -59,13 +81,12 @@ class Notification:
         self,
         title: str,
         message: str,
-        urgency: NotificationLevel = NotificationLevel.Normal,
+        urgency: Urgency = Urgency.Normal,
         icon: Optional[str] = None,
-        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
-        reply_field: bool = False,
+        buttons: Sequence[Button] = (),
+        reply_field: Optional[ReplyField] = None,
         on_clicked: Optional[Callable[[], Any]] = None,
         on_dismissed: Optional[Callable[[], Any]] = None,
-        on_replied: Optional[Callable[[str], Any]] = None,
         attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
@@ -76,11 +97,10 @@ class Notification:
         self.message = message
         self.urgency = urgency
         self.icon = icon
-        self.buttons = buttons or dict()
+        self.buttons = buttons
         self.reply_field = reply_field
         self.on_clicked = on_clicked
         self.on_dismissed = on_dismissed
-        self.on_replied = on_replied
         self.attachment = attachment
         self.sound = sound
         self.thread = thread

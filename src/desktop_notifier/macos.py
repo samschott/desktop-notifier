@@ -113,14 +113,14 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
 
         elif response.actionIdentifier == ReplyActionIdentifier:
 
-            if py_notification.on_replied:
+            if py_notification.reply_field.on_replied:
                 reply_text = py_from_ns(response.userText)
-                py_notification.on_replied(reply_text)
+                py_notification.reply_field.on_replied(reply_text)
 
         else:
 
-            action_id_str = py_from_ns(response.actionIdentifier)
-            callback = py_notification.buttons.get(action_id_str)
+            button_number = int(py_from_ns(response.actionIdentifier))
+            callback = py_notification.buttons[button_number].on_pressed
 
             if callback:
                 callback()
@@ -330,14 +330,14 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                     ReplyActionIdentifier,
                     title="Reply",
                     options=UNNotificationActionOptionNone,
-                    textInputButtonTitle="Reply",
+                    textInputButtonTitle="Send",
                     textInputPlaceholder="",
                 )
                 actions.append(action)
 
-            for name in notification.buttons:
+            for n, button in enumerate(notification.buttons):
                 action = UNNotificationAction.actionWithIdentifier(
-                    name, title=name, options=UNNotificationActionOptionNone
+                    str(n), title=button.title, options=UNNotificationActionOptionNone
                 )
                 actions.append(action)
 

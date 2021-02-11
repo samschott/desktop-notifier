@@ -18,12 +18,11 @@ The table below gives an overview over supported functionality for different pla
    "app_icon", "The icon shown with the notification", "✓", "-- [#f1]_"
    "title", "The notification title", "✓", "✓"
    "message", "The notification message", "✓", "✓"
-   "urgency", "Urgency level that determines how the notification is displayed", "✓", "--"
-   "buttons", "Support for one or more buttons with callbacks", "✓ [#f2]_", "✓ [#f3]_"
+   "urgency", "Level that determines how the notification is displayed", "✓", "--"
+   "buttons", "One or more buttons with callbacks", "✓ [#f2]_", "✓ [#f3]_"
    "reply_field", "Whether to show a reply field", "--", "✓"
    "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f2]_", "✓"
    "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f2]_", "✓"
-   "on_replied", "A callback to invoke when the user replies", "--", "✓"
    "sound", "Play a default sound when showing the notification", "✓ [#f2]_", "✓"
    "thread", "An identifier to group notifications together", "--", "✓"
 
@@ -39,6 +38,16 @@ MacOS and almost all Linux notification servers support executing a callback whe
 notification is clicked. Note the requirements on a running event loop to handle
 callbacks in Python.
 
+Urgency
+*******
+
+The notification urgency may influence how notification is displayed. For instance, in
+Gnome, notifications of critical urgency will remain visible until closed by the user
+and their buttons will always be expanded.
+
+This is currently not supported on macOS where critical notifications require a special
+entitlement issued by Apple.
+
 Buttons
 *******
 
@@ -51,13 +60,6 @@ number of buttons. Gnome desktops typically support up to three buttons.
 When an implementation or a platform supports only a limited number of buttons, any
 additional buttons specified in the notification request will be silently ignored.
 
-Reply field
-***********
-
-Reply fields are supported on macOS and iOS. If ``reply_field`` is set to True, a
-"Reply" button and text input field will be show. This will always be placed before any
-other buttons. The placeholder and button text are currently not customisable, even when
-supported by the native platform APIs.
 
 Attachments
 ***********
