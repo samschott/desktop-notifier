@@ -9,7 +9,8 @@ import os
 import platform
 from threading import RLock
 import logging
-from typing import Type, Optional, Dict, Callable, List, Any
+import asyncio
+from typing import Type, Optional, Dict, Callable, Coroutine, List, Any, TypeVar
 
 try:
     from importlib.resources import files  # type: ignore
@@ -55,11 +56,26 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-
-# load python.png path
+T = TypeVar("T")
 
 PYTHON_ICON_PATH = os.path.join(files("desktop_notifier"), "resources", "python.png")
 PYTHON_ICON_URI = f"file://{PYTHON_ICON_PATH}"
+
+
+def _run_coco_sync(coro: Coroutine[None, None, T]) -> T:
+    """
+    Runs the given coroutine and returns the result synchronously.
+    """
+
+    loop = asyncio.get_event_loop()
+
+    if loop.is_running():
+        future = asyncio.run_coroutine_threadsafe(coro, loop)
+        res = future.result()
+    else:
+        res = loop.run_until_complete(coro)
+
+    return res
 
 
 class DesktopNotifier:
@@ -114,9 +130,7 @@ class DesktopNotifier:
         """Setter: app_icon"""
         self._impl.app_icon = value
 
-    def request_authorisation(
-        self, callback: Optional[Callable[[bool, str], Any]] = None
-    ) -> None:
+    async def request_authorisation(self) -> bool:
         """
         Requests authorisation to send user notifications. This will be automatically
         called for you when sending a notification for the first time but it may be
@@ -126,26 +140,18 @@ class DesktopNotifier:
         when this method is called for the first time. This method does nothing on
         platforms where user authorisation is not required.
 
-        This method returns immediately. You can provide a callback to run once
-        authorisation has been granted or rejected and use :attr:`has_authorisation` to
-        verify permissions.
-
-        :param callback: A method to call when the authorisation request has been
-            granted or denied. The callback will be called with two arguments: a bool
-            indicating if authorisation was granted and a string describing failure
-            reasons for the request.
+        :returns: Whether authorisation has been granted.
         """
 
         with self._lock:
             self._did_request_authorisation = True
-            self._impl.request_authorisation(callback)
+            return await self._impl.request_authorisation()
 
-    @property
-    def has_authorisation(self) -> bool:
-        """Whether we have authorisation to send notifications."""
-        return self._impl.has_authorisation
+    async def has_authorisation(self) -> bool:
+        """Returns whether we have authorisation to send notifications."""
+        return await self._impl.has_authorisation()
 
-    def send(
+    async def send(
         self,
         title: str,
         message: str,
@@ -216,30 +222,68 @@ class DesktopNotifier:
         with self._lock:
 
             if not self._did_request_authorisation:
-                self.request_authorisation()
+                await self.request_authorisation()
 
-            self._impl.send(notification)
+            await self._impl.send(notification)
 
-        return notification
+            return notification
+
+    def send_sync(
+        self,
+        title: str,
+        message: str,
+        urgency: NotificationLevel = NotificationLevel.Normal,
+        icon: Optional[str] = None,
+        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
+        reply_field: bool = False,
+        on_clicked: Optional[Callable[[], Any]] = None,
+        on_dismissed: Optional[Callable[[], Any]] = None,
+        on_replied: Optional[Callable[[str], Any]] = None,
+        attachment: Optional[str] = None,
+        sound: bool = False,
+        thread: Optional[str] = None,
+    ) -> Notification:
+        """
+        Synchronous call of :meth:`send`, for use without an asyncio event loop.
+
+        :returns: The scheduled notification instance.
+        """
+
+        coro = self.send(
+            title,
+            message,
+            urgency,
+            icon,
+            buttons,
+            reply_field,
+            on_clicked,
+            on_dismissed,
+            on_replied,
+            attachment,
+            sound,
+            thread,
+        )
+
+        return _run_coco_sync(coro)
 
     @property
     def current_notifications(self) -> List[Notification]:
         """A list of all currently displayed notifications for this app"""
         return self._impl.current_notifications
 
-    def clear(self, notification: Notification) -> None:
+    async def clear(self, notification: Notification) -> None:
         """
         Removes the given notification from the notification center.
 
         :param notification: Notification to clear.
         """
         with self._lock:
-            self._impl.clear(notification)
+            await self._impl.clear(notification)
 
-    def clear_all(self) -> None:
+    async def clear_all(self) -> None:
         """
         Removes all currently displayed notifications for this app from the notification
         center.
         """
         with self._lock:
-            self._impl.clear_all()
+            await self._impl.clear_all()

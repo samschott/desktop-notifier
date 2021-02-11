@@ -6,9 +6,8 @@ event loop.
 """
 
 # system imports
-import asyncio
 import logging
-from typing import Optional, Coroutine, TypeVar, Callable
+from typing import Optional, TypeVar
 
 # external imports
 from dbus_next import Variant  # type: ignore
@@ -58,35 +57,21 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         notification_limit: Optional[int] = None,
     ) -> None:
         super().__init__(app_name, app_icon, notification_limit)
-        self._loop = asyncio.get_event_loop()
         self.interface: Optional[ProxyInterface] = None
 
-    def request_authorisation(self, callback: Optional[Callable]) -> None:
+    async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.
-        """
-        if callback:
-            callback(True, "")
 
-    @property
-    def has_authorisation(self) -> bool:
+        :returns: Whether authorisation has been granted.
+        """
+        return True
+
+    async def has_authorisation(self) -> bool:
         """
         Whether we have authorisation to send notifications.
         """
         return True
-
-    def _run_coco_sync(self, coro: Coroutine[None, None, T]) -> T:
-        """
-        Runs the given coroutine and returns the result synchronously.
-        """
-
-        if self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
-            res = future.result()
-        else:
-            res = self._loop.run_until_complete(coro)
-
-        return res
 
     async def _init_dbus(self) -> ProxyInterface:
 
@@ -113,22 +98,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         return self.interface
 
-    def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Optional[Notification],
-    ) -> int:
-        """
-        Synchronously sends a notification via the Dbus interface.
-
-        :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
-        """
-        return self._run_coco_sync(
-            self._send_async(notification, notification_to_replace)
-        )
-
-    async def _send_async(
+    async def _send(
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
@@ -177,15 +147,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         return platform_nid
 
-    def _clear(self, notification: Notification) -> None:
-        """
-        Synchronously removes a notifications from the notification center
-
-        :param notification: Notification to clear.
-        """
-        self._run_coco_sync(self._clear_async(notification))
-
-    async def _clear_async(self, notification: Notification) -> None:
+    async def _clear(self, notification: Notification) -> None:
         """
         Asynchronously removes a notification from the notification center
         """
@@ -195,19 +157,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         await self.interface.call_close_notification(notification.identifier)
 
-    def _clear_all(self) -> None:
-        """
-        Synchronously clears all notifications from notification center
-
-        The org.freedesktop.Notifications specification does not support retrieving or
-        or clearing all notifications for an app name directly. We therefore rely on our
-        cache of already delivered notifications and clear them individually. Since this
-        is not persistent between Python sessions, notifications delivered in a previous
-        session will not be cleared.
-        """
-        self._run_coco_sync(self._clear_all_async())
-
-    async def _clear_all_async(self) -> None:
+    async def _clear_all(self) -> None:
         """
         Asynchronously clears all notifications from notification center
         """

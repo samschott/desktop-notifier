@@ -123,22 +123,21 @@ class DesktopNotifierBase:
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
         self._notification_for_nid: Dict[Union[str, int], Notification] = {}
 
-    def request_authorisation(
-        self, callback: Optional[Callable[[bool, str], Any]]
-    ) -> None:
+    async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.
+
+        :returns: Whether authorisation has been granted.
         """
         raise NotImplementedError()
 
-    @property
-    def has_authorisation(self) -> bool:
+    async def has_authorisation(self) -> bool:
         """
-        Whether we have authorisation to send notifications.
+        Returns whether we have authorisation to send notifications.
         """
         raise NotImplementedError()
 
-    def send(self, notification: Notification) -> None:
+    async def send(self, notification: Notification) -> None:
         """
         Sends a desktop notification. Some arguments may be ignored, depending on the
         implementation. This is a wrapper method which mostly performs housekeeping of
@@ -159,7 +158,7 @@ class DesktopNotifierBase:
             notification_to_replace = None
 
         try:
-            platform_nid = self._send(notification, notification_to_replace)
+            platform_nid = await self._send(notification, notification_to_replace)
         except Exception:
             # Notifications can fail for many reasons:
             # The dbus service may not be available, we might be in a headless session,
@@ -189,7 +188,7 @@ class DesktopNotifierBase:
             except KeyError:
                 pass
 
-    def _send(
+    async def _send(
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
@@ -216,7 +215,7 @@ class DesktopNotifierBase:
         """
         return list(self._current_notifications)
 
-    def clear(self, notification: Notification) -> None:
+    async def clear(self, notification: Notification) -> None:
         """
         Removes the given notification from the notification center. This is a wrapper
         method which mostly performs housekeeping of notifications ID and calls
@@ -227,11 +226,11 @@ class DesktopNotifierBase:
         """
 
         if notification.identifier:
-            self._clear(notification)
+            await self._clear(notification)
 
         self._clear_notification_from_cache(notification)
 
-    def _clear(self, notification: Notification) -> None:
+    async def _clear(self, notification: Notification) -> None:
         """
         Removes the given notification from the notification center. Should be
         implemented by subclasses.
@@ -240,7 +239,7 @@ class DesktopNotifierBase:
         """
         raise NotImplementedError()
 
-    def clear_all(self) -> None:
+    async def clear_all(self) -> None:
         """
         Clears all notifications from the notification center. This is a wrapper method
         which mostly performs housekeeping of notifications ID and calls
@@ -248,11 +247,11 @@ class DesktopNotifierBase:
         must implement :meth:`_clear_all`.
         """
 
-        self._clear_all()
+        await self._clear_all()
         self._current_notifications.clear()
         self._notification_for_nid.clear()
 
-    def _clear_all(self) -> None:
+    async def _clear_all(self) -> None:
         """
         Clears all notifications from the notification center. Should be implemented by
         subclasses.
