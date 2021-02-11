@@ -44,7 +44,7 @@ notification options, such as notification urgency, buttons, callbacks, etc:
 
 .. code-block:: python
 
-    from desktop_notifier import DesktopNotifier, NotificationLevel
+    from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
 
     notifier = DesktopNotifier(
         app_name="Sample App",
@@ -54,15 +54,22 @@ notification options, such as notification urgency, buttons, callbacks, etc:
 
     async def main():
         await notify.send(
-            title="Julius Caesar",
-            message="Et tu, Brute?",
-            urgency=NotificationLevel.Critical,
-            buttons={"Mark as read": lambda: print("Marked as read")},
-            reply_field=True,
+          title="Julius Caesar",
+          message="Et tu, Brute?",
+          urgency=NotificationLevel.Critical,
+          buttons=[
+            Button(
+              title="Mark as read",
+              on_pressed=lambda: print("Marked as read")),
+          ],
+          reply_field=ReplyField(
+            title="Reply",
+            button_title="Send",
             on_replied=lambda text: print("Brutus replied:", text),
-            on_clicked=lambda: print("Notification clicked"),
-            on_dismissed=lambda: print("Notification dismissed"),
-            sound=True,
+          ),
+          on_clicked=lambda: print("Notification clicked"),
+          on_dismissed=lambda: print("Notification dismissed"),
+          sound=True,
         )
 
     asyncio.run(main())

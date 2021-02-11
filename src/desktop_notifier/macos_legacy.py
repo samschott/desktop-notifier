@@ -67,8 +67,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
             == NSUserNotificationActivationTypeActionButtonClicked
         ):
 
-            button_title = py_from_ns(notification.actionButtonTitle)
-            callback = py_notification.buttons.get(button_title)
+            callback = py_notification.buttons[0].on_pressed
 
             if callback:
                 callback()
@@ -152,7 +151,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
                     "NSUserNotificationCenter: only a single button is supported"
                 )
             n.hasActionButton = True
-            n.actionButtonTitle = list(notification.buttons.keys())[0]
+            n.actionButtonTitle = notification.buttons[0].title
 
         self.nc.scheduleNotification(n)
 

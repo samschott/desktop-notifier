@@ -10,7 +10,7 @@ import platform
 from threading import RLock
 import logging
 import asyncio
-from typing import Type, Optional, Dict, Callable, Coroutine, List, Any, TypeVar
+from typing import Type, Optional, Callable, Coroutine, List, Any, TypeVar, Sequence
 
 try:
     from importlib.resources import files  # type: ignore
@@ -22,7 +22,13 @@ except ImportError:
 from packaging.version import Version
 
 # local imports
-from .base import NotificationLevel, Notification, DesktopNotifierBase
+from .base import (
+    NotificationLevel,
+    Button,
+    ReplyField,
+    Notification,
+    DesktopNotifierBase,
+)
 
 
 Impl: Type[DesktopNotifierBase]
@@ -50,6 +56,8 @@ else:
 
 __all__ = [
     "Notification",
+    "Button",
+    "ReplyField",
     "NotificationLevel",
     "DesktopNotifier",
 ]
@@ -157,11 +165,10 @@ class DesktopNotifier:
         message: str,
         urgency: NotificationLevel = NotificationLevel.Normal,
         icon: Optional[str] = None,
-        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
-        reply_field: bool = False,
+        buttons: Sequence[Button] = (),
+        reply_field: Optional[ReplyField] = None,
         on_clicked: Optional[Callable[[], Any]] = None,
         on_dismissed: Optional[Callable[[], Any]] = None,
-        on_replied: Optional[Callable[[str], Any]] = None,
         attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
@@ -178,19 +185,15 @@ class DesktopNotifier:
         :param icon: URI or icon name to use for the notification, typically the app
             icon. This will replace the icon specified by :attr:`app_icon`. Will be
             ignored on macOS.
-        :param buttons: A dictionary with button titles and callbacks to show in the
-            notification. This is ignored by some implementations.
-        :param reply_field: Whether to show a reply field, for instance for a chat
-            message. This is ignored on Linux.
+        :param buttons: A list of buttons with callbacks for the notification.
+        :param reply_field: An optional reply field to show with the notification. Can
+            be used for instance in chat apps.
         :param on_clicked: Callback to call when the notification is clicked. The
             callback will be called without any arguments. This is ignored by some
             implementations.
         :param on_dismissed: Callback to call when the notification is dismissed. The
             callback will be called without any arguments. This is ignored by some
             implementations.
-        :param on_replied: If ``reply_field`` is True, a callback to call once the
-            user has replied. The callback will be called a single argument: a string
-            with the user reply.
         :param attachment: A path to an attachment for the notification such as an
             image, movie, or audio file. A preview of this attachment may be displayed
             together with the notification. Different platforms and Linux notification
@@ -213,7 +216,6 @@ class DesktopNotifier:
             reply_field,
             on_clicked,
             on_dismissed,
-            on_replied,
             attachment,
             sound,
             thread,
@@ -234,11 +236,10 @@ class DesktopNotifier:
         message: str,
         urgency: NotificationLevel = NotificationLevel.Normal,
         icon: Optional[str] = None,
-        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
-        reply_field: bool = False,
+        buttons: Sequence[Button] = (),
+        reply_field: Optional[ReplyField] = None,
         on_clicked: Optional[Callable[[], Any]] = None,
         on_dismissed: Optional[Callable[[], Any]] = None,
-        on_replied: Optional[Callable[[str], Any]] = None,
         attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
@@ -258,7 +259,6 @@ class DesktopNotifier:
             reply_field,
             on_clicked,
             on_dismissed,
-            on_replied,
             attachment,
             sound,
             thread,

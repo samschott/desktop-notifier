@@ -120,8 +120,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Create list of actions with default and user-supplied.
         actions = ["default", "default"]
 
-        for button_name in notification.buttons.keys():
-            actions += [button_name, button_name]
+        for n, button in enumerate(notification.buttons):
+            actions += [str(n), button.title]
 
         hints = {"urgency": self._to_native_urgency[notification.urgency]}
 
@@ -177,7 +177,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         # Get the notification instance from the platform ID.
         nid = int(nid)
-        action_key = str(action_key)
+        button_number = int(str(action_key))
         notification = self._notification_for_nid.get(nid)
 
         # Execute any callbacks for button clicks.
@@ -187,7 +187,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             if action_key == "default" and notification.on_clicked:
                 notification.on_clicked()
             else:
-                callback = notification.buttons.get(action_key)
+                callback = notification.buttons[button_number].on_pressed
 
                 if callback:
                     callback()

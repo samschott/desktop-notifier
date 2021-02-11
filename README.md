@@ -65,18 +65,29 @@ usage also allows setting different notification options such as urgency, button
 callbacks, etc:
 
 ```Python
+from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
 
-await notify.send(
-    title="Julius Caesar",
-    message="Et tu, Brute?",
-    urgency=NotificationLevel.Critical,
-    buttons={"Mark as read": lambda: print("Marked as read")},
-    reply_field=True,
-    on_replied=lambda text: print("Brutus replied:", text),
-    on_clicked=lambda: print("Notification clicked"),
-    on_dismissed=lambda: print("Notification dismissed"),
-    sound=True,
-)
+notify = DesktopNotifier()
+
+async def main():
+  await notify.send(
+      title="Julius Caesar",
+      message="Et tu, Brute?",
+      urgency=NotificationLevel.Critical,
+      buttons=[
+        Button(
+          title="Mark as read",
+          on_pressed=lambda: print("Marked as read")),
+      ],
+      reply_field=ReplyField(
+        title="Reply",
+        button_title="Send",
+        on_replied=lambda text: print("Brutus replied:", text),
+      ),
+      on_clicked=lambda: print("Notification clicked"),
+      on_dismissed=lambda: print("Notification dismissed"),
+      sound=True,
+  )
 ```
 
 The above call will give the following notification on macOS:
