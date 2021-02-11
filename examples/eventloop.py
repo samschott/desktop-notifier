@@ -1,10 +1,10 @@
 import asyncio
 import platform
 
-from desktop_notifier import DesktopNotifier, NotificationLevel
+from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
 
 
-notifier = DesktopNotifier(
+notify = DesktopNotifier(
     app_name="Sample App",
     notification_limit=10,
 )
@@ -12,13 +12,21 @@ notifier = DesktopNotifier(
 
 async def main():
 
-    await notifier.send(
+    await notify.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
         urgency=NotificationLevel.Critical,
-        buttons={"Mark as read": lambda: print("Marked as read")},
-        reply_field=True,
-        on_replied=lambda text: print("Brutus replied:", text),
+        buttons=[
+            Button(
+                title="Mark as read",
+                on_pressed=lambda: print("Marked as read"),
+            )
+        ],
+        reply_field=ReplyField(
+            title="Reply",
+            button_title="Send",
+            on_replied=lambda text: print("Brutus replied:", text),
+        ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
         sound=True,

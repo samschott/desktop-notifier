@@ -20,7 +20,7 @@ Where supported by the native platform APIs:
 * Asyncio integration: the main API consists of async methods and a running event loop
   is required to respond to user interactions with a notification
 * Notification sounds
-* Notification threads (e.g., for different conversations)  
+* Notification threads (e.g., for different conversations)
 * Limit maximum number of notifications shown in the notification center
 * Pure Python dependencies only, no extension modules
 
@@ -65,7 +65,7 @@ usage also allows setting different notification options such as urgency, button
 callbacks, etc:
 
 ```Python
-from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
+from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
 
 notify = DesktopNotifier()
 
@@ -73,7 +73,7 @@ async def main():
   await notify.send(
       title="Julius Caesar",
       message="Et tu, Brute?",
-      urgency=NotificationLevel.Critical,
+      urgency=Urgency.Critical,
       buttons=[
         Button(
           title="Mark as read",
@@ -108,7 +108,7 @@ for more information on platform support.
 
 ## Event loop integration
 
-Using the asynchronous API is highly recommended to prevent multiple milliseconds of 
+Using the asynchronous API is highly recommended to prevent multiple milliseconds of
 blocking IO from DBus or Cocoa APIs. In addition, execution of callbacks requires a
 running event loop. On Linux, an asyncio event loop will be sufficient but macOS
 requires a running [CFRunLoop](https://developer.apple.com/documentation/corefoundation/cfrunloop-rht).
@@ -143,7 +143,7 @@ but may be convenient when developing a Gtk app.
 On macOS 10.14 and higher, the implementation uses the `UNUserNotificationCenter`
 instead of the deprecated `NSUserNotificationCenter`. `UNUserNotificationCenter`
 restricts sending desktop notifications to signed executables. This means that
-notifications will only work if the Python executable or bundled app has been signed. 
+notifications will only work if the Python executable or bundled app has been signed.
 Note that the installer from [python.org](https://python.org) provides a properly signed
 Python framework but **homebrew does not** (manually signing the executable installed
 by homebrew _should_ work as well).
