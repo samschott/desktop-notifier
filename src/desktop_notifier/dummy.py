@@ -22,11 +22,13 @@ class DummyNotificationCenter(DesktopNotifierBase):
     ) -> None:
         super().__init__(app_name, app_icon, notification_limit)
 
-    async def request_authorisation(self) -> None:
+    async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.
+
+        :returns: Whether authorisation has been granted.
         """
-        pass
+        return True
 
     async def has_authorisation(self) -> bool:
         """

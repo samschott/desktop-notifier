@@ -16,7 +16,7 @@ import logging
 import enum
 import asyncio
 from concurrent.futures import Future
-from typing import Optional, Callable, Any, cast
+from typing import Optional, cast
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
@@ -157,27 +157,22 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         self._clear_notification_categories()
 
-    async def request_authorisation(
-        self, callback: Optional[Callable[[bool, str], Any]] = None
-    ) -> None:
+    async def request_authorisation(self) -> bool:
         """
-        Request authorisation to send user notifications. This method returns
-        immediately but authorisation will only be granted once the user has accepted
-        the prompt. Use :attr:`has_authorisation` to check if we are authorised or pass
-        a callback to be called when the request has been processed.
+        Request authorisation to send user notifications. If this is called for the
+        first time for an app, the call will only return once the user has granted or
+        denied the request. Otherwise, the call will just return the current
+        authorisation status without prompting the user.
 
-        :param callback: A method to call when the authorisation request has been
-            granted or denied. The callback will be called with two arguments: a bool
-            indicating if authorisation was granted and a string describing failure
-            reasons for the request.
+        :returns: Whether authorisation has been granted.
         """
+
+        future: Future = Future()
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
-
-            if callback:
-                ns_error = py_from_ns(error)
-                error_description = ns_error.localizedDescription if ns_error else ""
-                callback(granted, error_description)
+            ns_error = py_from_ns(error)
+            error_str = str(ns_error.localizedDescription) if ns_error else ""
+            future.set_result((granted, error_str))
 
         self.nc.requestAuthorizationWithOptions(
             UNAuthorizationOptionAlert
@@ -185,6 +180,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             | UNAuthorizationOptionBadge,
             completionHandler=on_auth_completed,
         )
+
+        granted, error_str = await asyncio.wrap_future(future)
+
+        if error_str:
+            logger.warning("Authorisation denied: %s", error_str)
+
+        return granted
 
     async def has_authorisation(self) -> bool:
         """Whether we have authorisation to send notifications."""

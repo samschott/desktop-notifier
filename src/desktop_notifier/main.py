@@ -114,7 +114,7 @@ class DesktopNotifier:
         """Setter: app_icon"""
         self._impl.app_icon = value
 
-    async def request_authorisation(self) -> None:
+    async def request_authorisation(self) -> bool:
         """
         Requests authorisation to send user notifications. This will be automatically
         called for you when sending a notification for the first time but it may be
@@ -124,11 +124,12 @@ class DesktopNotifier:
         when this method is called for the first time. This method does nothing on
         platforms where user authorisation is not required.
 
+        :returns: Whether authorisation has been granted.
         """
 
         with self._lock:
             self._did_request_authorisation = True
-            await self._impl.request_authorisation()
+            return await self._impl.request_authorisation()
 
     async def has_authorisation(self) -> bool:
         """Returns whether we have authorisation to send notifications."""
@@ -209,7 +210,7 @@ class DesktopNotifier:
 
             await self._impl.send(notification)
 
-        return notification
+            return notification
 
     @property
     def current_notifications(self) -> List[Notification]:

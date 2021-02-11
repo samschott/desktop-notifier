@@ -123,9 +123,11 @@ class DesktopNotifierBase:
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
         self._notification_for_nid: Dict[Union[str, int], Notification] = {}
 
-    async def request_authorisation(self) -> None:
+    async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.
+
+        :returns: Whether authorisation has been granted.
         """
         raise NotImplementedError()
 
