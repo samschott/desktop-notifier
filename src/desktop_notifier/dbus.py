@@ -14,7 +14,7 @@ from dbus_next import Variant  # type: ignore
 from dbus_next.aio import MessageBus, ProxyInterface  # type: ignore
 
 # local imports
-from .base import Notification, DesktopNotifierBase, NotificationLevel
+from .base import Notification, DesktopNotifierBase, Urgency
 
 
 __all__ = ["DBusDesktopNotifier"]
@@ -45,9 +45,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
     """
 
     _to_native_urgency = {
-        NotificationLevel.Low: Variant("y", 0),
-        NotificationLevel.Normal: Variant("y", 1),
-        NotificationLevel.Critical: Variant("y", 2),
+        Urgency.Low: Variant("y", 0),
+        Urgency.Normal: Variant("y", 1),
+        Urgency.Critical: Variant("y", 2),
     }
 
     def __init__(

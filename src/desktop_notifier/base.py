@@ -18,7 +18,7 @@ class AuthorisationError(Exception):
     """Raised when we are not authorised to send notifications"""
 
 
-class NotificationLevel(Enum):
+class Urgency(Enum):
     """Enumeration of notification levels
 
     The interpretation and visuals will depend on the platform.
@@ -81,7 +81,7 @@ class Notification:
         self,
         title: str,
         message: str,
-        urgency: NotificationLevel = NotificationLevel.Normal,
+        urgency: Urgency = Urgency.Normal,
         icon: Optional[str] = None,
         buttons: Sequence[Button] = (),
         reply_field: Optional[ReplyField] = None,

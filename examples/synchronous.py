@@ -1,4 +1,4 @@
-from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
+from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
 
 
 notify = DesktopNotifier(
@@ -10,7 +10,7 @@ notify = DesktopNotifier(
 notify.send_sync(
     title="Julius Caesar",
     message="Et tu, Brute?",
-    urgency=NotificationLevel.Critical,
+    urgency=Urgency.Critical,
     buttons=[
         Button(
             title="Mark as read",

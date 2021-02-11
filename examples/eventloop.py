@@ -1,7 +1,7 @@
 import asyncio
 import platform
 
-from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
+from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
 
 
 notify = DesktopNotifier(
@@ -15,7 +15,7 @@ async def main():
     await notify.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        urgency=NotificationLevel.Critical,
+        urgency=Urgency.Critical,
         buttons=[
             Button(
                 title="Mark as read",

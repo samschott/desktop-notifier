@@ -44,7 +44,7 @@ notification options, such as notification urgency, buttons, callbacks, etc:
 
 .. code-block:: python
 
-    from desktop_notifier import DesktopNotifier, NotificationLevel, Button, ReplyField
+    from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
 
     notifier = DesktopNotifier(
         app_name="Sample App",
@@ -56,7 +56,7 @@ notification options, such as notification urgency, buttons, callbacks, etc:
         await notify.send(
           title="Julius Caesar",
           message="Et tu, Brute?",
-          urgency=NotificationLevel.Critical,
+          urgency=Urgency.Critical,
           buttons=[
             Button(
               title="Mark as read",

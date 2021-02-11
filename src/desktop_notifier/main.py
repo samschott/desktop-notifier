@@ -23,7 +23,7 @@ from packaging.version import Version
 
 # local imports
 from .base import (
-    NotificationLevel,
+    Urgency,
     Button,
     ReplyField,
     Notification,
@@ -58,7 +58,7 @@ __all__ = [
     "Notification",
     "Button",
     "ReplyField",
-    "NotificationLevel",
+    "Urgency",
     "DesktopNotifier",
 ]
 
@@ -163,7 +163,7 @@ class DesktopNotifier:
         self,
         title: str,
         message: str,
-        urgency: NotificationLevel = NotificationLevel.Normal,
+        urgency: Urgency = Urgency.Normal,
         icon: Optional[str] = None,
         buttons: Sequence[Button] = (),
         reply_field: Optional[ReplyField] = None,
@@ -234,7 +234,7 @@ class DesktopNotifier:
         self,
         title: str,
         message: str,
-        urgency: NotificationLevel = NotificationLevel.Normal,
+        urgency: Urgency = Urgency.Normal,
         icon: Optional[str] = None,
         buttons: Sequence[Button] = (),
         reply_field: Optional[ReplyField] = None,
