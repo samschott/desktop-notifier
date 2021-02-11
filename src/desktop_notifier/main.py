@@ -9,7 +9,8 @@ import os
 import platform
 from threading import RLock
 import logging
-from typing import Type, Optional, Dict, Callable, List, Any
+import asyncio
+from typing import Type, Optional, Dict, Callable, Coroutine, List, Any, TypeVar
 
 try:
     from importlib.resources import files  # type: ignore
@@ -55,11 +56,26 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-
-# load python.png path
+T = TypeVar("T")
 
 PYTHON_ICON_PATH = os.path.join(files("desktop_notifier"), "resources", "python.png")
 PYTHON_ICON_URI = f"file://{PYTHON_ICON_PATH}"
+
+
+def _run_coco_sync(coro: Coroutine[None, None, T]) -> T:
+    """
+    Runs the given coroutine and returns the result synchronously.
+    """
+
+    loop = asyncio.get_event_loop()
+
+    if loop.is_running():
+        future = asyncio.run_coroutine_threadsafe(coro, loop)
+        res = future.result()
+    else:
+        res = loop.run_until_complete(coro)
+
+    return res
 
 
 class DesktopNotifier:
@@ -211,6 +227,44 @@ class DesktopNotifier:
             await self._impl.send(notification)
 
             return notification
+
+    def send_sync(
+        self,
+        title: str,
+        message: str,
+        urgency: NotificationLevel = NotificationLevel.Normal,
+        icon: Optional[str] = None,
+        buttons: Optional[Dict[str, Callable[[], Any]]] = None,
+        reply_field: bool = False,
+        on_clicked: Optional[Callable[[], Any]] = None,
+        on_dismissed: Optional[Callable[[], Any]] = None,
+        on_replied: Optional[Callable[[str], Any]] = None,
+        attachment: Optional[str] = None,
+        sound: bool = False,
+        thread: Optional[str] = None,
+    ) -> Notification:
+        """
+        Synchronous call of :meth:`send`, for use without an asyncio event loop.
+
+        :returns: The scheduled notification instance.
+        """
+
+        coro = self.send(
+            title,
+            message,
+            urgency,
+            icon,
+            buttons,
+            reply_field,
+            on_clicked,
+            on_dismissed,
+            on_replied,
+            attachment,
+            sound,
+            thread,
+        )
+
+        return _run_coco_sync(coro)
 
     @property
     def current_notifications(self) -> List[Notification]:
