@@ -5,7 +5,7 @@ Event loop integration
 Using the asynchronous API is highly recommended to prevent multiple milliseconds of
 blocking IO from DBus or Cocoa APIs. In addition, execution of callbacks requires a
 running event loop. On Linux, an asyncio event loop will be sufficient but macOS
-requires a running[CFRunLoop](https://developer.apple.com/documentation/corefoundation/cfrunloop-rht).
+requires a running [CFRunLoop](https://developer.apple.com/documentation/corefoundation/cfrunloop-rht).
 
 You can use [rubicon-objc](https://github.com/beeware/rubicon-objc) to integrate a Core
 Foundation CFRunLoop with asyncio:

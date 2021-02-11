@@ -82,10 +82,10 @@ Notes on macOS
 On macOS 10.14 and higher, the implementation uses the ``UNUserNotificationCenter``
 instead of the deprecated ``NSUserNotificationCenter``. ``UNUserNotificationCenter``
 restricts sending desktop notifications to signed executables. This means that
-notifications will only work the Python executable or bundled app has been signed. Note
-that the installer from `python.org <https://python.org>`__ provides a properly signed
-Python framework but **homebrew does not** (manually signing the executable installed
-by homebrew _should_ work as well).
+notifications will only work if the Python executable or bundled app has been signed.
+Note that the installer from `python.org <https://python.org>`__ provides a properly
+signed Python framework but **homebrew does not** (manually signing the executable
+installed by homebrew _should_ work as well).
 
 If you freeze your code with PyInstaller or a similar package, you must sign the
 resulting app bundle for notifications to work. An ad-hoc signature will be sufficient

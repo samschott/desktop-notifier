@@ -100,7 +100,7 @@ for more information on platform support.
 Using the asynchronous API is highly recommended to prevent multiple milliseconds of 
 blocking IO from DBus or Cocoa APIs. In addition, execution of callbacks requires a
 running event loop. On Linux, an asyncio event loop will be sufficient but macOS
-requires a running[CFRunLoop](https://developer.apple.com/documentation/corefoundation/cfrunloop-rht).
+requires a running [CFRunLoop](https://developer.apple.com/documentation/corefoundation/cfrunloop-rht).
 
 You can use [rubicon-objc](https://github.com/beeware/rubicon-objc) to integrate a Core
 Foundation CFRunLoop with asyncio:
@@ -132,8 +132,8 @@ but may be convenient when developing a Gtk app.
 On macOS 10.14 and higher, the implementation uses the `UNUserNotificationCenter`
 instead of the deprecated `NSUserNotificationCenter`. `UNUserNotificationCenter`
 restricts sending desktop notifications to signed executables. This means that
-notifications will only work the Python executable or bundled app has been signed. Note
-that the installer from [python.org](https://python.org) provides a properly signed
+notifications will only work if the Python executable or bundled app has been signed. 
+Note that the installer from [python.org](https://python.org) provides a properly signed
 Python framework but **homebrew does not** (manually signing the executable installed
 by homebrew _should_ work as well).
 
