@@ -130,7 +130,7 @@ loop.run_forever()
 
 Desktop-notifier itself uses Rubicon Objective-C to interface with Cocoa APIs so you
 will not be adding a new dependency. A full example integrating with the CFRunLoop is
-given in [exampels/eventloop.py](exampels/eventloop.py). Please refer to the
+given in [examples/eventloop.py](examples/eventloop.py). Please refer to the
 [Rubicon Objective-C docs](https://rubicon-objc.readthedocs.io/en/latest/how-to/async.html)
 for more information.
 
