@@ -328,9 +328,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             if notification.reply_field:
                 action = UNTextInputNotificationAction.actionWithIdentifier(
                     ReplyActionIdentifier,
-                    title="Reply",
+                    title=notification.reply_field.title,
                     options=UNNotificationActionOptionNone,
-                    textInputButtonTitle="Send",
+                    textInputButtonTitle=notification.reply_field.button_title,
                     textInputPlaceholder="",
                 )
                 actions.append(action)
