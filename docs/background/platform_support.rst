@@ -55,9 +55,9 @@ Reply field
 ***********
 
 Reply fields are supported on macOS and iOS. If ``reply_field`` is set to True, a
-"Reply" button and text input field will be show. The button will always placed first,
-before any other buttons. The placeholder and button text are currently not
-customisable, even when allowed by the native platform APIs.
+"Reply" button and text input field will be show. This will always be placed before any
+other buttons. The placeholder and button text are currently not customisable, even when
+supported by the native platform APIs.
 
 Attachments
 ***********
@@ -71,7 +71,7 @@ preview of the file. Allowed file types are:
 
 On macOS, only previews of image attachments will be shown. iOS will show previews of
 all of the above attachment types and allows long-pressing the notification to show the
-full attachment.
+full attachment. The notification will still be shown if the attachment cannot be loaded.
 
 Linux notification servers may support attaching a secondary image to the notification,
 shown in addition to the app icon. Where this is not supported, the app icon will be
