@@ -30,30 +30,6 @@ from .base import (
     DesktopNotifierBase,
 )
 
-
-Impl: Type[DesktopNotifierBase]
-
-if os.environ.get("CI", False):
-    # don't attempt to initialise notification center in CIs such as github actions
-    # this may otherwise lead to segfaults on macOS test runners
-    from .dummy import DummyNotificationCenter as Impl
-
-elif platform.system() == "Darwin":
-
-    macos_version, *_ = platform.mac_ver()
-
-    if Version(macos_version) >= Version("10.14.0"):
-        from .macos import CocoaNotificationCenter as Impl
-    else:
-        from .macos_legacy import CocoaNotificationCenterLegacy as Impl
-
-elif platform.system() == "Linux":
-    from .dbus import DBusDesktopNotifier as Impl
-
-else:
-    from .dummy import DummyNotificationCenter as Impl
-
-
 __all__ = [
     "Notification",
     "Button",
@@ -96,6 +72,55 @@ def run_coro_sync(coro: Coroutine[None, None, T]) -> T:
     return res
 
 
+def get_implementation(macos_legacy: bool = False) -> Type[DesktopNotifierBase]:
+    """
+    Return the backend class depending on the platform and version.
+
+    :param macos_legacy: If ``True``, use the legacy NSUserNotificationCenter on macOS.
+    :returns: A desktop notification backend suitable for the current platform.
+    :raises RuntimeError: when passing ``macos_legacy = True`` on macOS 12.0 and later.
+    """
+
+    if os.environ.get("CI", False):
+        # Don't attempt to initialise notification center in CIs such as github actions
+        # this may otherwise lead to segfaults on macOS test runners.
+        from .dummy import DummyNotificationCenter
+
+        return DummyNotificationCenter
+
+    elif platform.system() == "Darwin":
+
+        macos_version, *_ = platform.mac_ver()
+
+        if Version(macos_version) >= Version("12.0") and macos_legacy:
+            raise RuntimeError(
+                "NSUserNotificationCenter is not available on macOS 12 and later"
+            )
+
+        if Version(macos_version) < Version("10.14.0"):
+            # Always use NSUserNotificationCenter.
+            macos_legacy = True
+
+        if macos_legacy:
+            from .macos_legacy import CocoaNotificationCenterLegacy
+
+            return CocoaNotificationCenterLegacy
+        else:
+            from .macos import CocoaNotificationCenter
+
+            return CocoaNotificationCenter
+
+    elif platform.system() == "Linux":
+        from .dbus import DBusDesktopNotifier
+
+        return DBusDesktopNotifier
+
+    else:
+        from .dummy import DummyNotificationCenter
+
+        return DummyNotificationCenter
+
+
 class DesktopNotifier:
     """Cross-platform desktop notification emitter
 
@@ -116,6 +141,9 @@ class DesktopNotifier:
         app icon is identified by the bundle ID of the sending program (e.g., Python).
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center. This may be ignored by some implementations.
+    :param macos_legacy: If True, use the legacy NSUserNotificationCenter backend on
+        macOS 11 and lower. This enables sending notifications from unsigned
+        applications but provides more limited functionality.
     """
 
     def __init__(
@@ -123,9 +151,13 @@ class DesktopNotifier:
         app_name: str = "Python",
         app_icon: Optional[str] = PYTHON_ICON_URI,
         notification_limit: Optional[int] = None,
+        macos_legacy: bool = False,
     ) -> None:
+
+        impl_cls = get_implementation(macos_legacy)
+
         self._lock = RLock()
-        self._impl = Impl(app_name, app_icon, notification_limit)
+        self._impl = impl_cls(app_name, app_icon, notification_limit)
         self._did_request_authorisation = False
 
     @property
