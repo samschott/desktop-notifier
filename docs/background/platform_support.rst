@@ -20,7 +20,7 @@ The table below gives an overview over supported functionality for different pla
    "message", "The notification message", "✓", "✓"
    "urgency", "Level that determines how the notification is displayed", "✓", "--"
    "buttons", "One or more buttons with callbacks", "✓ [#f2]_", "✓ [#f3]_"
-   "reply_field", "Whether to show a reply field", "--", "✓"
+   "reply_field", "A reply field instance to show with the notification", "--", "✓"
    "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f2]_", "✓"
    "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f2]_", "✓"
    "sound", "Play a default sound when showing the notification", "✓ [#f2]_", "✓"
@@ -41,12 +41,12 @@ callbacks in Python.
 Urgency
 *******
 
-The notification urgency may influence how notification is displayed. For instance, in
+The notification urgency may influence how a notification is displayed. For instance, in
 Gnome, notifications of critical urgency will remain visible until closed by the user
 and their buttons will always be expanded.
 
-This is currently not supported on macOS where critical notifications require a special
-entitlement issued by Apple.
+This is currently not supported on macOS where critical notifications would require a
+special entitlement issued by Apple.
 
 Buttons
 *******
@@ -59,7 +59,6 @@ number of buttons. Gnome desktops typically support up to three buttons.
 
 When an implementation or a platform supports only a limited number of buttons, any
 additional buttons specified in the notification request will be silently ignored.
-
 
 Attachments
 ***********
@@ -77,4 +76,4 @@ full attachment. The notification will still be shown if the attachment cannot b
 
 Linux notification servers may support attaching a secondary image to the notification,
 shown in addition to the app icon. Where this is not supported, the app icon will be
-replaced by a thumbnail of the image. This currently the case for Gnome.
+replaced by a thumbnail of the image. This is currently the case for Gnome.
