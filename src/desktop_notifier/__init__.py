@@ -2,6 +2,6 @@
 from .main import DesktopNotifier, Button, ReplyField, Notification, Urgency
 
 
-__version__ = "3.2.0"
+__version__ = "3.2.1"
 __author__ = "Sam Schott"
 __url__ = "https://github.com/samschott/desktop-notifier"
