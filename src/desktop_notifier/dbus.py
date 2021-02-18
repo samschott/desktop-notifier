@@ -177,7 +177,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         # Get the notification instance from the platform ID.
         nid = int(nid)
-        button_number = int(str(action_key))
+        action_key = str(action_key)
         notification = self._notification_for_nid.get(nid)
 
         # Execute any callbacks for button clicks.
@@ -187,6 +187,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             if action_key == "default" and notification.on_clicked:
                 notification.on_clicked()
             else:
+                button_number = int(action_key)
                 callback = notification.buttons[button_number].on_pressed
 
                 if callback:
