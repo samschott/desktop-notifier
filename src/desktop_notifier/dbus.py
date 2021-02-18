@@ -173,7 +173,15 @@ class DBusDesktopNotifier(DesktopNotifierBase):
     # call will come first, in which case we are no longer interested in calling the
     # on_dismissed callback.
 
-    def _on_action(self, nid, action_key) -> None:
+    def _on_action(self, nid: Variant, action_key: Variant) -> None:
+        """
+        Called when the user performs a notification action. This will invoke the
+        handler callback.
+
+        :param nid: The platform's notification ID as an integer.
+        :param action_key: A string identifying the action to take. We choose those keys
+            ourselves when scheduling the notification.
+        """
 
         # Get the notification instance from the platform ID.
         nid = int(nid)
@@ -193,7 +201,14 @@ class DBusDesktopNotifier(DesktopNotifierBase):
                 if callback:
                     callback()
 
-    def _on_closed(self, nid, reason) -> None:
+    def _on_closed(self, nid: Variant, reason: Variant) -> None:
+        """
+        Called when the user closes a notification. This will invoke the registered
+        callback.
+
+        :param nid: The platform's notification ID as an integer.
+        :param reason: An integer describing the reason why the notification was closed.
+        """
 
         # Get the notification instance from the platform ID.
         nid = int(nid)
