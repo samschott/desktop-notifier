@@ -49,29 +49,6 @@ PYTHON_ICON_URI = f"file://{PYTHON_ICON_PATH}"
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
-def run_coro_sync(coro: Coroutine[None, None, T]) -> T:
-    """
-    Runs the given coroutine and returns the result synchronously. This is used as a
-    wrapper to conveniently convert the async API calls to synchronous ones.
-    """
-
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        # If we are running in a thread, create a new event loop. Use the default
-        # event loop policy so that we don't interfere with anything set in the main
-        # thread.
-        loop = default_event_loop_policy.new_event_loop()
-
-    if loop.is_running():
-        future = asyncio.run_coroutine_threadsafe(coro, loop)
-        res = future.result()
-    else:
-        res = loop.run_until_complete(coro)
-
-    return res
-
-
 def get_implementation(macos_legacy: bool = False) -> Type[DesktopNotifierBase]:
     """
     Return the backend class depending on the platform and version.
@@ -159,6 +136,28 @@ class DesktopNotifier:
         self._lock = RLock()
         self._impl = impl_cls(app_name, app_icon, notification_limit)
         self._did_request_authorisation = False
+
+        try:
+            self._loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # If we are running in a thread, create a new event loop. Use the default
+            # event loop policy so that we don't interfere with anything set in the main
+            # thread.
+            self._loop = default_event_loop_policy.new_event_loop()
+
+    def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
+        """
+        Runs the given coroutine and returns the result synchronously. This is used as a
+        wrapper to conveniently convert the async API calls to synchronous ones.
+        """
+
+        if self._loop.is_running():
+            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+            res = future.result()
+        else:
+            res = self._loop.run_until_complete(coro)
+
+        return res
 
     @property
     def app_name(self) -> str:
@@ -306,7 +305,7 @@ class DesktopNotifier:
             thread,
         )
 
-        return run_coro_sync(coro)
+        return self._run_coro_sync(coro)
 
     @property
     def current_notifications(self) -> List[Notification]:
