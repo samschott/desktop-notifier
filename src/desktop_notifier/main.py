@@ -215,8 +215,19 @@ class DesktopNotifier:
         thread: Optional[str] = None,
     ) -> Notification:
         """
-        Sends a desktop notification. Some arguments may be ignored, depending on the
-        backend.
+        Sends a desktop notification.
+
+        Some arguments may be ignored, depending on the backend.
+
+        This method will always return a :class:`base.Notification` instance and will
+        not raise an exception when scheduling the notification fails. If the
+        notification was scheduled successfully, its ``identifier`` will be set to the
+        platform's native notification identifier. Otherwise, the ``identifier`` will be
+        ``None``.
+
+        Note that even a successfully scheduled notification may not be displayed to the
+        user, depending on their notification center settings (for instance if "do not
+        disturb" is enabled on macOS).
 
         :param title: Notification title.
         :param message: Notification message.
