@@ -137,13 +137,9 @@ class DesktopNotifier:
         self._impl = impl_cls(app_name, app_icon, notification_limit)
         self._did_request_authorisation = False
 
-        try:
-            self._loop = asyncio.get_event_loop()
-        except RuntimeError:
-            # If we are running in a thread, create a new event loop. Use the default
-            # event loop policy so that we don't interfere with anything set in the main
-            # thread.
-            self._loop = default_event_loop_policy.new_event_loop()
+        # Use our own event loop for the sync API so that we don't interfere with any
+        # other ansycio event loops / threads, etc.
+        self._loop = default_event_loop_policy.new_event_loop()
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
         """
