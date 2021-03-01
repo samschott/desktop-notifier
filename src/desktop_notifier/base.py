@@ -10,8 +10,15 @@ from enum import Enum
 from collections import deque
 from typing import Optional, Dict, Callable, Any, Union, Deque, List, Sequence
 
+try:
+    from importlib.resources import files  # type: ignore
+except ImportError:
+    from importlib_resources import files  # type: ignore
+
 
 logger = logging.getLogger(__name__)
+
+PYTHON_ICON_PATH = files("desktop_notifier") / "resources" / "python.png"
 
 
 class AuthorisationError(Exception):
@@ -84,13 +91,14 @@ class Notification:
     :param title: Notification title.
     :param message: Notification message.
     :param urgency: Notification level: low, normal or critical.
-    :param icon: Path to an icon to use for the notification, typically the app icon.
+    :param icon: URI for an icon to use for the notification or icon name.
     :param buttons: A list of buttons for the notification.
     :param reply_field: An optional reply field/
     :param on_clicked: Callback to call when the notification is clicked. The
         callback will be called without any arguments.
     :param on_dismissed: Callback to call when the notification is dismissed. The
         callback will be called without any arguments.
+    :attachment: URI for an attachment to the notification.
     :param sound: Whether to play a sound when the notification is shown.
     :param thread: An identifier to group related notifications together.
     """
@@ -184,9 +192,6 @@ class DesktopNotifierBase:
 
         :param notification: Notification to send.
         """
-
-        if not notification.icon:
-            notification.icon = self.app_icon
 
         notification_to_replace: Optional[Notification]
 

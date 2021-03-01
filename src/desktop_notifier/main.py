@@ -10,12 +10,18 @@ import platform
 from threading import RLock
 import logging
 import asyncio
-from typing import Type, Optional, Callable, Coroutine, List, Any, TypeVar, Sequence
-
-try:
-    from importlib.resources import files  # type: ignore
-except ImportError:
-    from importlib_resources import files  # type: ignore
+from pathlib import Path
+from typing import (
+    Type,
+    Union,
+    Optional,
+    Callable,
+    Coroutine,
+    List,
+    Any,
+    TypeVar,
+    Sequence,
+)
 
 
 # external imports
@@ -28,6 +34,7 @@ from .base import (
     ReplyField,
     Notification,
     DesktopNotifierBase,
+    PYTHON_ICON_PATH,
 )
 
 __all__ = [
@@ -41,9 +48,6 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
-
-PYTHON_ICON_PATH = os.path.join(files("desktop_notifier"), "resources", "python.png")
-PYTHON_ICON_URI = f"file://{PYTHON_ICON_PATH}"
 
 
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
@@ -112,10 +116,11 @@ class DesktopNotifier:
         Linux, this should correspond to the application name in a desktop entry. On
         macOS, this argument is ignored and the app is identified by the bundle ID of
         the sending program (e.g., Python).
-    :param app_icon: Default icon to use for notifications. This may be be either an URI
-        (file:// is the only URI schema supported right now) or a name in a
-        freedesktop.org-compliant icon theme. On macOS, this argument is ignored and the
-        app icon is identified by the bundle ID of the sending program (e.g., Python).
+    :param app_icon: Default icon to use for notifications. This should be either a URI
+        string, a :class:`pathlib.Path` path, or a name in a freedesktop.org-compliant
+        icon theme. If None, the icon of the calling application will be used if it
+        can be determined. On macOS, this argument is ignored and the app icon is
+        identified by the bundle ID of the sending program (e.g., Python).
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center. This may be ignored by some implementations.
     :param macos_legacy: If True, use the legacy NSUserNotificationCenter backend on
@@ -126,12 +131,15 @@ class DesktopNotifier:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Optional[str] = PYTHON_ICON_URI,
+        app_icon: Union[Path, str, None] = PYTHON_ICON_PATH,
         notification_limit: Optional[int] = None,
         macos_legacy: bool = False,
     ) -> None:
 
         impl_cls = get_implementation(macos_legacy)
+
+        if isinstance(app_icon, Path):
+            app_icon = app_icon.as_uri()
 
         self._lock = RLock()
         self._impl = impl_cls(app_name, app_icon, notification_limit)
@@ -171,8 +179,12 @@ class DesktopNotifier:
         return self._impl.app_icon
 
     @app_icon.setter
-    def app_icon(self, value: str) -> None:
+    def app_icon(self, value: Union[Path, str, None]) -> None:
         """Setter: app_icon"""
+
+        if isinstance(value, Path):
+            value = value.as_uri()
+
         self._impl.app_icon = value
 
     async def request_authorisation(self) -> bool:
@@ -201,12 +213,12 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Optional[str] = None,
+        icon: Union[Path, str, None] = None,
         buttons: Sequence[Button] = (),
         reply_field: Optional[ReplyField] = None,
         on_clicked: Optional[Callable[[], Any]] = None,
         on_dismissed: Optional[Callable[[], Any]] = None,
-        attachment: Optional[str] = None,
+        attachment: Union[Path, str, None] = None,
         sound: bool = False,
         thread: Optional[str] = None,
     ) -> Notification:
@@ -230,9 +242,9 @@ class DesktopNotifier:
         :param urgency: Notification level: low, normal or critical. This may be
             interpreted differently by some implementations, for instance causing the
             notification to remain visible for longer, or may be ignored.
-        :param icon: URI or icon name to use for the notification, typically the app
-            icon. This will replace the icon specified by :attr:`app_icon`. Will be
-            ignored on macOS.
+        :param icon: URI string, :class:`pathlib.Path` or icon name to use for the
+            notification, typically the app icon. This will replace the icon specified
+            by :attr:`app_icon`. Will be ignored on macOS.
         :param buttons: A list of buttons with callbacks for the notification.
         :param reply_field: An optional reply field to show with the notification. Can
             be used for instance in chat apps.
@@ -242,11 +254,12 @@ class DesktopNotifier:
         :param on_dismissed: Callback to call when the notification is dismissed. The
             callback will be called without any arguments. This is ignored by some
             implementations.
-        :param attachment: A path to an attachment for the notification such as an
-            image, movie, or audio file. A preview of this attachment may be displayed
-            together with the notification. Different platforms and Linux notification
-            servers support different types of attachments. Please consult the platform
-            support section of the documentation.
+        :param attachment: URI string or :class:`pathlib.Path` for an attachment to the
+            notification such as an image, movie, or audio file. A preview of this
+            attachment may be displayed together with the notification. Different
+            platforms and Linux notification servers support different types of
+            attachments. Please consult the platform support section of the
+            documentation.
         :param sound: Whether to play a sound when the notification is shown. The
             platform's default sound will be used, where available.
         :param thread: An identifier to group related notifications together. This is
@@ -254,6 +267,14 @@ class DesktopNotifier:
 
         :returns: The scheduled notification instance.
         """
+
+        if not icon:
+            icon = self.app_icon
+        elif isinstance(icon, Path):
+            icon = icon.as_uri()
+
+        if isinstance(attachment, Path):
+            attachment = attachment.as_uri()
 
         notification = Notification(
             title,
@@ -283,12 +304,12 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Optional[str] = None,
+        icon: Union[Path, str, None] = None,
         buttons: Sequence[Button] = (),
         reply_field: Optional[ReplyField] = None,
         on_clicked: Optional[Callable[[], Any]] = None,
         on_dismissed: Optional[Callable[[], Any]] = None,
-        attachment: Optional[str] = None,
+        attachment: Union[Path, str, None] = None,
         sound: bool = False,
         thread: Optional[str] = None,
     ) -> Notification:

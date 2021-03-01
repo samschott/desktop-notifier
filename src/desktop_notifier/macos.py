@@ -16,6 +16,7 @@ import logging
 import enum
 import asyncio
 from concurrent.futures import Future
+from urllib.parse import urlparse, unquote
 from typing import Optional, cast
 
 # external imports
@@ -246,7 +247,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             content.sound = UNNotificationSound.defaultSound
 
         if notification.attachment:
-            url = NSURL.fileURLWithPath(notification.attachment)
+            path = unquote(urlparse(notification.attachment).path)
+            url = NSURL.fileURLWithPath(path, isDirectory=False)
             attachment = UNNotificationAttachment.attachmentWithIdentifier(
                 "", URL=url, options={}, error=None
             )
