@@ -21,7 +21,6 @@ copyright = "{}, {}".format(time.localtime().tm_year, author)
 
 extensions = [
     "sphinx.ext.viewcode",
-    "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
