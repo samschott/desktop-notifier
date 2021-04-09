@@ -40,6 +40,9 @@ html_theme = "sphinx_rtd_theme"
 
 # sphinx.ext.autodoc
 autodoc_typehints = "description"
+autoclass_content = "both"
+autodoc_member_order = "bysource"
+autodoc_inherit_docstrings = False
 
 # autoapi.extension
 autoapi_type = "python"
