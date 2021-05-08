@@ -10,6 +10,8 @@ Currently supported platforms are:
 * Linux via the dbus service org.freedesktop.Notifications
 * macOS and iOS via the Notification Center framework
 
+![gif](screenshots/macOS.gif)
+
 ## Features
 
 Where supported by the native platform APIs:
@@ -62,7 +64,8 @@ notify.send_sync(title="Hello world!", message="Sent from Python")
 By default, "Python" will be used as the app name for all notifications, but you can
 manually specify an app name and icon in the ``DesktopNotifier`` constructor. Advanced
 usage also allows setting different notification options such as urgency, buttons,
-callbacks, etc:
+callbacks, etc. The following code will generate the notification shown in the gif at
+the top of the page:
 
 ```Python
 from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
@@ -88,11 +91,12 @@ async def main():
       on_dismissed=lambda: print("Notification dismissed"),
       sound=True,
   )
+  
+
+loop = asyncio.get_event_loop()
+loop.create_task(main())
+loop.run_forever()
 ```
-
-The above call will give the following notification on macOS:
-
-![gif](screenshots/macOS.gif)
 
 Note that some platforms may not support all options. For instance, some Linux desktop
 environments may not support notifications with buttons. macOS does not support
