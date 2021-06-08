@@ -24,7 +24,7 @@ from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: i
 from rubicon.objc.runtime import load_library, objc_id, objc_block  # type: ignore
 
 # local imports
-from .base import Notification, DesktopNotifierBase, AuthorisationError
+from .base import Notification, DesktopNotifierBase, AuthorisationError, Urgency
 
 
 __all__ = ["CocoaNotificationCenter"]
@@ -86,6 +86,13 @@ class UNErrorCode(enum.Enum):
     NotificationInvalidNoContent = 1401
 
 
+class UNNotificationInterruptionLevel(enum.Enum):
+    Passive = 0
+    Active = 1
+    TimeSensitive = 2
+    Critical = 3
+
+
 class NotificationCenterDelegate(NSObject):  # type: ignore
     """Delegate to handle user interactions with notifications"""
 
@@ -143,6 +150,12 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
+
+    _to_native_urgency = {
+        Urgency.Low: UNNotificationInterruptionLevel.Passive,
+        Urgency.Normal: UNNotificationInterruptionLevel.Active,
+        Urgency.Critical: UNNotificationInterruptionLevel.TimeSensitive,
+    }
 
     def __init__(
         self,
@@ -242,6 +255,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         content.body = notification.message
         content.categoryIdentifier = category_id
         content.threadIdentifier = notification.thread
+        content.interruptionLevel = self._to_native_urgency[notification.urgency]
 
         if notification.sound:
             content.sound = UNNotificationSound.defaultSound
