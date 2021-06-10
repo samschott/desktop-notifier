@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Notification backend for Linux. Includes an implementation to send desktop notifications
-over Dbus. Responding to user interaction with a notification requires a running asyncio
-event loop.
+Notification backend for Windows. Unlike other platforms, sending rich "toast"
+notifications cannot be done via FFI / ctypes because the C winapi only supports basic
+notifications with a title and message. This backend therefore requires interaction with
+the Windows Runtime and uses the winrt package with compiled components published by
+Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
 """
 
 # system imports
@@ -41,16 +43,12 @@ T = TypeVar("T")
 
 
 class WinRTDesktopNotifier(DesktopNotifierBase):
-    """DBus notification backend for Linux
+    """Notification backend for the Windows Runtime
 
-    This implements the org.freedesktop.Notifications standard. The DBUS connection is
-    created in a thread with a running asyncio loop to handle clicked notifications.
-
-    :param app_name: The name of the app. If it matches the application name in an
-        existing desktop entry, the icon from that entry will be used by default.
-    :param app_icon: The default icon to use for notifications. Will take precedence
-        over any icon from the desktop file. Should be a URI or a name in a
-        freedesktop.org-compliant icon theme.
+    :param app_name: The name of the app. This has no effect since the app name will be
+        automatically determined.
+    :param app_icon: The default icon to use for notifications. This has no effect since
+        the app icon will be automatically determined.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
@@ -115,7 +113,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         notification_to_replace: Optional[Notification],
     ) -> str:
         """
-        Asynchronously sends a notification via the Dbus interface.
+        Asynchronously sends a notification.
 
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
@@ -246,13 +244,13 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
     async def _clear(self, notification: Notification) -> None:
         """c
-        Asynchronously removes a notification from the notification center
+        Asynchronously removes a notification from the notification center.
         """
         group = notification.thread or "default"
         self.manager.history.remove(notification.identifier, group, self._appid)
 
     async def _clear_all(self) -> None:
         """
-        Asynchronously clears all notifications from notification center
+        Asynchronously clears all notifications from notification center.
         """
         self.manager.history.clear(self._appid)
