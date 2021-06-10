@@ -18,18 +18,18 @@ The table below gives an overview over supported functionality for different pla
    "app_icon", "The icon shown with the notification", "✓", "-- [#f1]_"
    "title", "The notification title", "✓", "✓"
    "message", "The notification message", "✓", "✓"
-   "urgency", "Level that determines how the notification is displayed", "✓", "--"
-   "buttons", "One or more buttons with callbacks", "✓ [#f2]_", "✓ [#f3]_"
+   "urgency", "Level that determines how the notification is displayed", "✓", "✓ [#f2]_"
+   "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓ [#f4]_"
    "reply_field", "A reply field instance to show with the notification", "--", "✓"
-   "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f2]_", "✓"
-   "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f2]_", "✓"
-   "sound", "Play a default sound when showing the notification", "✓ [#f2]_", "✓"
+   "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f3]_", "✓"
+   "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f3]_", "✓"
+   "sound", "Play a default sound when showing the notification", "✓ [#f3]_", "✓"
    "thread", "An identifier to group notifications together", "--", "✓"
 
 .. [#f1] App name and icon on macOS are automatically determined by the calling application.
-.. [#f2] May be ignored by some notification servers, depending on the desktop environment.
-.. [#f3] Only a single button is supported by our implementation for macOS 10.13 and lower.
-
+.. [#f2] Only on macOS 12 and later.
+.. [#f3] May be ignored by some notification servers, depending on the desktop environment.
+.. [#f4] Only a single button is supported by our implementation for macOS 10.13 and lower.
 
 Callbacks
 *********
