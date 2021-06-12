@@ -251,9 +251,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Create the native notification and notification request.
         # Note that `interruptionLevel` is only supported on macOS 12 or iOS 15 and
-        # higher. On older platforms, this attribute will be set on the Python-side
-        # only, thanks to rubicon-objc's ability to set attributes at runtime, but won't
-        # have any actual effect on how the notification is delivered to the user.
+        # higher. On older platforms, setting this attribute will have no effect.
         content = UNMutableNotificationContent.alloc().init()
         content.title = notification.title
         content.body = notification.message
