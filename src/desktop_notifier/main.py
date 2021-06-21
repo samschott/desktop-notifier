@@ -62,12 +62,10 @@ def get_implementation() -> Type[DesktopNotifierBase]:
 
     if platform.system() == "Darwin":
 
-        from .macos_support import is_bundle, is_signed_bundle
+        from .macos_support import is_bundle, is_signed_bundle, macos_version
 
-        macos_version, *_ = platform.mac_ver()
-
-        has_unusernotificationcenter = Version(macos_version) >= Version("10.14")
-        has_nsusernotificationcenter = Version(macos_version) < Version("12.0")
+        has_unusernotificationcenter = macos_version >= Version("10.14")
+        has_nsusernotificationcenter = macos_version < Version("12.0")
         is_signed = is_signed_bundle()
 
         if has_unusernotificationcenter and is_signed:

@@ -4,15 +4,21 @@ Support module for macOS.
 
 """
 
+import platform
 import ctypes
 
+from packaging.version import Version
 from rubicon.objc import ObjCClass
 from rubicon.objc.runtime import load_library
+
+
+macos_version = Version(platform.mac_ver()[0])
 
 
 __all__ = [
     "is_bundle",
     "is_signed_bundle",
+    "macos_version",
 ]
 
 
