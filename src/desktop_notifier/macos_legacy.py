@@ -142,7 +142,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         # store the notification instance for clearing
         notification._native = n  # type: ignore
 
-        if n.sound:
+        if notification.sound:
             n.soundName = NSUserNotificationDefaultSoundName
 
         if notification.buttons:
