@@ -20,11 +20,13 @@ from urllib.parse import urlparse, unquote
 from typing import Optional, cast
 
 # external imports
+from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
 from rubicon.objc.runtime import load_library, objc_id, objc_block  # type: ignore
 
 # local imports
 from .base import Notification, DesktopNotifierBase, AuthorisationError, Urgency
+from .macos_support import macos_version
 
 
 __all__ = ["CocoaNotificationCenter"]
@@ -250,14 +252,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         category_id = await self._create_category_for_notification(notification)
 
         # Create the native notification and notification request.
-        # Note that `interruptionLevel` is only supported on macOS 12 or iOS 15 and
-        # higher. On older platforms, setting this attribute will have no effect.
         content = UNMutableNotificationContent.alloc().init()
         content.title = notification.title
         content.body = notification.message
         content.categoryIdentifier = category_id
         content.threadIdentifier = notification.thread
-        content.interruptionLevel = self._to_native_urgency[notification.urgency]
+        if macos_version >= Version("12.0"):
+            content.interruptionLevel = self._to_native_urgency[notification.urgency]
 
         if notification.sound:
             content.sound = UNNotificationSound.defaultSound
