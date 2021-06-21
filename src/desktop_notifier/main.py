@@ -5,7 +5,6 @@ the platform.
 """
 
 # system imports
-import os
 import platform
 from threading import RLock
 import logging
@@ -53,43 +52,59 @@ T = TypeVar("T")
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
-def get_implementation(macos_legacy: bool = False) -> Type[DesktopNotifierBase]:
+def get_implementation() -> Type[DesktopNotifierBase]:
     """
     Return the backend class depending on the platform and version.
 
-    :param macos_legacy: If ``True``, use the legacy NSUserNotificationCenter on macOS.
     :returns: A desktop notification backend suitable for the current platform.
     :raises RuntimeError: when passing ``macos_legacy = True`` on macOS 12.0 and later.
     """
 
-    if os.environ.get("CI", False):
-        # Don't attempt to initialise notification center in CIs such as github actions
-        # this may otherwise lead to segfaults on macOS test runners.
-        from .dummy import DummyNotificationCenter
+    if platform.system() == "Darwin":
 
-        return DummyNotificationCenter
-
-    elif platform.system() == "Darwin":
+        from .macos_support import is_bundle, is_signed_bundle
 
         macos_version, *_ = platform.mac_ver()
 
-        if Version(macos_version) >= Version("12.0") and macos_legacy:
-            raise RuntimeError(
-                "NSUserNotificationCenter is not available on macOS 12 and later"
-            )
+        has_unusernotificationcenter = Version(macos_version) >= Version("10.14")
+        has_nsusernotificationcenter = Version(macos_version) < Version("12.0")
+        is_signed = is_signed_bundle()
 
-        if Version(macos_version) < Version("10.14.0"):
-            # Always use NSUserNotificationCenter.
-            macos_legacy = True
-
-        if macos_legacy:
-            from .macos_legacy import CocoaNotificationCenterLegacy
-
-            return CocoaNotificationCenterLegacy
-        else:
+        if has_unusernotificationcenter and is_signed:
+            # Use modern UNUserNotificationCenter.
             from .macos import CocoaNotificationCenter
 
             return CocoaNotificationCenter
+
+        elif has_nsusernotificationcenter and is_bundle():
+
+            if has_unusernotificationcenter and not is_signed:
+                logger.warning(
+                    "Running outside of a signed Framework or bundle: "
+                    "falling back to NSUserNotificationCenter"
+                )
+            else:
+                logger.warning(
+                    "Running on macOS 10.13 or earlier: "
+                    "falling back to NSUserNotificationCenter"
+                )
+
+            # Use deprecated NSUserNotificationCenter.
+            from .macos_legacy import CocoaNotificationCenterLegacy
+
+            return CocoaNotificationCenterLegacy
+
+        else:
+            # Use dummy backend.
+
+            logger.warning(
+                "Notification Center can only be used "
+                "from a signed Framework or app bundle"
+            )
+
+            from .dummy import DummyNotificationCenter
+
+            return DummyNotificationCenter
 
     elif platform.system() == "Linux":
         from .dbus import DBusDesktopNotifier
@@ -123,9 +138,6 @@ class DesktopNotifier:
         identified by the bundle ID of the sending program (e.g., Python).
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center. This may be ignored by some implementations.
-    :param macos_legacy: If True, use the legacy NSUserNotificationCenter backend on
-        macOS 11 and lower. This enables sending notifications from unsigned
-        applications but provides more limited functionality.
     """
 
     def __init__(
@@ -133,10 +145,9 @@ class DesktopNotifier:
         app_name: str = "Python",
         app_icon: Union[Path, str, None] = PYTHON_ICON_PATH,
         notification_limit: Optional[int] = None,
-        macos_legacy: bool = False,
     ) -> None:
 
-        impl_cls = get_implementation(macos_legacy)
+        impl_cls = get_implementation()
 
         if isinstance(app_icon, Path):
             app_icon = app_icon.as_uri()
