@@ -10,8 +10,8 @@ import logging
 from typing import Optional, TypeVar
 
 # external imports
-from dbus_next import Variant  # type: ignore
-from dbus_next.aio import MessageBus, ProxyInterface  # type: ignore
+from dbus_next import Variant
+from dbus_next.aio import MessageBus, ProxyInterface
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency
@@ -91,10 +91,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Some older interfaces may not support notification actions.
 
         if hasattr(self.interface, "on_notification_closed"):
-            self.interface.on_notification_closed(self._on_closed)
+            self.interface.on_notification_closed(self._on_closed)  # type: ignore
 
         if hasattr(self.interface, "on_action_invoked"):
-            self.interface.on_action_invoked(self._on_action)
+            self.interface.on_action_invoked(self._on_action)  # type: ignore
 
         return self.interface
 
@@ -134,7 +134,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             hints["image-path"] = Variant("s", notification.attachment)
 
         # Post the new notification and record the platform ID assigned to it.
-        platform_nid = await self.interface.call_notify(
+        platform_nid = await self.interface.call_notify(  # type: ignore
             self.app_name,  # app_name
             replaces_nid,  # replaces_id
             notification.icon or "",  # app_icon
@@ -155,7 +155,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        await self.interface.call_close_notification(notification.identifier)
+        await self.interface.call_close_notification(notification.identifier)  # type: ignore
 
     async def _clear_all(self) -> None:
         """
@@ -166,14 +166,14 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             return
 
         for notification in self.current_notifications:
-            await self.interface.call_close_notification(notification.identifier)
+            await self.interface.call_close_notification(notification.identifier)  # type: ignore
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action
     # call will come first, in which case we are no longer interested in calling the
     # on_dismissed callback.
 
-    def _on_action(self, nid: Variant, action_key: Variant) -> None:
+    def _on_action(self, nid: int, action_key: str) -> None:
         """
         Called when the user performs a notification action. This will invoke the
         handler callback.
@@ -184,8 +184,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         """
 
         # Get the notification instance from the platform ID.
-        nid = int(nid)
-        action_key = str(action_key)
         notification = self._notification_for_nid.get(nid)
 
         # Execute any callbacks for button clicks.
@@ -201,7 +199,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
                 if callback:
                     callback()
 
-    def _on_closed(self, nid: Variant, reason: Variant) -> None:
+    def _on_closed(self, nid: int, reason: int) -> None:
         """
         Called when the user closes a notification. This will invoke the registered
         callback.
@@ -211,8 +209,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         """
 
         # Get the notification instance from the platform ID.
-        nid = int(nid)
-        reason = int(reason)
         notification = self._notification_for_nid.get(nid)
 
         # Execute callback for user dismissal.
