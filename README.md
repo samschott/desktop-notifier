@@ -103,8 +103,8 @@ environments may not support notifications with buttons. macOS does not support
 manually setting the app icon or name. Instead, both are always determined by the
 application which uses the Library. This can be Python itself, when used interactively,
 or a frozen app bundle when packaged with PyInstaller or similar solutions. Please refer
-to the Platform Support chapter of the documentation for more information on limitations
-for certain platforms.
+to the [Platform Support](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html)
+chapter of the documentation for more information on limitations for certain platforms.
 
 Any options or configurations which are not supported by the platform will be silently
 ignored. Please refer to the documentation on [Read the Docs](https://desktop-notifier.readthedocs.io)
