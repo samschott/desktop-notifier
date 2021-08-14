@@ -49,7 +49,7 @@ setup(
         "docs": docs_require,
     },
     package_data={
-        "desktop_notifier": ["resources/*"],
+        "desktop_notifier": ["resources/*", "py.typed"],
     },
     license="MIT license",
     long_description=open("README.md").read(),
