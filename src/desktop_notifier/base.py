@@ -11,14 +11,14 @@ from collections import deque
 from typing import Optional, Dict, Callable, Any, Union, Deque, List, Sequence
 
 try:
-    from importlib.resources import files  # type: ignore
+    from importlib.resources import path  # type: ignore
 except ImportError:
-    from importlib_resources import files  # type: ignore
+    from importlib_resources import path  # type: ignore
 
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH = files("desktop_notifier") / "resources" / "python.png"
+PYTHON_ICON_PATH = path("desktop_notifier.resources", "python.png").__enter__()
 
 
 class AuthorisationError(Exception):
