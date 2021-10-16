@@ -158,10 +158,6 @@ If you freeze your code with PyInstaller or a similar package, you must sign the
 resulting app bundle for notifications to work. An ad-hoc signature will be sufficient
 but signing with an Apple developer certificate is recommended for distribution.
 
-To work around this requirement, `DesktopNotifier` accepts a `macos_legacy` argument
-to force the use of `NSUserNotificationCenter` on macOS 11 and lower. Note that this
-backend provides more limited functionality (only a single button and no reply fields).
-
 ## Requirements
 
 * macOS 10.13 or higher
