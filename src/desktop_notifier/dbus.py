@@ -190,14 +190,22 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if notification:
             self._clear_notification_from_cache(notification)
 
+            button_number: Optional[int]
+
+            try:
+                button_number = int(action_key)
+            except ValueError:
+                button_number = None
+
             if action_key == "default" and notification.on_clicked:
                 notification.on_clicked()
-            else:
-                button_number = int(action_key)
-                callback = notification.buttons[button_number].on_pressed
 
-                if callback:
-                    callback()
+            elif button_number:
+
+                button = notification.buttons[button_number]
+
+                if button.on_pressed:
+                    button.on_pressed()
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
