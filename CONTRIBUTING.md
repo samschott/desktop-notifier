@@ -1,4 +1,7 @@
 
+If you would like to contribute more than a simple bug fix, please open an issue first
+to discuss potential changes before implementing them.
+
 ### Code
 
 To start, install maestral with the `dev` extra to get all dependencies required for
