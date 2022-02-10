@@ -21,10 +21,6 @@ reference for the main module and platform implementations.
 
    autoapi/desktop_notifier/main/index
    autoapi/desktop_notifier/base/index
-   autoapi/desktop_notifier/macos/index
-   autoapi/desktop_notifier/macos_legacy/index
-   autoapi/desktop_notifier/dbus/index
-   autoapi/desktop_notifier/dummy/index
 
 Getting started
 ***************
