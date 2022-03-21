@@ -200,7 +200,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             if action_key == "default" and notification.on_clicked:
                 notification.on_clicked()
 
-            elif button_number:
+            elif button_number is not None:
 
                 button = notification.buttons[button_number]
 
