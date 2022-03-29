@@ -3,39 +3,49 @@ Platform support
 ================
 
 Some platforms may not support all options. For instance, some Linux desktop
-environments may not support notifications with buttons. macOS does not support
+environments may not support notifications with buttons. macOS and Windows do not support
 manually setting the app icon or name. Instead, both are always determined by the
 application which uses the Library. This can be Python itself, when used interactively,
 or a frozen app bundle when packaged with PyInstaller or similar solutions.
 
 The table below gives an overview over supported functionality for different platforms.
+Please refer to the platform documentation for more detailed information:
+
+* macOS: https://developer.apple.com/documentation/usernotifications/unusernotificationcenter
+* Linux: https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
+* Windows: https://docs.microsoft.com/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts
+
+.. note:: Windows support is still experimental and may have some rough edges.
 
 .. csv-table::
-   :header: "Option", "Description", "Linux", "macOS/iOS"
+   :header: "Option", "Description", "Linux", "macOS/iOS", Windows
    :widths: 5, 5, 5, 5
 
-   "app_name", "The application name to display", "✓", "-- [#f1]_"
-   "app_icon", "The icon shown with the notification", "✓", "-- [#f1]_"
-   "title", "The notification title", "✓", "✓"
-   "message", "The notification message", "✓", "✓"
-   "urgency", "Level that determines how the notification is displayed", "✓", "✓ [#f2]_"
-   "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓ [#f4]_"
-   "reply_field", "A reply field instance to show with the notification", "--", "✓"
-   "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f3]_", "✓"
-   "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f3]_", "✓"
-   "sound", "Play a default sound when showing the notification", "✓ [#f3]_", "✓"
-   "thread", "An identifier to group notifications together", "--", "✓"
+   "app_name", "The application name to display", "✓", "-- [#f1]_", "-- [#f1]_"
+   "app_icon", "The icon shown with the notification", "✓", "-- [#f1]_", "-- [#f1]_"
+   "title", "The notification title", "✓", "✓", "✓"
+   "message", "The notification message", "✓", "✓", "✓"
+   "urgency", "Level that determines how the notification is displayed", "✓", "✓ [#f2]_", "✓"
+   "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓ [#f4]_", "✓"
+   "reply_field", "A reply field instance to show with the notification", "--", "✓", "✓"
+   "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f3]_", "✓", "✓"
+   "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f3]_", "✓", "✓"
+   "sound", "Play a default sound when showing the notification", "✓ [#f3]_", "✓", "✓"
+   "thread", "An identifier to group notifications together", "--", "✓", "✓"
+   "attachment", "A file, e.g., image, attached to the notification", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
 
-.. [#f1] App name and icon on macOS are automatically determined by the calling application.
+.. [#f1] App name and icon on macOS and Windows are automatically determined by the
+         calling application.
 .. [#f2] Only on macOS 12 and later.
 .. [#f3] May be ignored by some notification servers, depending on the desktop environment.
 .. [#f4] Only a single button is supported by our implementation for macOS 10.13 and lower.
+.. [#f5] Limitations on file types exist for each platform.
 
 Callbacks
 *********
 
-MacOS and almost all Linux notification servers support executing a callback when the
-notification is clicked. Note the requirements on a running event loop to handle
+MacOS, Windows and almost all Linux notification servers support executing a callback when
+the notification is clicked. Note the requirements on a running event loop to handle
 callbacks in Python.
 
 Urgency
@@ -57,6 +67,8 @@ macOS 10.14+, we support an unlimited number of buttons.
 Linux desktop environments and notification servers may or may not support a varying
 number of buttons. Gnome desktops typically support up to three buttons.
 
+Windows supports up to 5 buttons.
+
 When an implementation or a platform supports only a limited number of buttons, any
 additional buttons specified in the notification request will be silently ignored.
 
@@ -73,6 +85,9 @@ preview of the file. Allowed file types are:
 On macOS, only previews of image attachments will be shown. iOS will show previews of
 all of the above attachment types and allows long-pressing the notification to show the
 full attachment. The notification will still be shown if the attachment cannot be loaded.
+
+Windows supports images only. The image URI must be a web url or point to a resource
+bundled with the app.
 
 Linux notification servers may support attaching a secondary image to the notification,
 shown in addition to the app icon. Where this is not supported, the app icon will be
