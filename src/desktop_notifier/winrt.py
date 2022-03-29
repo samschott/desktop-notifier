@@ -30,6 +30,7 @@ from winrt.windows.applicationmodel.background import (
     BackgroundExecutionManager,
     ToastNotificationActionTrigger,
 )
+from winrt.windows.foundation import IPropertyValue, PropertyType
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency
@@ -205,8 +206,8 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         else:
             native.group = "default"
 
-        def on_activated(sender, activated_args):
-            activated_args = ToastActivatedEventArgs._from(activated_args)
+        def on_activated(sender, boxed_activated_args):
+            activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
             action_id = activated_args.arguments
 
             if action_id == "default":
@@ -215,7 +216,9 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
             elif action_id == "action=reply&amp":
                 if notification.reply_field.on_replied:
-                    notification.reply_field.on_replied(activated_args.user_input)
+                    boxed_text = activated_args.user_input["textBox"]
+                    text = _unbox_winrt(boxed_text)
+                    notification.reply_field.on_replied(text)
 
             else:
                 action_number = int(action_id)
@@ -254,3 +257,26 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         Asynchronously clears all notifications from notification center.
         """
         self.manager.history.clear(self._appid)
+
+
+def _unbox_winrt(boxed_value):
+    """
+    Unbox winrt object. See https://github.com/pywinrt/pywinrt/issues/8.
+    """
+    if boxed_value is None:
+        return boxed_value
+
+    value = IPropertyValue._from(boxed_value)
+
+    if value.type is PropertyType.EMPTY.value:
+        return None
+    elif value.type is PropertyType.UINT8.value:
+        return value.get_uint8()
+    elif value.type is PropertyType.INT16.value:
+        return value.get_int16()
+    elif value.type is PropertyType.UINT16.value:
+        return value.get_uint16()
+    elif value.type is PropertyType.STRING.value:
+        return value.get_string()
+    else:
+        raise NotImplementedError(f"Unboxing {value.type} is not yet supported")
