@@ -11,28 +11,27 @@ or a frozen app bundle when packaged with PyInstaller or similar solutions.
 The table below gives an overview over supported functionality for different platforms.
 Please refer to the platform documentation for more detailed information:
 
-* macOS: https://developer.apple.com/documentation/usernotifications/unusernotificationcenter
-* Linux: https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
-* Windows: https://docs.microsoft.com/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts
+* macOS / iOS: `UNUserNotificationCenter`_
+* Linux: `org.freedesktop.Notifications`_
+* Windows: `Toast Notifications`_
 
 .. note:: Windows support is still experimental and may have some rough edges.
 
 .. csv-table::
-   :header: "Option", "Description", "Linux", "macOS/iOS", Windows
-   :widths: 5, 5, 5, 5
+   :header: "Option", "Description", "Linux", "macOS/iOS", "Windows"
 
    "app_name", "The application name to display", "✓", "-- [#f1]_", "-- [#f1]_"
    "app_icon", "The icon shown with the notification", "✓", "-- [#f1]_", "-- [#f1]_"
    "title", "The notification title", "✓", "✓", "✓"
    "message", "The notification message", "✓", "✓", "✓"
-   "urgency", "Level that determines how the notification is displayed", "✓", "✓ [#f2]_", "✓"
+   "urgency", "Determines persistence and appearance", "✓", "✓ [#f2]_", "✓"
    "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓ [#f4]_", "✓"
-   "reply_field", "A reply field instance to show with the notification", "--", "✓", "✓"
-   "on_clicked", "A callback to invoke when the notification is clicked", "✓ [#f3]_", "✓", "✓"
-   "on_dismissed", "A callback to invoke when the notification is dismissed", "✓ [#f3]_", "✓", "✓"
-   "sound", "Play a default sound when showing the notification", "✓ [#f3]_", "✓", "✓"
+   "reply_field", "An interactive reply field", "--", "✓", "✓"
+   "on_clicked", "A callback to invoke on click", "✓ [#f3]_", "✓", "✓"
+   "on_dismissed", "A callback to invoke on dismissal", "✓ [#f3]_", "✓", "✓"
+   "sound", "Play a default sound with the notification", "✓ [#f3]_", "✓", "✓"
    "thread", "An identifier to group notifications together", "--", "✓", "✓"
-   "attachment", "A file, e.g., image, attached to the notification", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
+   "attachment", "File attachment, e.g., an image", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
 
 .. [#f1] App name and icon on macOS and Windows are automatically determined by the
          calling application.
@@ -92,3 +91,7 @@ bundled with the app.
 Linux notification servers may support attaching a secondary image to the notification,
 shown in addition to the app icon. Where this is not supported, the app icon will be
 replaced by a thumbnail of the image. This is currently the case for Gnome.
+
+.. _UNUserNotificationCenter: https://developer.apple.com/documentation/usernotifications/unusernotificationcenter
+.. _org.freedesktop.Notifications: https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
+.. _Toast Notifications: https://docs.microsoft.com/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts
