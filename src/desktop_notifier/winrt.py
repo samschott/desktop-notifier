@@ -14,7 +14,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 from typing import Optional, TypeVar, cast
 
 # external imports
-from winrt.windows.ui.notifications import (
+from winsdk.windows.ui.notifications import (
     ToastNotificationManager,
     ToastNotificationPriority,
     NotificationSetting,
@@ -22,15 +22,15 @@ from winrt.windows.ui.notifications import (
     ToastActivatedEventArgs,
     ToastDismissalReason,
 )
-from winrt.windows.data.xml import dom
-from winrt.windows.applicationmodel.core import CoreApplication
-from winrt.windows.applicationmodel.background import (
+from winsdk.windows.data.xml import dom
+from winsdk.windows.applicationmodel.core import CoreApplication
+from winsdk.windows.applicationmodel.background import (
     BackgroundTaskRegistration,
     BackgroundTaskBuilder,
     BackgroundExecutionManager,
     ToastNotificationActionTrigger,
 )
-from winrt.windows.foundation import IPropertyValue, PropertyType
+from winsdk.windows.foundation import IPropertyValue, PropertyType
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency
