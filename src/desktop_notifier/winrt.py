@@ -98,7 +98,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         if any(t.value.name == self.background_task_name for t in tasks):
             return
 
-        # Otherwise request access.
+        # Request access.
         await BackgroundExecutionManager.request_access_async(self._appid)
 
         # Create the background tasks.
@@ -208,7 +208,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         def on_activated(sender, boxed_activated_args):
             activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
-            action_id = activated_args.arguments
+            action_id = cast(str, activated_args.arguments)
 
             if action_id == "default":
                 if notification.on_clicked:
@@ -217,10 +217,10 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             elif action_id == "action=reply&amp":
                 if notification.reply_field.on_replied:
                     boxed_text = activated_args.user_input["textBox"]
-                    text = _unbox_winrt(boxed_text)
+                    text = unbox_winrt(boxed_text)
                     notification.reply_field.on_replied(text)
 
-            else:
+            elif action_id.isnumeric():
                 action_number = int(action_id)
                 notification.buttons[action_number].on_pressed()
 
@@ -259,7 +259,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         self.manager.history.clear(self._appid)
 
 
-def _unbox_winrt(boxed_value):
+def unbox_winrt(boxed_value):
     """
     Unbox winrt object. See https://github.com/pywinrt/pywinrt/issues/8.
     """
