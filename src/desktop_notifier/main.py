@@ -262,17 +262,17 @@ class DesktopNotifier:
             given, this will replace the icon specified by :attr:`app_icon`. Will be
             ignored on macOS.
         :param buttons: A list of buttons with callbacks for the notification.
-        :param reply_field: An optional reply field to show with the notification. Can
-            be used for instance in chat apps.
-        :param on_clicked: Callback to call when the notification is clicked. The
-            callback will be called without any arguments. This is ignored by some
+        :param reply_field: Optional reply field to show with the notification. Can be
+            used for instance in chat apps.
+        :param on_clicked: Optional callback to call when the notification is clicked.
+            The callback will be called without any arguments. This is ignored by some
             implementations.
-        :param on_dismissed: Callback to call when the notification is dismissed. The
-            callback will be called without any arguments. This is ignored by some
-            implementations.
-        :param attachment: URI string or :class:`pathlib.Path` for an attachment to the
-            notification such as an image, movie, or audio file. A preview of this
-            attachment may be displayed together with the notification. Different
+        :param on_dismissed: Optional callback to call when the notification is
+            dismissed. The callback will be called without any arguments. This is
+            ignored by some implementations.
+        :param attachment: Optional URI string or :class:`pathlib.Path` for an
+            attachment to the notification such as an image, movie, or audio file. A
+            preview of this may be displayed together with the notification. Different
             platforms and Linux notification servers support different types of
             attachments. Please consult the platform support section of the
             documentation.
