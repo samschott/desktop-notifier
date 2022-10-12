@@ -44,15 +44,15 @@ requires the user to specify a notification title and message. For instance:
 import asyncio
 from desktop_notifier import DesktopNotifier
 
-notify = DesktopNotifier()
+notifier = DesktopNotifier()
 
 async def main():
-    n = await notify.send(title="Hello world!", message="Sent from Python")
+    n = await notifier.send(title="Hello world!", message="Sent from Python")
     
     await asyncio.sleep(5)  # wait a bit before clearing notification
 
-    await notify.clear(n)  # removes the notification
-    await notify.clear_all()  # removes all notifications for this app
+    await notifier.clear(n)  # removes the notification
+    await notifier.clear_all()  # removes all notifications for this app
 
 asyncio.run(main())
 ```
@@ -61,7 +61,7 @@ For convenience, the is also a synchronous method ``send_sync()`` to send notifi
 which does not require a running asyncio loop:
 
 ```Python
-notify.send_sync(title="Hello world!", message="Sent from Python")
+notifier.send_sync(title="Hello world!", message="Sent from Python")
 ```
 
 By default, "Python" will be used as the app name for all notifications, but you can
@@ -71,12 +71,13 @@ callbacks, etc. The following code will generate the notification shown in the g
 the top of the page:
 
 ```Python
+import asyncio
 from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
 
-notify = DesktopNotifier()
+notifier = DesktopNotifier()
 
 async def main():
-  await notify.send(
+  await notifier.send(
       title="Julius Caesar",
       message="Et tu, Brute?",
       urgency=Urgency.Critical,
@@ -149,15 +150,16 @@ but may be convenient when developing a Gtk app.
 
 On macOS 10.14 and higher, the implementation uses the `UNUserNotificationCenter`
 instead of the deprecated `NSUserNotificationCenter`. `UNUserNotificationCenter`
-restricts sending desktop notifications to signed executables. This means that
+only allows signed executables to send desktop notifications. This means that
 notifications will only work if the Python executable or bundled app has been signed.
 Note that the installer from [python.org](https://python.org) provides a properly signed
 Python framework but **homebrew does not** (manually signing the executable installed
 by homebrew _should_ work as well).
 
-If you freeze your code with PyInstaller or a similar package, you must sign the
-resulting app bundle for notifications to work. An ad-hoc signature will be sufficient
-but signing with an Apple developer certificate is recommended for distribution.
+If you freeze your code with PyInstaller or a similar packaging solution, you must sign 
+the resulting app bundle for notifications to work. An ad-hoc signature will be
+sufficient but signing with an Apple developer certificate is recommended for
+distribution and may be required on future releases of macOS.
 
 ## Requirements
 
