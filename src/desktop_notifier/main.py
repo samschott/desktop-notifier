@@ -258,9 +258,9 @@ class DesktopNotifier:
         :param urgency: Notification level: low, normal or critical. This may be
             interpreted differently by some implementations, for instance causing the
             notification to remain visible for longer, or may be ignored.
-        :param icon: URI string, :class:`pathlib.Path` or icon name to use for the
-            notification, typically the app icon. This will replace the icon specified
-            by :attr:`app_icon`. Will be ignored on macOS.
+        :param icon: Optional URI string, :class:`pathlib.Path` or icon name to use. If
+            given, this will replace the icon specified by :attr:`app_icon`. Will be
+            ignored on macOS.
         :param buttons: A list of buttons with callbacks for the notification.
         :param reply_field: An optional reply field to show with the notification. Can
             be used for instance in chat apps.
@@ -283,8 +283,7 @@ class DesktopNotifier:
 
         :returns: The scheduled notification instance.
         """
-
-        if not icon:
+        if icon is None:
             icon = self.app_icon
         elif isinstance(icon, Path):
             icon = icon.as_uri()
