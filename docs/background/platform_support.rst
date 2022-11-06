@@ -32,6 +32,7 @@ Please refer to the platform documentation for more detailed information:
    "sound", "Play a default sound with the notification", "✓ [#f3]_", "✓", "✓"
    "thread", "An identifier to group notifications together", "--", "✓", "✓"
    "attachment", "File attachment, e.g., an image", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
+   "timeout", "Duration until notification auto-dismissal", "✓ [#f3]_", "--", "--"
 
 .. [#f1] App name and icon on macOS and Windows are automatically determined by the
          calling application.

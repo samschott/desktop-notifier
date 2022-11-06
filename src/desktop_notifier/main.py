@@ -237,6 +237,7 @@ class DesktopNotifier:
         attachment: Union[Path, str, None] = None,
         sound: bool = False,
         thread: Optional[str] = None,
+        timeout: int = -1,
     ) -> Notification:
         """
         Sends a desktop notification.
@@ -280,6 +281,9 @@ class DesktopNotifier:
             platform's default sound will be used, where available.
         :param thread: An identifier to group related notifications together. This is
             ignored on Linux.
+        :param timeout: The duration (in seconds) for which the notification is shown
+            unless dismissed. Only supported on Linux. Default is ``-1`` which implies
+            OS-specified.
 
         :returns: The scheduled notification instance.
         """
@@ -303,6 +307,7 @@ class DesktopNotifier:
             attachment,
             sound,
             thread,
+            timeout,
         )
 
         with self._lock:
@@ -327,6 +332,7 @@ class DesktopNotifier:
         attachment: Union[Path, str, None] = None,
         sound: bool = False,
         thread: Optional[str] = None,
+        timeout: int = -1,
     ) -> Notification:
         """
         Synchronous call of :meth:`send`, for use without an asyncio event loop.
@@ -346,6 +352,7 @@ class DesktopNotifier:
             attachment,
             sound,
             thread,
+            timeout,
         )
 
         return self._run_coro_sync(coro)
