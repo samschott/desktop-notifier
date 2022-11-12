@@ -133,6 +133,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if notification.attachment:
             hints["image-path"] = Variant("s", notification.attachment)
 
+        # get the timeout in ms
+        timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
+
         # Post the new notification and record the platform ID assigned to it.
         platform_nid = await self.interface.call_notify(  # type: ignore
             self.app_name,  # app_name
@@ -142,7 +145,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             notification.message,  # body
             actions,  # actions
             hints,  # hints
-            -1,  # expire_timeout (-1 = default)
+            timeout,  # expire_timeout (-1 = default)
         )
 
         return platform_nid

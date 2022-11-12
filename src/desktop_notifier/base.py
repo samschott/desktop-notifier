@@ -101,6 +101,7 @@ class Notification:
     :attachment: URI for an attachment to the notification.
     :param sound: Whether to play a sound when the notification is shown.
     :param thread: An identifier to group related notifications together.
+    :param timeout: Duration for which the notification in shown.
     """
 
     def __init__(
@@ -116,6 +117,7 @@ class Notification:
         attachment: Optional[str] = None,
         sound: bool = False,
         thread: Optional[str] = None,
+        timeout: int = -1,
     ) -> None:
 
         self._identifier: Union[str, int, None] = None
@@ -130,6 +132,7 @@ class Notification:
         self.attachment = attachment
         self.sound = sound
         self.thread = thread
+        self.timeout = timeout
 
     @property
     def identifier(self) -> Union[str, int, None]:
