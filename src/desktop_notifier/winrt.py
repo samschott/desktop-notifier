@@ -95,7 +95,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         # If background task is already registered, do nothing.
         tasks = BackgroundTaskRegistration.get_all_tasks()
-        if any(t.value.name == self.background_task_name for t in tasks):
+        if any(t.name == self.background_task_name for t in tasks.values()):
             return
 
         # Request access.
