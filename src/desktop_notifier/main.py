@@ -234,6 +234,7 @@ class DesktopNotifier:
         reply_field: Optional[ReplyField] = None,
         on_clicked: Optional[Callable[[], Any]] = None,
         on_dismissed: Optional[Callable[[], Any]] = None,
+        on_timeout: Optional[Callable[[], Any]] = None,
         attachment: Union[Path, str, None] = None,
         sound: bool = False,
         thread: Optional[str] = None,
@@ -270,6 +271,9 @@ class DesktopNotifier:
             implementations.
         :param on_dismissed: Optional callback to call when the notification is
             dismissed. The callback will be called without any arguments. This is
+            ignored by some implementations.
+        :param on_timeout: Optional callback to call when the notification is
+            timed out. The callback will be called without any arguments. This is
             ignored by some implementations.
         :param attachment: Optional URI string or :class:`pathlib.Path` for an
             attachment to the notification such as an image, movie, or audio file. A
@@ -316,6 +320,17 @@ class DesktopNotifier:
                 await self.request_authorisation()
 
             await self._impl.send(notification)
+
+            async def timeout_task():
+                await asyncio.sleep(timeout)
+                if notification in self.current_notifications:
+                    # The notification may have been dismissed in the meantime
+                    await self.clear(notification)
+                    if on_timeout:
+                        on_timeout()
+
+            if timeout > 0:
+                asyncio.create_task(timeout_task())
 
             return notification
 
