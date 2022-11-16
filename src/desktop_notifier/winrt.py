@@ -28,6 +28,7 @@ from winsdk.windows.applicationmodel.background import (
     BackgroundTaskRegistration,
     BackgroundTaskBuilder,
     BackgroundExecutionManager,
+    BackgroundAccessStatus,
     ToastNotificationActionTrigger,
 )
 from winsdk.windows.foundation import IPropertyValue, PropertyType
@@ -73,33 +74,52 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         self.manager = ToastNotificationManager.get_default()
         self.notifier = self.manager.create_toast_notifier(self._appid)
 
-        # BackgroundExecutionManager.remove_access(self._appid)
-        # CoreApplication.add_background_activated(self._on_background_activated)
-
     async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.
 
         :returns: Whether authorisation has been granted.
         """
+        if not await self._request_background_task_access():
+            return False
         return await self.has_authorisation()
 
     async def has_authorisation(self) -> bool:
         """
         Whether we have authorisation to send notifications.
         """
-        return self.notifier.setting == NotificationSetting.ENABLED
+        return (
+            self.notifier.setting == NotificationSetting.ENABLED
+            and await self._has_background_task_access()
+        )
 
-    async def _request_background_task_access(self) -> None:
+    async def _has_background_task_access(self) -> bool:
+        res = await BackgroundExecutionManager.request_access_async(self._appid)
+        return res not in {
+            BackgroundAccessStatus.DENIED_BY_SYSTEM_POLICY,
+            BackgroundAccessStatus.DENIED_BY_USER,
+        }
+
+    def _has_registered_background_task(self) -> bool:
+        tasks = BackgroundTaskRegistration.get_all_tasks()
+        return any(t.name == self.background_task_name for t in tasks.values())
+
+    async def _request_background_task_access(self) -> bool:
         """Request permission to activate in the background."""
+        if self._appid == "":
+            logger.warning(
+                "Only applications can send desktop notifications. "
+                "Could not find App ID for process."
+            )
+            return False
+
+        if not await self._has_background_task_access():
+            logger.warning("This app is not allowed to run background tasks.")
+            return False
 
         # If background task is already registered, do nothing.
-        tasks = BackgroundTaskRegistration.get_all_tasks()
-        if any(t.name == self.background_task_name for t in tasks.values()):
-            return
-
-        # Request access.
-        await BackgroundExecutionManager.request_access_async(self._appid)
+        if self._has_registered_background_task():
+            return True
 
         # Create the background tasks.
         builder = BackgroundTaskBuilder()
@@ -107,6 +127,8 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         builder.set_trigger(ToastNotificationActionTrigger())
         builder.register()
+
+        return True
 
     async def _send(
         self,
@@ -124,8 +146,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             platform_nid = cast(str, notification_to_replace.identifier)
         else:
             platform_nid = str(uuid.uuid4())
-
-        await self._request_background_task_access()
 
         # Create notification XML.
         toast_xml = Element("toast", {"launch": "default"})
