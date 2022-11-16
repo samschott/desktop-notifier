@@ -268,15 +268,15 @@ def unbox_winrt(boxed_value):
 
     value = IPropertyValue._from(boxed_value)
 
-    if value.type is PropertyType.EMPTY.value:
+    if value.type is PropertyType.EMPTY:
         return None
-    elif value.type is PropertyType.UINT8.value:
+    elif value.type is PropertyType.UINT8:
         return value.get_uint8()
-    elif value.type is PropertyType.INT16.value:
+    elif value.type is PropertyType.INT16:
         return value.get_int16()
-    elif value.type is PropertyType.UINT16.value:
+    elif value.type is PropertyType.UINT16:
         return value.get_uint16()
-    elif value.type is PropertyType.STRING.value:
+    elif value.type is PropertyType.STRING:
         return value.get_string()
     else:
         raise NotImplementedError(f"Unboxing {value.type} is not yet supported")
