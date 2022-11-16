@@ -98,7 +98,7 @@ class Notification:
         callback will be called without any arguments.
     :param on_dismissed: Callback to call when the notification is dismissed. The
         callback will be called without any arguments.
-    :attachment: URI for an attachment to the notification.
+    :param attachment: URI for an attachment to the notification.
     :param sound: Whether to play a sound when the notification is shown.
     :param thread: An identifier to group related notifications together.
     :param timeout: Duration for which the notification in shown.
