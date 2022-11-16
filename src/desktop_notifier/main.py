@@ -59,7 +59,6 @@ def get_implementation() -> Type[DesktopNotifierBase]:
     :returns: A desktop notification backend suitable for the current platform.
     :raises RuntimeError: when passing ``macos_legacy = True`` on macOS 12.0 and later.
     """
-
     if platform.system() == "Darwin":
 
         from .macos_support import is_bundle, is_signed_bundle, macos_version
@@ -75,7 +74,6 @@ def get_implementation() -> Type[DesktopNotifierBase]:
             return CocoaNotificationCenter
 
         elif has_nsusernotificationcenter and is_bundle():
-
             if has_unusernotificationcenter and not is_signed:
                 logger.warning(
                     "Running outside of a signed Framework or bundle: "
@@ -94,7 +92,6 @@ def get_implementation() -> Type[DesktopNotifierBase]:
 
         else:
             # Use dummy backend.
-
             logger.warning(
                 "Notification Center can only be used "
                 "from a signed Framework or app bundle"
@@ -151,7 +148,6 @@ class DesktopNotifier:
         app_icon: Union[Path, str, None] = PYTHON_ICON_PATH,
         notification_limit: Optional[int] = None,
     ) -> None:
-
         impl_cls = get_implementation()
 
         if isinstance(app_icon, Path):
@@ -170,7 +166,6 @@ class DesktopNotifier:
         Runs the given coroutine and returns the result synchronously. This is used as a
         wrapper to conveniently convert the async API calls to synchronous ones.
         """
-
         if self._loop.is_running():
             future = asyncio.run_coroutine_threadsafe(coro, self._loop)
             res = future.result()
@@ -197,7 +192,6 @@ class DesktopNotifier:
     @app_icon.setter
     def app_icon(self, value: Union[Path, str, None]) -> None:
         """Setter: app_icon"""
-
         if isinstance(value, Path):
             value = value.as_uri()
 
@@ -206,8 +200,8 @@ class DesktopNotifier:
     async def request_authorisation(self) -> bool:
         """
         Requests authorisation to send user notifications. This will be automatically
-        called for you when sending a notification for the first time but it may be
-        useful to call manually to request authorisation in advance.
+        called for you when sending a notification for the first time. It also can be
+        called manually to request authorisation in advance.
 
         On some platforms such as macOS and iOS, a prompt will be shown to the user
         when this method is called for the first time. This method does nothing on
@@ -215,7 +209,6 @@ class DesktopNotifier:
 
         :returns: Whether authorisation has been granted.
         """
-
         with self._lock:
             self._did_request_authorisation = True
             return await self._impl.request_authorisation()
@@ -339,7 +332,6 @@ class DesktopNotifier:
 
         :returns: The scheduled notification instance.
         """
-
         coro = self.send(
             title,
             message,
@@ -354,7 +346,6 @@ class DesktopNotifier:
             thread,
             timeout,
         )
-
         return self._run_coro_sync(coro)
 
     @property
