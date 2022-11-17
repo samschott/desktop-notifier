@@ -6,19 +6,34 @@ must inherit from :class:`DesktopNotifierBase`.
 
 # system imports
 import logging
+import pathlib
 from enum import Enum
 from collections import deque
-from typing import Optional, Dict, Callable, Any, Union, Deque, List, Sequence
+from typing import (
+    Optional,
+    Dict,
+    Callable,
+    Any,
+    Union,
+    Deque,
+    List,
+    Sequence,
+    ContextManager,
+)
 
 try:
-    from importlib.resources import path  # type: ignore
+    from importlib.resources import as_file, files  # type:ignore
+
+    def resource_path(package: str, resource: str) -> ContextManager[pathlib.Path]:
+        return as_file(files(package) / resource)
+
 except ImportError:
-    from importlib_resources import path  # type: ignore
+    from importlib.resources import path as resource_path  # type:ignore
 
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH = path("desktop_notifier.resources", "python.png").__enter__()
+PYTHON_ICON_PATH = resource_path("desktop_notifier.resources", "python.png").__enter__()
 
 
 class AuthorisationError(Exception):
