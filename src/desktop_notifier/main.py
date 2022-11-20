@@ -22,7 +22,6 @@ from typing import (
     Sequence,
 )
 
-
 # external imports
 from packaging.version import Version
 
