@@ -72,7 +72,14 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         super().__init__(app_name, app_icon, notification_limit)
         self._appid = CoreApplication.get_id()
         self.manager = ToastNotificationManager.get_default()
-        self.notifier = self.manager.create_toast_notifier(self._appid)
+        self.notifier: ToastNotification | None = None
+        if self._appid == "":
+            logger.warning(
+                "Only applications can send desktop notifications. "
+                "Could not find App ID for process."
+            )
+        else:
+            self.notifier = self.manager.create_toast_notifier(self._appid)
 
     async def request_authorisation(self) -> bool:
         """
@@ -88,6 +95,8 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         """
         Whether we have authorisation to send notifications.
         """
+        if not self.notifier:
+            return False
         return (
             self.notifier.setting == NotificationSetting.ENABLED
             and await self._has_background_task_access()
@@ -106,11 +115,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
     async def _request_background_task_access(self) -> bool:
         """Request permission to activate in the background."""
-        if self._appid == "":
-            logger.warning(
-                "Only applications can send desktop notifications. "
-                "Could not find App ID for process."
-            )
+        if not self.notifier:
             return False
 
         if not await self._has_background_task_access():
@@ -141,6 +146,8 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
+        if not self.notifier:
+            raise RuntimeError("Could not get toast notifier")
 
         if notification_to_replace:
             platform_nid = cast(str, notification_to_replace.identifier)
