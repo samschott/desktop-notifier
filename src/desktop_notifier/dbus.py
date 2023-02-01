@@ -74,7 +74,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         return True
 
     async def _init_dbus(self) -> ProxyInterface:
-
         self.bus = await MessageBus().connect()
         introspection = await self.bus.introspect(
             "org.freedesktop.Notifications", "/org/freedesktop/Notifications"
@@ -204,7 +203,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
                 notification.on_clicked()
 
             elif button_number is not None:
-
                 button = notification.buttons[button_number]
 
                 if button.on_pressed:

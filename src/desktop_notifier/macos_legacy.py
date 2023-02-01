@@ -47,7 +47,6 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
     def userNotificationCenter_didActivateNotification_(
         self, center, notification
     ) -> None:
-
         platform_nid = py_from_ns(notification.identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
@@ -58,7 +57,6 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
             notification.activationType
             == NSUserNotificationActivationTypeContentsClicked
         ):
-
             if py_notification.on_clicked:
                 py_notification.on_clicked()
 
@@ -66,7 +64,6 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
             notification.activationType
             == NSUserNotificationActivationTypeActionButtonClicked
         ):
-
             callback = py_notification.buttons[0].on_pressed
 
             if callback:

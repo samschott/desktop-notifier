@@ -252,7 +252,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 notification.buttons[action_number].on_pressed()
 
         def on_dismissed(sender, dismissed_args):
-
             self._clear_notification_from_cache(notification)
 
             if dismissed_args.reason == ToastDismissalReason.USER_CANCELED:

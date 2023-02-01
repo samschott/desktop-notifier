@@ -59,7 +59,6 @@ def get_implementation() -> Type[DesktopNotifierBase]:
     :raises RuntimeError: when passing ``macos_legacy = True`` on macOS 12.0 and later.
     """
     if platform.system() == "Darwin":
-
         from .macos_support import is_bundle, is_signed_bundle, macos_version
 
         has_unusernotificationcenter = macos_version >= Version("10.14")

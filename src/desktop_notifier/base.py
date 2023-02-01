@@ -134,7 +134,6 @@ class Notification:
         thread: Optional[str] = None,
         timeout: int = -1,
     ) -> None:
-
         self._identifier: Union[str, int, None] = None
         self.title = title
         self.message = message

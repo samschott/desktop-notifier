@@ -102,7 +102,6 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
         self, center, response, completion_handler: objc_block
     ) -> None:
-
         # Get the notification which was clicked from the platform ID.
         platform_nid = py_from_ns(response.notification.request.identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
@@ -112,23 +111,19 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
 
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-
             if py_notification.on_clicked:
                 py_notification.on_clicked()
 
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-
             if py_notification.on_dismissed:
                 py_notification.on_dismissed()
 
         elif response.actionIdentifier == ReplyActionIdentifier:
-
             if py_notification.reply_field.on_replied:
                 reply_text = py_from_ns(response.userText)
                 py_notification.reply_field.on_replied(reply_text)
 
         else:
-
             button_number = int(py_from_ns(response.actionIdentifier))
             callback = py_notification.buttons[button_number].on_pressed
 
@@ -340,7 +335,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Register new category if necessary.
         if category_id not in category_ids:
-
             # Create action for each button.
             actions = []
 
