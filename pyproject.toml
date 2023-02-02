@@ -1,7 +1,73 @@
+[build-system]
+requires = [
+    "setuptools>=61.2",
+    "build",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "desktop-notifier"
+version = "3.4.3"
+authors = [{name = "Sam Schott", email = "sam.schott@outlook.com"}]
+license = {text = "MIT"}
+description = "Python library for cross-platform desktop notifications"
+keywords = ["desktop-notifier"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "dbus-next;sys_platform=='linux'",
+    "importlib_resources;python_version<'3.9'",
+    "packaging",
+    "rubicon-objc;sys_platform=='darwin'",
+    "winsdk==1.0.0b7;sys_platform=='win32'",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://github.com/samschott/desktop-notifier"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "bump2version",
+    "flake8",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+]
+docs = [
+    "sphinx",
+    "m2r2",
+    "sphinx-autoapi",
+    "sphinx_rtd_theme",
+]
+
+[tool.flake8]
+ignore = "E203,E501,W503,H306"
+per-file-ignores = """
+__init__.py: F401"""
+statistics = "True"
+
+[tool.mypy]
+ignore_missing_imports = true
+files = ["src"]
+
 [tool.black]
 line-length = 88
-target-version = ["py36", "py37", "py38", "py39"]
-
-[build-system]
-requires = ["setuptools>=41.0", "wheel"]
-build-backend = "setuptools.build_meta"
+target-version = ["py37", "py38", "py39", "py310"]
