@@ -22,13 +22,13 @@ from typing import (
 )
 
 try:
-    from importlib.resources import as_file, files  # type:ignore
+    from importlib.resources import as_file, files
 
     def resource_path(package: str, resource: str) -> ContextManager[pathlib.Path]:
         return as_file(files(package) / resource)
 
 except ImportError:
-    from importlib.resources import path as resource_path  # type:ignore
+    from importlib.resources import path as resource_path
 
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class Button:
         self.title = title
         self.on_pressed = on_pressed
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(title='{self.title}', on_pressed={self.on_pressed})>"
 
 
@@ -96,7 +96,7 @@ class ReplyField:
         self.button_title = button_title
         self.on_replied = on_replied
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(title='{self.title}', on_replied={self.on_replied})>"
 
 
@@ -161,7 +161,7 @@ class Notification:
         """Setter: identifier"""
         self._identifier = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(title='{self.title}', message='{self.message}')>"
 
 

@@ -7,7 +7,7 @@ event loop.
 
 # system imports
 import logging
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, cast
 
 # external imports
 from dbus_next import Variant
@@ -90,10 +90,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Some older interfaces may not support notification actions.
 
         if hasattr(self.interface, "on_notification_closed"):
-            self.interface.on_notification_closed(self._on_closed)  # type: ignore
+            self.interface.on_notification_closed(self._on_closed)
 
         if hasattr(self.interface, "on_action_invoked"):
-            self.interface.on_action_invoked(self._on_action)  # type: ignore
+            self.interface.on_action_invoked(self._on_action)
 
         return self.interface
 
@@ -136,7 +136,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
 
         # Post the new notification and record the platform ID assigned to it.
-        platform_nid = await self.interface.call_notify(  # type: ignore
+        platform_nid = await self.interface.call_notify(
             self.app_name,  # app_name
             replaces_nid,  # replaces_id
             notification.icon or "",  # app_icon
@@ -147,7 +147,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             timeout,  # expire_timeout (-1 = default)
         )
 
-        return platform_nid
+        return cast(int, platform_nid)
 
     async def _clear(self, notification: Notification) -> None:
         """
@@ -157,7 +157,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        await self.interface.call_close_notification(notification.identifier)  # type: ignore
+        await self.interface.call_close_notification(notification.identifier)
 
     async def _clear_all(self) -> None:
         """
@@ -168,7 +168,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             return
 
         for notification in self.current_notifications:
-            await self.interface.call_close_notification(notification.identifier)  # type: ignore
+            await self.interface.call_close_notification(notification.identifier)
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action

@@ -11,7 +11,7 @@ Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
 import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
-from typing import Optional, TypeVar, cast
+from typing import Optional, TypeVar, Any, cast
 
 # external imports
 from winsdk.windows.ui.notifications import (
@@ -32,6 +32,7 @@ from winsdk.windows.applicationmodel.background import (
     ToastNotificationActionTrigger,
 )
 from winsdk.windows.foundation import IPropertyValue, PropertyType
+import winsdk._winrt as _winrt
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency
@@ -233,7 +234,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         else:
             native.group = "default"
 
-        def on_activated(sender, boxed_activated_args):
+        def on_activated(sender, boxed_activated_args) -> None:  # type:ignore
             activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
             action_id = cast(str, activated_args.arguments)
 
@@ -242,23 +243,25 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                     notification.on_clicked()
 
             elif action_id == "action=reply&amp":
-                if notification.reply_field.on_replied:
+                if notification.reply_field and notification.reply_field.on_replied:
                     boxed_text = activated_args.user_input["textBox"]
                     text = unbox_winrt(boxed_text)
                     notification.reply_field.on_replied(text)
 
             elif action_id.isnumeric():
                 action_number = int(action_id)
-                notification.buttons[action_number].on_pressed()
+                callback = notification.buttons[action_number].on_pressed
+                if callback:
+                    callback()
 
-        def on_dismissed(sender, dismissed_args):
+        def on_dismissed(sender, dismissed_args) -> None:  # type:ignore
             self._clear_notification_from_cache(notification)
 
             if dismissed_args.reason == ToastDismissalReason.USER_CANCELED:
                 if notification.on_dismissed:
                     notification.on_dismissed()
 
-        def on_failed(sender, failed_args):
+        def on_failed(sender, failed_args) -> None:  # type:ignore
             logger.warning(
                 f"Notification failed (error code {failed_args.error_code.value})"
             )
@@ -285,7 +288,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         self.manager.history.clear(self._appid)
 
 
-def unbox_winrt(boxed_value):
+def unbox_winrt(boxed_value: _winrt.Object) -> Any:
     """
     Unbox winrt object. See https://github.com/pywinrt/pywinrt/issues/8.
     """

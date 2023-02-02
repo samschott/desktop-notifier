@@ -46,6 +46,7 @@ dev = [
     "black",
     "bump2version",
     "flake8",
+    "flake8-pyproject",
     "mypy",
     "pre-commit",
     "pytest",
@@ -66,6 +67,7 @@ statistics = "True"
 
 [tool.mypy]
 ignore_missing_imports = true
+strict = true
 files = ["src"]
 
 [tool.black]

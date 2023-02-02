@@ -7,6 +7,8 @@ Support module for macOS.
 import platform
 import ctypes
 
+from typing import cast
+
 from packaging.version import Version
 from rubicon.objc import ObjCClass
 from rubicon.objc.runtime import load_library
@@ -79,4 +81,4 @@ def is_signed_bundle() -> bool:
         None,
     )
 
-    return signed_status == 0
+    return cast(int, signed_status) == 0

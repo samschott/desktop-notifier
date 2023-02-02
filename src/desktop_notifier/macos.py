@@ -21,8 +21,8 @@ from typing import Optional, cast
 
 # external imports
 from packaging.version import Version
-from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
-from rubicon.objc.runtime import load_library, objc_id, objc_block  # type: ignore
+from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
+from rubicon.objc.runtime import load_library, objc_id, objc_block
 
 # local imports
 from .base import Notification, DesktopNotifierBase, AuthorisationError, Urgency
@@ -44,9 +44,11 @@ UNTextInputNotificationAction = ObjCClass("UNTextInputNotificationAction")
 UNNotificationCategory = ObjCClass("UNNotificationCategory")
 UNNotificationSound = ObjCClass("UNNotificationSound")
 UNNotificationAttachment = ObjCClass("UNNotificationAttachment")
+UNNotificationSettings = ObjCClass("UNNotificationSettings")
 
 NSURL = ObjCClass("NSURL")
 NSSet = ObjCClass("NSSet")
+NSError = ObjCClass("NSError")
 
 # UserNotifications.h
 
@@ -98,7 +100,7 @@ class UNNotificationInterruptionLevel(enum.Enum):
 class NotificationCenterDelegate(NSObject):  # type: ignore
     """Delegate to handle user interactions with notifications"""
 
-    @objc_method
+    @objc_method  # type:ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
         self, center, response, completion_handler: objc_block
     ) -> None:
@@ -178,7 +180,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :returns: Whether authorisation has been granted.
         """
 
-        future: Future = Future()
+        future: Future[tuple[bool, str]] = Future()
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
             ns_error = py_from_ns(error)
@@ -204,7 +206,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Get existing notification categories.
 
-        future: Future = Future()
+        future: Future[UNNotificationSettings] = Future()  # type:ignore
 
         def handler(settings: objc_id) -> None:
             settings = py_from_ns(settings)
@@ -215,13 +217,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         settings = await asyncio.wrap_future(future)
 
-        authorized = settings.authorizationStatus in (
+        authorized = settings.authorizationStatus in (  # type:ignore
             UNAuthorizationStatusAuthorized,
             UNAuthorizationStatusProvisional,
             UNAuthorizationStatusEphemeral,
         )
 
-        settings.release()
+        settings.release()  # type:ignore
 
         return authorized
 
@@ -270,7 +272,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             platform_nid, content=content, trigger=None
         )
 
-        future: Future = Future()
+        future: Future[NSError] = Future()  # type:ignore
 
         def handler(error: objc_id) -> None:
             ns_error = py_from_ns(error)
@@ -284,28 +286,30 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         )
 
         # Error handling.
-
         error = await asyncio.wrap_future(future)
 
         if error:
-            error.autorelease()
+            error.autorelease()  # type:ignore
 
-            if error.domain == UNErrorDomain:
-                if error.code == UNErrorCode.NotificationsNotAllowed:
+            if error.domain == UNErrorDomain:  # type:ignore
+                if error.code == UNErrorCode.NotificationsNotAllowed:  # type:ignore
                     raise AuthorisationError("Not authorised")
-                elif error.code == UNErrorCode.NotificationInvalidNoDate:
+                elif error.code == UNErrorCode.NotificationInvalidNoDate:  # type:ignore
                     raise RuntimeError("Missing notification date")
-                elif error.code == UNErrorCode.NotificationInvalidNoContent:
+                elif (
+                    error.code  # type:ignore
+                    == UNErrorCode.NotificationInvalidNoContent
+                ):
                     raise RuntimeError("Missing notification content")
                 else:
                     # In case of attachment errors, the notification will still be
                     # delivered, just without an attachment. We therefore do not raise
                     # the error.
                     logger.warning(
-                        f"{error.localizedDescription}: {notification.attachment}"
+                        f"{error.localizedDescription}: {notification.attachment}"  # type:ignore
                     )
             else:
-                raise RuntimeError(error.localizedDescription)
+                raise RuntimeError(error.localizedDescription)  # type:ignore
 
         return platform_nid
 
@@ -368,10 +372,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return category_id
 
-    async def _get_notification_categories(self) -> NSSet:  # type: ignore
+    async def _get_notification_categories(self) -> NSSet:  # type:ignore
         """Returns the registered notification categories for this app / Python."""
 
-        future: Future = Future()
+        future: Future[NSSet] = Future()  # type:ignore
 
         def handler(categories: objc_id) -> None:
             categories = py_from_ns(categories)
@@ -381,7 +385,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc.getNotificationCategoriesWithCompletionHandler(handler)
 
         categories = await asyncio.wrap_future(future)
-        categories.autorelease()
+        categories.autorelease()  # type:ignore
 
         return categories
 

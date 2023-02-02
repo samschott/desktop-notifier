@@ -15,8 +15,8 @@ import logging
 from typing import Optional, cast
 
 # external imports
-from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns  # type: ignore
-from rubicon.objc.runtime import load_library  # type: ignore
+from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
+from rubicon.objc.runtime import load_library
 
 # local imports
 from .base import Notification, DesktopNotifierBase
@@ -43,7 +43,7 @@ NSUserNotificationDefaultSoundName = "DefaultSoundName"
 class NotificationCenterDelegate(NSObject):  # type: ignore
     """Delegate to handle user interactions with notifications"""
 
-    @objc_method
+    @objc_method  # type:ignore
     def userNotificationCenter_didActivateNotification_(
         self, center, notification
     ) -> None:
@@ -124,7 +124,6 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
-
         if notification_to_replace:
             platform_nid = str(notification_to_replace.identifier)
         else:
@@ -160,13 +159,11 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
         :param notification: Notification to clear.
         """
-
         if hasattr(notification, "_native"):
-            self.nc.removeDeliveredNotification(notification._native)  # type: ignore
+            self.nc.removeDeliveredNotification(notification._native)
 
     async def _clear_all(self) -> None:
         """
         Clears all notifications from notification center
         """
-
         self.nc.removeAllDeliveredNotifications()
