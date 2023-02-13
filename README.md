@@ -15,17 +15,31 @@ Currently supported platforms are:
 
 ## Features
 
-Where supported by the native platform APIs:
+`desktop-notifier` aims to be a good citizen of the platforms which it supports. It
+therefore stays within the limits of the native platform APIs and does not try to
+work around limitations which are often deliberate UI choices. For example, on macOS
+and iOS, it is not possible to change the app icon which is shown on notifications,
+even though there are possible workarounds - that would likely be rejected by an App
+Store review.
 
-* Clickable notifications
+Where supported by the native platform APIs, `desktop-notifier` allows for:
+
+* Clickable notifications with callbacks on user interaction
 * Multiple action buttons
 * A single reply field (e.g., for chat notifications)
-* Asyncio integration: the main API consists of async methods and a running event loop
-  is required to respond to user interactions with a notification
 * Notification sounds
-* Notification threads (e.g., for different conversations)
-* Limit maximum number of notifications shown in the notification center
-* Pure Python dependencies only, no extension modules
+* Notification threads (grouping notifications by topic)
+* Limiting maximum number of notifications shown in the notification center
+
+An exhaustive list on features and their platform support is provided in the
+[documentation](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html).
+
+Design choices by `desktop-notifier`:
+
+* Asyncio API: The main API consists of async methods and a running event loop
+  is required to respond to user interactions with a notification.
+* Pure Python dependencies only, no extension modules (with the exception of
+  of the Windows backend).
 
 ## Installation
 
