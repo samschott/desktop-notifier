@@ -18,9 +18,8 @@ Currently supported platforms are:
 `desktop-notifier` aims to be a good citizen of the platforms which it supports. It
 therefore stays within the limits of the native platform APIs and does not try to
 work around limitations which are often deliberate UI choices. For example, on macOS
-and iOS, it is not possible to change the app icon which is shown on notifications,
-even though there are possible workarounds - that would likely be rejected by an App
-Store review.
+and iOS, it is not possible to change the app icon which is shown on notifications.
+There are possible workarounds - that would likely be rejected by an App Store review.
 
 Where supported by the native platform APIs, `desktop-notifier` allows for:
 
@@ -31,7 +30,7 @@ Where supported by the native platform APIs, `desktop-notifier` allows for:
 * Notification threads (grouping notifications by topic)
 * Limiting maximum number of notifications shown in the notification center
 
-An exhaustive list on features and their platform support is provided in the
+An exhaustive list of features and their platform support is provided in the
 [documentation](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html).
 
 Design choices by `desktop-notifier`:
