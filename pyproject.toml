@@ -31,7 +31,7 @@ dependencies = [
     "importlib_resources;python_version<'3.9'",
     "packaging",
     "rubicon-objc;sys_platform=='darwin'",
-    "winsdk==1.0.0b7;sys_platform=='win32'",
+    "winsdk==1.0.0b8;sys_platform=='win32'",
 ]
 
 [project.readme]
