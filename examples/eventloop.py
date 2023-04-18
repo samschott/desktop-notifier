@@ -10,7 +10,7 @@ notify = DesktopNotifier(
 )
 
 
-async def main():
+async def main() -> None:
 
     await notify.send(
         title="Julius Caesar",
