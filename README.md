@@ -106,7 +106,9 @@ async def main():
       ),
       on_clicked=lambda: print("Notification clicked"),
       on_dismissed=lambda: print("Notification dismissed"),
+      on_timeout=lambda: print("Notification timed out"),
       sound=True,
+      timeout=10,
   )
   
 
