@@ -47,19 +47,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def register_hkey(app_id: str, app_name: str, app_icon: Optional[str] = None) -> None:
-    if app_icon is not None:
-        if not os.path.exists(app_icon):
-            logger.warning(
-                f"Could not register the app icon: File {app_icon} does not exist"
-            )
-            app_icon = None
-        elif app_icon.endswith(".ico"):
-            logger.warning(
-                f"Could not register the app icon: File {app_icon} must be of type .ico"
-            )
-            app_icon = None
-
+def register_hkey(app_id: str, app_name: str) -> None:
     winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)  # type:ignore
     key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
     with winreg.CreateKeyEx(  # type:ignore
@@ -68,10 +56,6 @@ def register_hkey(app_id: str, app_name: str, app_icon: Optional[str] = None) ->
         winreg.SetValueEx(  # type:ignore
             master_key, "DisplayName", 0, winreg.REG_SZ, app_name  # type:ignore
         )
-        if app_icon is not None:
-            winreg.SetValueEx(  # type:ignore
-                master_key, "IconUri", 0, winreg.REG_SZ, app_icon  # type:ignore
-            )
 
 
 class WinRTDesktopNotifier(DesktopNotifierBase):
@@ -96,10 +80,9 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Optional[str] = None,
         notification_limit: Optional[int] = None,
     ) -> None:
-        super().__init__(app_name, app_icon, notification_limit)
+        super().__init__(app_name, notification_limit)
         self.manager = ToastNotificationManager.get_default()
         self.notifier: ToastNotification | None = None
 
@@ -109,7 +92,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             self.app_id = CoreApplication.id
         else:
             self.app_id = app_name
-            register_hkey(app_name, app_name, app_icon)
+            register_hkey(app_name, app_name)
         self.notifier = self.manager.create_toast_notifier(self.app_id)
 
     async def request_authorisation(self) -> bool:

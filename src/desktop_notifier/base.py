@@ -171,7 +171,6 @@ class DesktopNotifierBase:
     """Base class for desktop notifier implementations
 
     :param app_name: Name to identify the application in the notification center.
-    :param app_icon: Default icon to use for notifications.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
@@ -179,11 +178,9 @@ class DesktopNotifierBase:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Optional[str] = None,
         notification_limit: Optional[int] = None,
     ) -> None:
         self.app_name = app_name
-        self.app_icon = app_icon
         self.notification_limit = notification_limit
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
         self._notification_for_nid: Dict[Union[str, int], Notification] = {}

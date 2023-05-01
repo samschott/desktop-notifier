@@ -140,6 +140,8 @@ class DesktopNotifier:
         notification center. This may be ignored by some implementations.
     """
 
+    app_icon: Optional[str]
+
     def __init__(
         self,
         app_name: str = "Python",
@@ -149,10 +151,12 @@ class DesktopNotifier:
         impl_cls = get_implementation()
 
         if isinstance(app_icon, Path):
-            app_icon = app_icon.as_uri()
+            self.app_icon = app_icon.as_uri()
+        else:
+            self.app_icon = app_icon
 
         self._lock = RLock()
-        self._impl = impl_cls(app_name, app_icon, notification_limit)
+        self._impl = impl_cls(app_name, notification_limit)
         self._did_request_authorisation = False
 
         # Use our own event loop for the sync API so that we don't interfere with any
@@ -181,19 +185,6 @@ class DesktopNotifier:
     def app_name(self, value: str) -> None:
         """Setter: app_name"""
         self._impl.app_name = value
-
-    @property
-    def app_icon(self) -> Optional[str]:
-        """The application icon: a URI for a local file or an icon name."""
-        return self._impl.app_icon
-
-    @app_icon.setter
-    def app_icon(self, value: Union[Path, str, None]) -> None:
-        """Setter: app_icon"""
-        if isinstance(value, Path):
-            value = value.as_uri()
-
-        self._impl.app_icon = value
 
     async def request_authorisation(self) -> bool:
         """
