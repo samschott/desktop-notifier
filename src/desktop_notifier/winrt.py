@@ -8,7 +8,6 @@ Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
 """
 
 # system imports
-import os
 import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -26,13 +25,6 @@ from winsdk.windows.ui.notifications import (
 )
 from winsdk.windows.data.xml import dom
 from winsdk.windows.applicationmodel.core import CoreApplication
-from winsdk.windows.applicationmodel.background import (
-    BackgroundTaskRegistration,
-    BackgroundTaskBuilder,
-    BackgroundExecutionManager,
-    BackgroundAccessStatus,
-    ToastNotificationActionTrigger,
-)
 from winsdk.windows.foundation import IPropertyValue, PropertyType
 import winsdk._winrt as _winrt
 
@@ -63,8 +55,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
     :param app_name: The name of the app. This has no effect since the app name will be
         automatically determined.
-    :param app_icon: The default icon to use for notifications. This has no effect since
-        the app icon will be automatically determined.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
@@ -75,8 +65,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         Urgency.Critical: ToastNotificationPriority.HIGH,
     }
 
-    background_task_name = "DesktopNotifier-ToastBackgroundTask"
-
     def __init__(
         self,
         app_name: str = "Python",
@@ -84,7 +72,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
     ) -> None:
         super().__init__(app_name, notification_limit)
         self.manager = ToastNotificationManager.get_default()
-        self.notifier: ToastNotification | None = None
 
         # Prefer using the real App ID if detected, fall back to user-provided name
         # and icon otherwise.
@@ -101,57 +88,13 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         :returns: Whether authorisation has been granted.
         """
-        if not await self._request_background_task_access():
-            return False
-        return await self.has_authorisation()
+        return bool(self.notifier.setting == NotificationSetting.ENABLED)
 
     async def has_authorisation(self) -> bool:
         """
         Whether we have authorisation to send notifications.
         """
-        if not self.notifier:
-            return False
-        return (
-            self.notifier.setting == NotificationSetting.ENABLED
-            and await self._has_background_task_access()
-        )
-
-    async def _has_background_task_access(self) -> bool:
-        try:
-            res = await BackgroundExecutionManager.request_access_async(self.app_id)
-        except OSError:
-            return False
-        else:
-            return res not in {
-                BackgroundAccessStatus.DENIED_BY_SYSTEM_POLICY,
-                BackgroundAccessStatus.DENIED_BY_USER,
-            }
-
-    def _has_registered_background_task(self) -> bool:
-        tasks = BackgroundTaskRegistration.get_all_tasks()
-        return any(t.name == self.background_task_name for t in tasks.values())
-
-    async def _request_background_task_access(self) -> bool:
-        """Request permission to activate in the background."""
-        if not self.notifier:
-            return False
-
-        if not await self._has_background_task_access():
-            logger.warning("This app is not allowed to run background tasks.")
-            return False
-
-        # If background task is already registered, do nothing.
-        if self._has_registered_background_task():
-            return True
-
-        # Create the background tasks.
-        builder = BackgroundTaskBuilder()
-        builder.name = self.background_task_name
-
-        builder.set_trigger(ToastNotificationActionTrigger())
-        builder.register()
-
-        return True
+        return bool(self.notifier.setting == NotificationSetting.ENABLED)
 
     async def _send(
         self,
