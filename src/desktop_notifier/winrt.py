@@ -7,11 +7,13 @@ the Windows Runtime and uses the winrt package with compiled components publishe
 Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
 """
 
+from __future__ import annotations
+
 # system imports
 import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
-from typing import Optional, TypeVar, Any, cast
+from typing import TypeVar, Any, cast
 
 # external imports
 import winreg
@@ -68,7 +70,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: Optional[int] = None,
+        notification_limit: int | None = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
         self.manager = ToastNotificationManager.get_default()
@@ -99,7 +101,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Optional[Notification],
+        notification_to_replace: Notification | None,
     ) -> str:
         """
         Asynchronously sends a notification.

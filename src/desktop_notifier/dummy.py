@@ -3,9 +3,10 @@
 Dummy backend for unsupported platforms.
 """
 
+from __future__ import annotations
+
 # system imports
 import uuid
-from typing import Optional
 
 # local imports
 from .base import Notification, DesktopNotifierBase
@@ -17,7 +18,7 @@ class DummyNotificationCenter(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: Optional[int] = None,
+        notification_limit: int | None = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
 
@@ -38,7 +39,7 @@ class DummyNotificationCenter(DesktopNotifierBase):
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Optional[Notification],
+        notification_to_replace: Notification | None,
     ) -> str:
         if notification_to_replace:
             return str(notification_to_replace.identifier)

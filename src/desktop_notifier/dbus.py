@@ -5,9 +5,11 @@ over Dbus. Responding to user interaction with a notification requires a running
 event loop.
 """
 
+from __future__ import annotations
+
 # system imports
 import logging
-from typing import Optional, TypeVar, cast
+from typing import TypeVar, cast
 
 # external imports
 from dbus_next import Variant
@@ -53,10 +55,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: Optional[int] = None,
+        notification_limit: int | None = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
-        self.interface: Optional[ProxyInterface] = None
+        self.interface: ProxyInterface | None = None
 
     async def request_authorisation(self) -> bool:
         """
@@ -99,7 +101,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Optional[Notification],
+        notification_to_replace: Notification | None,
     ) -> int:
         """
         Asynchronously sends a notification via the Dbus interface.
@@ -191,7 +193,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if notification:
             self._clear_notification_from_cache(notification)
 
-            button_number: Optional[int]
+            button_number: int | None
 
             try:
                 button_number = int(action_key)

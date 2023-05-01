@@ -10,6 +10,8 @@ UNUserNotificationCenter backend for macOS.
 
 """
 
+from __future__ import annotations
+
 # system imports
 import uuid
 import logging
@@ -17,7 +19,7 @@ import enum
 import asyncio
 from concurrent.futures import Future
 from urllib.parse import urlparse, unquote
-from typing import Optional, cast
+from typing import cast
 
 # external imports
 from packaging.version import Version
@@ -157,7 +159,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: Optional[int] = None,
+        notification_limit: int | None = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
@@ -227,7 +229,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Optional[Notification],
+        notification_to_replace: Notification | None,
     ) -> str:
         """
         Uses UNUserNotificationCenter to schedule a notification.
@@ -312,7 +314,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
     async def _create_category_for_notification(
         self, notification: Notification
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Registers a new notification category with UNNotificationCenter for the given
         notification or retrieves an existing one if it exists for our set of buttons.

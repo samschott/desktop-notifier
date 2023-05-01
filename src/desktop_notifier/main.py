@@ -4,6 +4,8 @@ This module handles desktop notifications and supports multiple backends, depend
 the platform.
 """
 
+from __future__ import annotations
+
 # system imports
 import platform
 from threading import RLock
@@ -12,8 +14,6 @@ import asyncio
 from pathlib import Path
 from typing import (
     Type,
-    Union,
-    Optional,
     Callable,
     Coroutine,
     List,
@@ -140,13 +140,13 @@ class DesktopNotifier:
         notification center. This may be ignored by some implementations.
     """
 
-    app_icon: Optional[str]
+    app_icon: str | None
 
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Union[Path, str, None] = PYTHON_ICON_PATH,
-        notification_limit: Optional[int] = None,
+        app_icon: Path | str | None = PYTHON_ICON_PATH,
+        notification_limit: int | None = None,
     ) -> None:
         impl_cls = get_implementation()
 
@@ -211,14 +211,14 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Union[Path, str, None] = None,
+        icon: Path | str | None = None,
         buttons: Sequence[Button] = (),
-        reply_field: Optional[ReplyField] = None,
-        on_clicked: Optional[Callable[[], Any]] = None,
-        on_dismissed: Optional[Callable[[], Any]] = None,
-        attachment: Union[Path, str, None] = None,
+        reply_field: ReplyField | None = None,
+        on_clicked: Callable[[], Any] | None = None,
+        on_dismissed: Callable[[], Any] | None = None,
+        attachment: Path | str | None = None,
         sound: bool = False,
-        thread: Optional[str] = None,
+        thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:
         """
@@ -309,14 +309,14 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Union[Path, str, None] = None,
+        icon: Path | str | None = None,
         buttons: Sequence[Button] = (),
-        reply_field: Optional[ReplyField] = None,
-        on_clicked: Optional[Callable[[], Any]] = None,
-        on_dismissed: Optional[Callable[[], Any]] = None,
-        attachment: Union[Path, str, None] = None,
+        reply_field: ReplyField | None = None,
+        on_clicked: Callable[[], Any] | None = None,
+        on_dismissed: Callable[[], Any] | None = None,
+        attachment: Path | str | None = None,
         sound: bool = False,
-        thread: Optional[str] = None,
+        thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:
         """

@@ -4,17 +4,17 @@ This module defines base classes for desktop notifications. All platform impleme
 must inherit from :class:`DesktopNotifierBase`.
 """
 
+from __future__ import annotations
+
 # system imports
 import logging
 import pathlib
 from enum import Enum
 from collections import deque
 from typing import (
-    Optional,
     Dict,
     Callable,
     Any,
-    Union,
     Deque,
     List,
     Sequence,
@@ -68,7 +68,7 @@ class Button:
     def __init__(
         self,
         title: str,
-        on_pressed: Optional[Callable[[], Any]] = None,
+        on_pressed: Callable[[], Any] | None = None,
     ) -> None:
         self.title = title
         self.on_pressed = on_pressed
@@ -92,7 +92,7 @@ class ReplyField:
         self,
         title: str = "Reply",
         button_title: str = "Send",
-        on_replied: Optional[Callable[[str], Any]] = None,
+        on_replied: Callable[[str], Any] | None = None,
     ) -> None:
         self.title = title
         self.button_title = button_title
@@ -126,17 +126,17 @@ class Notification:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Optional[str] = None,
+        icon: str | None = None,
         buttons: Sequence[Button] = (),
-        reply_field: Optional[ReplyField] = None,
-        on_clicked: Optional[Callable[[], Any]] = None,
-        on_dismissed: Optional[Callable[[], Any]] = None,
-        attachment: Optional[str] = None,
+        reply_field: ReplyField | None = None,
+        on_clicked: Callable[[], Any] | None = None,
+        on_dismissed: Callable[[], Any] | None = None,
+        attachment: str | None = None,
         sound: bool = False,
-        thread: Optional[str] = None,
+        thread: str | None = None,
         timeout: int = -1,
     ) -> None:
-        self._identifier: Union[str, int, None] = None
+        self._identifier: str | int | None = None
         self.title = title
         self.message = message
         self.urgency = urgency
@@ -151,7 +151,7 @@ class Notification:
         self.timeout = timeout
 
     @property
-    def identifier(self) -> Union[str, int, None]:
+    def identifier(self) -> str | int | None:
         """
         An platform identifier which gets assigned to the notification after it was
         sent. This may be a str or int.
@@ -159,7 +159,7 @@ class Notification:
         return self._identifier
 
     @identifier.setter
-    def identifier(self, value: Union[str, int, None]) -> None:
+    def identifier(self, value: str | int | None) -> None:
         """Setter: identifier"""
         self._identifier = value
 
@@ -178,12 +178,12 @@ class DesktopNotifierBase:
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: Optional[int] = None,
+        notification_limit: int | None = None,
     ) -> None:
         self.app_name = app_name
         self.notification_limit = notification_limit
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
-        self._notification_for_nid: Dict[Union[str, int], Notification] = {}
+        self._notification_for_nid: Dict[str | int, Notification] = {}
 
     async def request_authorisation(self) -> bool:
         """
@@ -209,7 +209,7 @@ class DesktopNotifierBase:
         :param notification: Notification to send.
         """
 
-        notification_to_replace: Optional[Notification]
+        notification_to_replace: Notification | None
 
         if len(self._current_notifications) == self.notification_limit:
             notification_to_replace = self._current_notifications.popleft()
@@ -250,8 +250,8 @@ class DesktopNotifierBase:
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Optional[Notification],
-    ) -> Union[str, int]:
+        notification_to_replace: Notification | None,
+    ) -> str | int:
         """
         Method to send a notification via the platform. This should be implemented by
         subclasses.
