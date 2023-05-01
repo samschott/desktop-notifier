@@ -51,8 +51,8 @@ dev = [
 ]
 docs = [
     "sphinx",
-    "m2r2",
     "sphinx-autoapi",
+    "sphinx-mdinclude",
     "sphinx_rtd_theme",
 ]
 
