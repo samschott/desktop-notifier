@@ -56,6 +56,9 @@ docs = [
     "sphinx_rtd_theme",
 ]
 
+[tool.setuptools.package-data]
+desktop_notifier = ["**/*.png"]
+
 [tool.flake8]
 ignore = "E203,E501,W503,H306"
 per-file-ignores = """
