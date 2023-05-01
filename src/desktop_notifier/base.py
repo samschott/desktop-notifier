@@ -66,7 +66,9 @@ class Button:
     """
 
     def __init__(
-        self, title: str, on_pressed: Optional[Callable[[], Any]] = None
+        self,
+        title: str,
+        on_pressed: Optional[Callable[[], Any]] = None,
     ) -> None:
         self.title = title
         self.on_pressed = on_pressed

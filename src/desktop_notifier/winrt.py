@@ -8,12 +8,14 @@ Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
 """
 
 # system imports
+import os
 import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
 from typing import Optional, TypeVar, Any, cast
 
 # external imports
+import winreg
 from winsdk.windows.ui.notifications import (
     ToastNotificationManager,
     ToastNotificationPriority,
@@ -45,6 +47,33 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
+def register_hkey(app_id: str, app_name: str, app_icon: Optional[str] = None) -> None:
+    if app_icon is not None:
+        if not os.path.exists(app_icon):
+            logger.warning(
+                f"Could not register the app icon: File {app_icon} does not exist"
+            )
+            app_icon = None
+        elif app_icon.endswith(".ico"):
+            logger.warning(
+                f"Could not register the app icon: File {app_icon} must be of type .ico"
+            )
+            app_icon = None
+
+    winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)  # type:ignore
+    key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
+    with winreg.CreateKeyEx(  # type:ignore
+        winreg.HKEY_CURRENT_USER, key_path  # type:ignore
+    ) as master_key:
+        winreg.SetValueEx(  # type:ignore
+            master_key, "DisplayName", 0, winreg.REG_SZ, app_name  # type:ignore
+        )
+        if app_icon is not None:
+            winreg.SetValueEx(  # type:ignore
+                master_key, "IconUri", 0, winreg.REG_SZ, app_icon  # type:ignore
+            )
+
+
 class WinRTDesktopNotifier(DesktopNotifierBase):
     """Notification backend for the Windows Runtime
 
@@ -71,16 +100,17 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         notification_limit: Optional[int] = None,
     ) -> None:
         super().__init__(app_name, app_icon, notification_limit)
-        self._appid = CoreApplication.get_id()
         self.manager = ToastNotificationManager.get_default()
         self.notifier: ToastNotification | None = None
-        if self._appid == "":
-            logger.warning(
-                "Only applications can send desktop notifications. "
-                "Could not find App ID for process."
-            )
+
+        # Prefer using the real App ID if detected, fall back to user-provided name
+        # and icon otherwise.
+        if CoreApplication.id != "":
+            self.app_id = CoreApplication.id
         else:
-            self.notifier = self.manager.create_toast_notifier(self._appid)
+            self.app_id = app_name
+            register_hkey(app_name, app_name, app_icon)
+        self.notifier = self.manager.create_toast_notifier(self.app_id)
 
     async def request_authorisation(self) -> bool:
         """
@@ -104,11 +134,15 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         )
 
     async def _has_background_task_access(self) -> bool:
-        res = await BackgroundExecutionManager.request_access_async(self._appid)
-        return res not in {
-            BackgroundAccessStatus.DENIED_BY_SYSTEM_POLICY,
-            BackgroundAccessStatus.DENIED_BY_USER,
-        }
+        try:
+            res = await BackgroundExecutionManager.request_access_async(self.app_id)
+        except OSError:
+            return False
+        else:
+            return res not in {
+                BackgroundAccessStatus.DENIED_BY_SYSTEM_POLICY,
+                BackgroundAccessStatus.DENIED_BY_USER,
+            }
 
     def _has_registered_background_task(self) -> bool:
         tasks = BackgroundTaskRegistration.get_all_tasks()
@@ -279,13 +313,13 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         Asynchronously removes a notification from the notification center.
         """
         group = notification.thread or "default"
-        self.manager.history.remove(notification.identifier, group, self._appid)
+        self.manager.history.remove(notification.identifier, group, self.app_id)
 
     async def _clear_all(self) -> None:
         """
         Asynchronously clears all notifications from notification center.
         """
-        self.manager.history.clear(self._appid)
+        self.manager.history.clear(self.app_id)
 
 
 def unbox_winrt(boxed_value: _winrt.Object) -> Any:
