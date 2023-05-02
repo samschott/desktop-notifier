@@ -67,6 +67,10 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         Urgency.Critical: ToastNotificationPriority.HIGH,
     }
 
+    DEFAULT_ACTION = "default"
+    REPLY_ACTION = "action=reply&amp"
+    REPLY_TEXTBOX_NAME = "textBox"
+
     def __init__(
         self,
         app_name: str = "Python",
@@ -109,16 +113,13 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
-        if not self.notifier:
-            raise RuntimeError("Could not get toast notifier")
-
         if notification_to_replace:
             platform_nid = cast(str, notification_to_replace.identifier)
         else:
             platform_nid = str(uuid.uuid4())
 
         # Create notification XML.
-        toast_xml = Element("toast", {"launch": "default"})
+        toast_xml = Element("toast", {"launch": WinRTDesktopNotifier.DEFAULT_ACTION})
         visual_xml = SubElement(toast_xml, "visual")
         actions_xml = SubElement(toast_xml, "actions")
 
@@ -126,7 +127,12 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             SubElement(
                 toast_xml,
                 "header",
-                {"id": notification.thread, "title": notification.thread},
+                {
+                    "id": notification.thread,
+                    "title": notification.thread,
+                    "arguments": WinRTDesktopNotifier.DEFAULT_ACTION,
+                    "activationType": "background",
+                },
             )
 
         binding = SubElement(visual_xml, "binding", {"template": "ToastGeneric"})
@@ -150,7 +156,11 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             )
 
         if notification.reply_field:
-            SubElement(actions_xml, "input", {"id": "textBox", "type": "text"})
+            SubElement(
+                actions_xml,
+                "input",
+                {"id": WinRTDesktopNotifier.REPLY_TEXTBOX_NAME, "type": "text"},
+            )
             reply_button_xml = SubElement(
                 actions_xml,
                 "action",
@@ -164,7 +174,9 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             # If there are no other buttons, show the
             # reply buttons next to the text field.
             if not notification.buttons:
-                reply_button_xml.set("hint-inputId", "textBox")
+                reply_button_xml.set(
+                    "hint-inputId", WinRTDesktopNotifier.REPLY_TEXTBOX_NAME
+                )
 
         for n, button in enumerate(notification.buttons):
             SubElement(
@@ -191,25 +203,20 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         native.tag = platform_nid
         native.priority = self._to_native_urgency[notification.urgency]
 
-        if notification.thread:
-            native.group = notification.thread
-        else:
-            native.group = "default"
-
         def on_activated(sender, boxed_activated_args) -> None:  # type:ignore
             activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
             action_id = cast(str, activated_args.arguments)
 
-            if action_id == "default":
+            if action_id == WinRTDesktopNotifier.DEFAULT_ACTION:
                 if notification.on_clicked:
                     notification.on_clicked()
-
-            elif action_id == "action=reply&amp":
+            elif action_id == WinRTDesktopNotifier.REPLY_ACTION:
                 if notification.reply_field and notification.reply_field.on_replied:
-                    boxed_text = activated_args.user_input["textBox"]
+                    boxed_text = activated_args.user_input[
+                        WinRTDesktopNotifier.REPLY_TEXTBOX_NAME
+                    ]
                     text = unbox_winrt(boxed_text)
                     notification.reply_field.on_replied(text)
-
             elif action_id.isnumeric():
                 action_number = int(action_id)
                 callback = notification.buttons[action_number].on_pressed
@@ -237,11 +244,10 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         return platform_nid
 
     async def _clear(self, notification: Notification) -> None:
-        """c
+        """
         Asynchronously removes a notification from the notification center.
         """
-        group = notification.thread or "default"
-        self.manager.history.remove(notification.identifier, group, self.app_id)
+        self.manager.history.remove(notification.identifier)
 
     async def _clear_all(self) -> None:
         """
