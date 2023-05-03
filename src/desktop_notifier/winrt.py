@@ -69,6 +69,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
     DEFAULT_ACTION = "default"
     REPLY_ACTION = "action=reply&amp"
+    BUTTON_ACTION_PREFIX = "action=button&amp;id="
     REPLY_TEXTBOX_NAME = "textBox"
 
     def __init__(
@@ -185,7 +186,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 {
                     "content": button.title,
                     "activationType": "background",
-                    "arguments": str(n),
+                    "arguments": WinRTDesktopNotifier.BUTTON_ACTION_PREFIX + str(n),
                 },
             )
 
@@ -217,8 +218,11 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                     ]
                     text = unbox_winrt(boxed_text)
                     notification.reply_field.on_replied(text)
-            elif action_id.isnumeric():
-                action_number = int(action_id)
+            elif action_id.startswith(WinRTDesktopNotifier.BUTTON_ACTION_PREFIX):
+                action_number_str = action_id.replace(
+                    WinRTDesktopNotifier.BUTTON_ACTION_PREFIX, ""
+                )
+                action_number = int(action_number_str)
                 callback = notification.buttons[action_number].on_pressed
                 if callback:
                     callback()
