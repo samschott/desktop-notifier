@@ -13,7 +13,7 @@ mistune==2.0.5
 packaging==23.1
 Pygments==2.15.1
 PyYAML==6.0
-requests==2.29.0
+requests==2.30.0
 snowballstemmer==2.2.0
 Sphinx==6.2.1
 sphinx-autoapi==2.1.0
