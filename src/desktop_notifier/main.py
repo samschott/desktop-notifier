@@ -206,6 +206,28 @@ class DesktopNotifier:
         """Returns whether we have authorisation to send notifications."""
         return await self._impl.has_authorisation()
 
+    async def send_notification(self, notification: Notification) -> Notification:
+        """
+        Sends a desktop notification.
+
+        This method takes a fully constructed :class:`Notification` instance as input.
+        Use :meth:`send` to provide separate notification properties such as ``title``,
+        ``message``, etc., instead.
+
+        :param notification: The notification to send.
+        """
+        with self._lock:
+            # Ask for authorisation if not already done. On some platforms, this will
+            # trigger a system dialog to ask the user for permission.
+            if not self._did_request_authorisation:
+                await self.request_authorisation()
+
+            # We attempt to send the notification regardless of authorization.
+            # The user may have changed settings in the meantime.
+            await self._impl.send(notification)
+
+            return notification
+
     async def send(
         self,
         title: str,
@@ -292,17 +314,7 @@ class DesktopNotifier:
             timeout,
         )
 
-        with self._lock:
-            # Ask for authorisation if not already done. On some platforms, this will
-            # trigger a system dialog to ask the user for permission.
-            if not self._did_request_authorisation:
-                await self.request_authorisation()
-
-            # We attempt to send the notification regardless of authorization.
-            # The user may have changed settings in the meantime.
-            await self._impl.send(notification)
-
-            return notification
+        return await self.send_notification(notification)
 
     def send_sync(
         self,
