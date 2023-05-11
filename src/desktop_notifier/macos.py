@@ -7,10 +7,7 @@ UNUserNotificationCenter backend for macOS.
 * Only available from signed app bundles if called from the main executable or from a
   signed Python framework (for example from python.org).
 * Requires a running CFRunLoop to invoke callbacks.
-
 """
-
-from __future__ import annotations
 
 # system imports
 import uuid
@@ -19,7 +16,7 @@ import enum
 import asyncio
 from concurrent.futures import Future
 from urllib.parse import urlparse, unquote
-from typing import cast
+from typing import cast, Optional
 
 # external imports
 from packaging.version import Version
@@ -159,7 +156,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: int | None = None,
+        notification_limit: Optional[int] = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
@@ -229,7 +226,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Notification | None,
+        notification_to_replace: Optional[Notification],
     ) -> str:
         """
         Uses UNUserNotificationCenter to schedule a notification.
@@ -243,7 +240,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         else:
             platform_nid = str(uuid.uuid4())
 
-        # On macOS, we need need to register a new notification category for every
+        # On macOS, we need to register a new notification category for every
         # unique set of buttons.
         category_id = await self._create_category_for_notification(notification)
 
@@ -314,7 +311,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
     async def _create_category_for_notification(
         self, notification: Notification
-    ) -> str | None:
+    ) -> Optional[str]:
         """
         Registers a new notification category with UNNotificationCenter for the given
         notification or retrieves an existing one if it exists for our set of buttons.

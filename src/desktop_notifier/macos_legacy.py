@@ -8,13 +8,11 @@ NSUserNotificationCenter backend for macOS.
 
 """
 
-from __future__ import annotations
-
 # system imports
 import uuid
 import platform
 import logging
-from typing import cast
+from typing import cast, Optional
 
 # external imports
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
@@ -89,7 +87,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
     def __init__(
         self,
         app_name: str = "Python",
-        notification_limit: int | None = None,
+        notification_limit: Optional[int] = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
 
@@ -115,7 +113,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
     async def _send(
         self,
         notification: Notification,
-        notification_to_replace: Notification | None,
+        notification_to_replace: Optional[Notification],
     ) -> str:
         """
         Uses NSUserNotificationCenter to schedule a notification.
