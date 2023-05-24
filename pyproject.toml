@@ -50,10 +50,10 @@ dev = [
     "pytest-cov",
 ]
 docs = [
-    "sphinx",
-    "sphinx-autoapi",
-    "sphinx-mdinclude",
-    "sphinx_rtd_theme",
+    "furo==2023.5.20",
+    "sphinx==7.0.1",
+    "sphinx-autoapi==2.1.0",
+    "sphinx-mdinclude==0.5.3",
 ]
 
 [tool.setuptools.package-data]
