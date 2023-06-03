@@ -3,10 +3,9 @@ Platform support
 ================
 
 Some platforms may not support all options. For instance, some Linux desktop
-environments may not support notifications with buttons. macOS and Windows do not support
-manually setting the app icon or name. Instead, both are always determined by the
-application which uses the Library. This can be Python itself, when used interactively,
-or a frozen app bundle when packaged with PyInstaller or similar solutions.
+environments don't support notifications with buttons. macOS and Windows don't support
+manually setting the app icon or name but determine those automatically from the
+application which uses the Library.
 
 The table below gives an overview over supported functionality for different platforms.
 Please refer to the platform documentation for more detailed information:
@@ -14,8 +13,6 @@ Please refer to the platform documentation for more detailed information:
 * macOS / iOS: `UNUserNotificationCenter`_
 * Linux: `org.freedesktop.Notifications`_
 * Windows: `Toast Notifications`_
-
-.. note:: Windows support is still experimental and may have some rough edges.
 
 .. csv-table::
    :header: "Option", "Description", "Linux", "macOS/iOS", "Windows"
@@ -44,9 +41,9 @@ Please refer to the platform documentation for more detailed information:
 Callbacks
 *********
 
-MacOS, Windows and almost all Linux notification servers support executing a callback when
-the notification is clicked. Note the requirements on a running event loop to handle
-callbacks in Python.
+MacOS, Windows and almost all Linux notification servers support executing a callback
+when the notification is clicked. Note the requirements on a running event loop to
+handle callbacks in Python.
 
 Urgency
 *******
