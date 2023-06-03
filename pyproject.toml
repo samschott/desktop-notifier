@@ -24,9 +24,8 @@ classifiers = [
 ]
 requires-python = ">=3.7"
 dependencies = [
-    "dbus-next;sys_platform=='linux'",
-    "importlib_resources;python_version<'3.9'",
     "packaging",
+    "dbus-next;sys_platform=='linux'",
     "rubicon-objc;sys_platform=='darwin'",
     "winsdk==1.0.0b9;sys_platform=='win32'",
 ]
@@ -72,4 +71,4 @@ files = ["src"]
 
 [tool.black]
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310"]
+target-version = ["py37", "py38", "py39", "py310", "py311"]
