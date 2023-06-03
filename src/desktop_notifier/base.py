@@ -8,7 +8,6 @@ from __future__ import annotations
 
 # system imports
 import logging
-import pathlib
 from enum import Enum
 from collections import deque
 from typing import (
@@ -18,17 +17,9 @@ from typing import (
     Deque,
     List,
     Sequence,
-    ContextManager,
 )
 
-try:
-    from importlib.resources import as_file, files
-
-    def resource_path(package: str, resource: str) -> ContextManager[pathlib.Path]:
-        return as_file(files(package) / resource)
-
-except ImportError:
-    from importlib.resources import path as resource_path
+from importlib_resources import path as resource_path
 
 
 logger = logging.getLogger(__name__)

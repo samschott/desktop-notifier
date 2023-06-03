@@ -25,6 +25,7 @@ classifiers = [
 requires-python = ">=3.7"
 dependencies = [
     "packaging",
+    "importlib_resources",
     "dbus-next;sys_platform=='linux'",
     "rubicon-objc;sys_platform=='darwin'",
     "winsdk==1.0.0b9;sys_platform=='win32'",
