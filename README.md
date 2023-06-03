@@ -16,10 +16,11 @@ Currently supported platforms are:
 ## Features
 
 `desktop-notifier` aims to be a good citizen of the platforms which it supports. It
-therefore stays within the limits of the native platform APIs and does not try to
-work around limitations which are often deliberate UI choices. For example, on macOS
-and iOS, it is not possible to change the app icon which is shown on notifications.
-There are possible workarounds - that would likely be rejected by an App Store review.
+therefore stays within the limits of the native platform APIs and does not try to work
+around limitations which are often deliberate UI choices. For example, on macOS  and
+iOS, it is not possible to change the app icon which is shown on notifications. There 
+are possible workarounds - that would likely be rejected by an App Store review - and
+desktop-notifier deliberately stays away from those.
 
 Where supported by the native platform APIs, `desktop-notifier` allows for:
 
@@ -28,17 +29,18 @@ Where supported by the native platform APIs, `desktop-notifier` allows for:
 * A single reply field (e.g., for chat notifications)
 * Notification sounds
 * Notification threads (grouping notifications by topic)
-* Limiting maximum number of notifications shown in the notification center
+* Limiting the maximum number of notifications shown in the notification center
 
 An exhaustive list of features and their platform support is provided in the
 [documentation](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html).
 
 Design choices by `desktop-notifier`:
 
-* Asyncio API: The main API consists of async methods and a running event loop
+* Async API: The main API consists of async methods and a running event loop
   is required to respond to user interactions with a notification.
-* Pure Python dependencies only, no extension modules (with the exception of
-  of the Windows backend).
+* Prefer pure Python dependencies over extension modules. We make an exception for
+  Windows because interoperability with the Windows Runtime is difficult to achieve
+  otherwise.
 
 ## Installation
 
@@ -51,7 +53,7 @@ pip3 install -U desktop-notifier
 ## Usage
 
 The main API consists of asynchronous methods which need to be awaited. Basic usage only
-requires the user to specify a notification title and message. For instance:
+requires the user to specify a notification title and message. For example:
 
 ```Python
 import asyncio
@@ -70,8 +72,8 @@ async def main():
 asyncio.run(main())
 ```
 
-For convenience, the is also a synchronous method ``send_sync()`` to send notifications
-which does not require a running asyncio loop:
+For convenience, there is also a synchronous method ``send_sync()`` to send 
+notifications without manually starting an asyncio event loop:
 
 ```Python
 notifier.send_sync(title="Hello world!", message="Sent from Python")
@@ -116,16 +118,15 @@ loop.run_forever()
 ```
 
 Note that some platforms may not support all options. For instance, some Linux desktop
-environments may not support notifications with buttons. macOS does not support
-manually setting the app icon or name. Instead, both are always determined by the
-application which uses the Library. This can be Python itself, when used interactively,
-or a frozen app bundle when packaged with PyInstaller or similar solutions. Please refer
-to the [Platform Support](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html)
+environments may not support notifications with buttons. macOS does not support manually
+setting the app icon or name. Instead, both are always determined by the application
+which uses the Library. This can be Python itself, or a frozen app bundle when packaged
+with PyInstaller or similar solutions. Please refer to the
+[Platform Support](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html)
 chapter of the documentation for more information on limitations for certain platforms.
 
 Any options or configurations which are not supported by the platform will be silently
-ignored. Please refer to the documentation on [Read the Docs](https://desktop-notifier.readthedocs.io)
-for more information on platform support.
+ignored.
 
 ## Event loop integration
 
@@ -149,9 +150,9 @@ loop = asyncio.get_event_loop()
 loop.run_forever()
 ```
 
-Desktop-notifier itself uses Rubicon Objective-C to interface with Cocoa APIs so you
-will not be adding a new dependency. A full example integrating with the CFRunLoop is
-given in [examples/eventloop.py](examples/eventloop.py). Please refer to the
+Desktop-notifier itself uses Rubicon Objective-C to interface with Cocoa APIs. A full
+example integrating with the CFRunLoop is given in
+[examples/eventloop.py](examples/eventloop.py). Please refer to the
 [Rubicon Objective-C docs](https://rubicon-objc.readthedocs.io/en/latest/how-to/async.html)
 for more information.
 
@@ -167,7 +168,7 @@ only allows signed executables to send desktop notifications. This means that
 notifications will only work if the Python executable or bundled app has been signed.
 Note that the installer from [python.org](https://python.org) provides a properly signed
 Python framework but **homebrew does not** (manually signing the executable installed
-by homebrew _should_ work as well).
+by homebrew *should* work as well).
 
 If you freeze your code with PyInstaller or a similar packaging solution, you must sign 
 the resulting app bundle for notifications to work. An ad-hoc signature will be
@@ -183,3 +184,4 @@ distribution and may be required on future releases of macOS.
 
 * [dbus-next](https://github.com/altdesktop/python-dbus-next) on Linux
 * [rubicon-objc](https://github.com/beeware/rubicon-objc) on macOS
+* [winsdk](https://github.com/pywinrt/python-winsdk) on Windows
