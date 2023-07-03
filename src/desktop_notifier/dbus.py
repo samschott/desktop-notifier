@@ -117,8 +117,17 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         else:
             replaces_nid = 0
 
-        # Create list of actions with default and user-supplied.
-        actions = ["default", "default"]
+        # Create list of actions for a user interacting with the notification.
+        actions = []
+
+        if notification.on_clicked:
+            # The "default" action is typically invoked when clicking on the
+            # notification body itself, see
+            # https://specifications.freedesktop.org/notification-spec. There are some
+            # exceptions though, such as XFCE, where this will result in a separate
+            # button. If no label name is provided in XFCE, it will result in a default
+            # symbol being used. We therefore don't specify a label name.
+            actions = ["default", ""]
 
         for n, button in enumerate(notification.buttons):
             actions += [str(n), button.title]
