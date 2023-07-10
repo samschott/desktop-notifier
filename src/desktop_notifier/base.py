@@ -18,14 +18,15 @@ from typing import (
     List,
     Sequence,
 )
+from pathlib import Path
 
 from importlib_resources import files, as_file
 
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH = as_file(
-    files("desktop_notifier.resources").joinpath("python.png")
+PYTHON_ICON_PATH: Path = as_file(
+    files("desktop_notifier.resources").joinpath("python.png")  # type: ignore
 ).__enter__()
 
 
