@@ -19,12 +19,14 @@ from typing import (
     Sequence,
 )
 
-from importlib_resources import path as resource_path
+from importlib_resources import files, as_file
 
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH = resource_path("desktop_notifier.resources", "python.png").__enter__()
+PYTHON_ICON_PATH = as_file(
+    files("desktop_notifier.resources").joinpath("python.png")
+).__enter__()
 
 
 class AuthorisationError(Exception):
