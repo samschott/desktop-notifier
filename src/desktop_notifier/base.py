@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from enum import Enum
 from collections import deque
+from pathlib import Path
 from typing import (
     Dict,
     Callable,
@@ -17,17 +18,22 @@ from typing import (
     Deque,
     List,
     Sequence,
+    ContextManager,
 )
-from pathlib import Path
 
-from importlib_resources import files, as_file
+try:
+    from importlib.resources import as_file, files
+
+    def resource_path(package: str, resource: str) -> ContextManager[Path]:
+        return as_file(files(package) / resource)
+
+except ImportError:
+    from importlib.resources import path as resource_path
 
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH: Path = as_file(
-    files("desktop_notifier.resources").joinpath("python.png")  # type: ignore
-).__enter__()
+PYTHON_ICON_PATH = resource_path("desktop_notifier.resources", "python.png").__enter__()
 
 
 class AuthorisationError(Exception):
