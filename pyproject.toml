@@ -49,7 +49,7 @@ dev = [
     "pytest-cov",
 ]
 docs = [
-    "furo==2023.7.26",
+    "furo==2023.8.17",
     "sphinx==7.1.2",
     "sphinx-autoapi==2.1.1",
     "sphinx-mdinclude==0.5.3",
