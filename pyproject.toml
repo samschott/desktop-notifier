@@ -50,7 +50,7 @@ dev = [
 ]
 docs = [
     "furo==2023.8.19",
-    "sphinx==7.2.4",
+    "sphinx==7.2.5",
     "sphinx-autoapi==2.1.1",
     "sphinx-mdinclude==0.5.3",
 ]
