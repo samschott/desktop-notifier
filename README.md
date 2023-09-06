@@ -9,7 +9,7 @@ Currently supported platforms are:
 
 * Linux via the dbus service org.freedesktop.Notifications
 * macOS and iOS via the Notification Center framework
-* [**exprimental**] Windows via the WinRT / Python bridge.
+* [**experimental**] Windows via the WinRT / Python bridge.
 
 ![gif](screenshots/macOS.gif)
 
