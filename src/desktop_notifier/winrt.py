@@ -86,7 +86,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             self.app_id = CoreApplication.id
         else:
             self.app_id = app_name
-            register_hkey(app_name, app_name)
+            register_hkey(app_id=app_name, app_name=app_name)
         self.notifier = self.manager.create_toast_notifier(self.app_id)
 
     async def request_authorisation(self) -> bool:
@@ -95,13 +95,17 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         :returns: Whether authorisation has been granted.
         """
-        return bool(self.notifier.setting == NotificationSetting.ENABLED)
+        return await self.has_authorisation()
 
     async def has_authorisation(self) -> bool:
         """
         Whether we have authorisation to send notifications.
         """
-        return bool(self.notifier.setting == NotificationSetting.ENABLED)
+        try:
+            return bool(self.notifier.setting == NotificationSetting.ENABLED)
+        except OSError:
+            # See https://github.com/samschott/desktop-notifier/issues/95.
+            return True
 
     async def _send(
         self,
