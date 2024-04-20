@@ -52,7 +52,7 @@ docs = [
     "furo==2024.1.29",
     "sphinx==7.2.6",
     "sphinx-autoapi==3.0.0",
-    "sphinx-mdinclude==0.5.3",
+    "sphinx-mdinclude==0.5.4",
 ]
 
 [tool.setuptools.package-data]
