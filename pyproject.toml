@@ -27,7 +27,11 @@ dependencies = [
     "packaging",
     "dbus-next;sys_platform=='linux'",
     "rubicon-objc;sys_platform=='darwin'",
-    "winsdk==1.0.0b10;sys_platform=='win32'",
+    "winrt-windows.applicationmodel.core;sys_platform=='win32'",
+    "winrt-windows.data.xml.dom;sys_platform=='win32'",
+    "winrt-windows.foundation[all];sys_platform=='win32'",
+#    "winrt-windows.foundation.interop;sys_platform=='win32'",
+    "winrt-windows.ui.notifications;sys_platform=='win32'",
 ]
 
 [project.readme]

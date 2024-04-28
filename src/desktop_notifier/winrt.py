@@ -17,7 +17,8 @@ from typing import TypeVar, Any, cast
 
 # external imports
 import winreg
-from winsdk.windows.ui.notifications import (
+from winrt.windows.foundation.interop import unbox
+from winrt.windows.ui.notifications import (
     ToastNotificationManager,
     ToastNotificationPriority,
     NotificationSetting,
@@ -25,10 +26,9 @@ from winsdk.windows.ui.notifications import (
     ToastActivatedEventArgs,
     ToastDismissalReason,
 )
-from winsdk.windows.data.xml import dom
-from winsdk.windows.applicationmodel.core import CoreApplication
-from winsdk.windows.foundation import IPropertyValue, PropertyType
-import winsdk._winrt as _winrt
+from winrt.windows.data.xml.dom import XmlDocument
+from winrt.windows.applicationmodel.core import CoreApplication
+from winrt.system import Object as WinRTObject
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency
@@ -201,15 +201,19 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         else:
             SubElement(toast_xml, "audio", {"silent": "true"})
 
-        xml_document = dom.XmlDocument()
+        xml_document = XmlDocument()
         xml_document.load_xml(tostring(toast_xml, encoding="unicode"))
 
         native = ToastNotification(xml_document)
         native.tag = platform_nid
         native.priority = self._to_native_urgency[notification.urgency]
 
-        def on_activated(sender, boxed_activated_args) -> None:  # type:ignore
-            activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
+        def on_activated(sender, boxed_activated_args: WinRTObject) -> None:
+            try:
+                activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
+            except Exception:
+                return
+
             action_id = cast(str, activated_args.arguments)
 
             if action_id == WinRTDesktopNotifier.DEFAULT_ACTION:
@@ -220,7 +224,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                     boxed_text = activated_args.user_input[
                         WinRTDesktopNotifier.REPLY_TEXTBOX_NAME
                     ]
-                    text = unbox_winrt(boxed_text)
+                    text = unbox(boxed_text)
                     notification.reply_field.on_replied(text)
             elif action_id.startswith(WinRTDesktopNotifier.BUTTON_ACTION_PREFIX):
                 action_number_str = action_id.replace(
@@ -231,14 +235,14 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 if callback:
                     callback()
 
-        def on_dismissed(sender, dismissed_args) -> None:  # type:ignore
+        def on_dismissed(sender: ToastNotification, dismissed_args: ToastDismissedEventArgs) -> None:  # type:ignore
             self._clear_notification_from_cache(notification)
 
             if dismissed_args.reason == ToastDismissalReason.USER_CANCELED:
                 if notification.on_dismissed:
                     notification.on_dismissed()
 
-        def on_failed(sender, failed_args) -> None:  # type:ignore
+        def on_failed(sender: ToastNotification, failed_args: ToastFailedEventArgs) -> None:  # type:ignore
             logger.warning(
                 f"Notification failed (error code {failed_args.error_code.value})"
             )
@@ -262,26 +266,3 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         Asynchronously clears all notifications from notification center.
         """
         self.manager.history.clear(self.app_id)
-
-
-def unbox_winrt(boxed_value: _winrt.Object) -> Any:
-    """
-    Unbox winrt object. See https://github.com/pywinrt/pywinrt/issues/8.
-    """
-    if boxed_value is None:
-        return boxed_value
-
-    value = IPropertyValue._from(boxed_value)
-
-    if value.type is PropertyType.EMPTY:
-        return None
-    elif value.type is PropertyType.UINT8:
-        return value.get_uint8()
-    elif value.type is PropertyType.INT16:
-        return value.get_int16()
-    elif value.type is PropertyType.UINT16:
-        return value.get_uint16()
-    elif value.type is PropertyType.STRING:
-        return value.get_string()
-    else:
-        raise NotImplementedError(f"Unboxing {value.type} is not yet supported")
