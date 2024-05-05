@@ -101,9 +101,13 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Some older interfaces may not support notification actions.
         if hasattr(self.interface, "on_notification_closed"):
             self.interface.on_notification_closed(self._on_closed)
+        else:
+            logger.warning("on_closed callbacks not supported")
 
         if hasattr(self.interface, "on_action_invoked"):
             self.interface.on_action_invoked(self._on_action)
+        else:
+            logger.warning("on_action_invoked callbacks not supported")
 
         return self.interface
 
@@ -150,20 +154,20 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
 
-        # dbus_next proxy APIs are generated at runtime.
-        if hasattr(self.interface, "call_notify"):
-            platform_nid = await self.interface.call_notify(
-                self.app_name,
-                replaces_nid,
-                notification.icon or "",
-                notification.title,
-                notification.message,
-                actions,
-                hints,
-                timeout,
-            )
+        # dbus_next proxy APIs are generated at runtime. Silence the type checker but
+        # raise an AttributeError if required.
+        platform_nid = await self.interface.call_notify(  # type:ignore[attr-defined]
+            self.app_name,
+            replaces_nid,
+            notification.icon or "",
+            notification.title,
+            notification.message,
+            actions,
+            hints,
+            timeout,
+        )
 
-            notification.identifier = identifier_from_dbus(platform_nid)
+        notification.identifier = identifier_from_dbus(platform_nid)
 
     async def _clear(self, notification: Notification) -> None:
         """
@@ -172,11 +176,11 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        # dbus_next proxy APIs are generated at runtime.
-        if hasattr(self.interface, "call_close_notification"):
-            await self.interface.call_close_notification(
-                identifier_to_dbus(notification.identifier)
-            )
+        # dbus_next proxy APIs are generated at runtime. Silence the type checker but
+        # raise an AttributeError if required.
+        await self.interface.call_close_notification(  # type:ignore[attr-defined]
+            identifier_to_dbus(notification.identifier)
+        )
 
     async def _clear_all(self) -> None:
         """
@@ -185,12 +189,12 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        # dbus_next proxy APIs are generated at runtime.
-        if hasattr(self.interface, "call_close_notification"):
-            for notification in self.current_notifications:
-                await self.interface.call_close_notification(
-                    identifier_to_dbus(notification.identifier)
-                )
+        for notification in self.current_notifications:
+            # dbus_next proxy APIs are generated at runtime. Silence the type checker
+            # but raise an AttributeError if required.
+            await self.interface.call_close_notification(  # type:ignore[attr-defined]
+                identifier_to_dbus(notification.identifier)
+            )
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action

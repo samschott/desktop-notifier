@@ -50,6 +50,7 @@ dev = [
     "flake8-pyproject",
     "mypy",
     "pytest",
+    "pytest-asyncio",
     "pytest-cov",
 ]
 docs = [
@@ -69,7 +70,10 @@ __init__.py: F401"""
 statistics = "True"
 
 [tool.mypy]
+# Imports are not available on all platforms.
 ignore_missing_imports = true
+# On platforms where imports are not available, ignores may be unused.
+warn_unused_ignores = false
 strict = true
 files = ["src"]
 
