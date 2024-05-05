@@ -396,7 +396,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :param notification: Notification to clear.
         """
-        self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
+        self.nc.removeDeliveredNotificationsWithIdentifiers(
+            [str(notification.identifier)]
+        )
 
     async def _clear_all(self) -> None:
         """

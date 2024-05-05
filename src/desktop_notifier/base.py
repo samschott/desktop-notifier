@@ -153,7 +153,7 @@ class Notification:
     @property
     def identifier(self) -> str | int | None:
         """
-        An platform identifier which gets assigned to the notification after it was
+        A platform identifier which gets assigned to the notification after it was
         sent. This may be a str or int.
         """
         return self._identifier

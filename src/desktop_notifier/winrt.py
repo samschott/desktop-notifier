@@ -13,7 +13,7 @@ from __future__ import annotations
 import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
-from typing import TypeVar, Any, cast
+from typing import TypeVar, cast
 
 # external imports
 import winreg
@@ -25,6 +25,8 @@ from winrt.windows.ui.notifications import (
     ToastNotification,
     ToastActivatedEventArgs,
     ToastDismissalReason,
+    ToastDismissedEventArgs,
+    ToastFailedEventArgs,
 )
 from winrt.windows.data.xml.dom import XmlDocument
 from winrt.windows.applicationmodel.core import CoreApplication
@@ -42,14 +44,10 @@ T = TypeVar("T")
 
 
 def register_hkey(app_id: str, app_name: str) -> None:
-    winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)  # type:ignore
+    winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
     key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
-    with winreg.CreateKeyEx(  # type:ignore
-        winreg.HKEY_CURRENT_USER, key_path  # type:ignore
-    ) as master_key:
-        winreg.SetValueEx(  # type:ignore
-            master_key, "DisplayName", 0, winreg.REG_SZ, app_name  # type:ignore
-        )
+    with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as master_key:
+        winreg.SetValueEx(master_key, "DisplayName", 0, winreg.REG_SZ, app_name)
 
 
 class WinRTDesktopNotifier(DesktopNotifierBase):
@@ -78,7 +76,13 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         notification_limit: int | None = None,
     ) -> None:
         super().__init__(app_name, notification_limit)
-        self.manager = ToastNotificationManager.get_default()
+
+        manager = ToastNotificationManager.get_default()
+
+        if not manager:
+            raise RuntimeError("Could not get ToastNotificationManagerForUser")
+
+        self.manager = manager
 
         # Prefer using the real App ID if detected, fall back to user-provided name
         # and icon otherwise.
@@ -87,7 +91,13 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         else:
             self.app_id = app_name
             register_hkey(app_id=app_name, app_name=app_name)
-        self.notifier = self.manager.create_toast_notifier(self.app_id)
+
+        notifier = self.manager.create_toast_notifier(self.app_id)
+
+        if not notifier:
+            raise RuntimeError(f"Could not get ToastNotifier for app_id: {self.app_id}")
+
+        self.notifier = notifier
 
     async def request_authorisation(self) -> bool:
         """
@@ -208,19 +218,28 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         native.tag = platform_nid
         native.priority = self._to_native_urgency[notification.urgency]
 
-        def on_activated(sender, boxed_activated_args: WinRTObject) -> None:
+        def on_activated(
+            sender: ToastNotification | None, boxed_activated_args: WinRTObject | None
+        ) -> None:
+            if not sender or not boxed_activated_args:
+                return
+
             try:
                 activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
             except Exception:
                 return
 
-            action_id = cast(str, activated_args.arguments)
+            action_id = activated_args.arguments
 
             if action_id == WinRTDesktopNotifier.DEFAULT_ACTION:
                 if notification.on_clicked:
                     notification.on_clicked()
             elif action_id == WinRTDesktopNotifier.REPLY_ACTION:
-                if notification.reply_field and notification.reply_field.on_replied:
+                if (
+                    notification.reply_field
+                    and notification.reply_field.on_replied
+                    and activated_args.user_input
+                ):
                     boxed_text = activated_args.user_input[
                         WinRTDesktopNotifier.REPLY_TEXTBOX_NAME
                     ]
@@ -235,17 +254,28 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 if callback:
                     callback()
 
-        def on_dismissed(sender: ToastNotification, dismissed_args: ToastDismissedEventArgs) -> None:  # type:ignore
+        def on_dismissed(
+            sender: ToastNotification | None,
+            dismissed_args: ToastDismissedEventArgs | None,
+        ) -> None:
             self._clear_notification_from_cache(notification)
 
-            if dismissed_args.reason == ToastDismissalReason.USER_CANCELED:
+            if (
+                dismissed_args
+                and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
+            ):
                 if notification.on_dismissed:
                     notification.on_dismissed()
 
-        def on_failed(sender: ToastNotification, failed_args: ToastFailedEventArgs) -> None:  # type:ignore
-            logger.warning(
-                f"Notification failed (error code {failed_args.error_code.value})"
-            )
+        def on_failed(
+            sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
+        ) -> None:
+            if failed_args:
+                logger.warning(
+                    f"Notification failed (error code {failed_args.error_code.value})"
+                )
+            else:
+                logger.warning("Notification failed (unknown error code)")
 
         native.add_activated(on_activated)
         native.add_dismissed(on_dismissed)
@@ -259,10 +289,12 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         """
         Asynchronously removes a notification from the notification center.
         """
-        self.manager.history.remove(notification.identifier)
+        if self.manager.history:
+            self.manager.history.remove(str(notification.identifier))
 
     async def _clear_all(self) -> None:
         """
         Asynchronously clears all notifications from notification center.
         """
-        self.manager.history.clear(self.app_id)
+        if self.manager.history:
+            self.manager.history.clear(self.app_id)
