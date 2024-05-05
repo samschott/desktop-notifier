@@ -1,4 +1,4 @@
-name: Linting
+name: test
 
 on:
   pull_request:
