@@ -8,7 +8,6 @@ from __future__ import annotations
 
 # system imports
 import logging
-import platform
 from enum import Enum
 from collections import deque
 from pathlib import Path
