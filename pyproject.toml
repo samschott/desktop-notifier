@@ -50,6 +50,7 @@ dev = [
     "flake8-pyproject",
     "mypy",
     "pytest",
+    "pytest-asyncio",
     "pytest-cov",
 ]
 docs = [
