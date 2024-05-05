@@ -70,24 +70,6 @@ def get_implementation() -> Type[DesktopNotifierBase]:
             from .macos import CocoaNotificationCenter
 
             return CocoaNotificationCenter
-
-        elif has_nsusernotificationcenter and is_bundle():
-            if has_unusernotificationcenter and not is_signed:
-                logger.warning(
-                    "Running outside of a signed Framework or bundle: "
-                    "falling back to NSUserNotificationCenter"
-                )
-            else:
-                logger.warning(
-                    "Running on macOS 10.13 or earlier: "
-                    "falling back to NSUserNotificationCenter"
-                )
-
-            # Use deprecated NSUserNotificationCenter.
-            from .macos_legacy import CocoaNotificationCenterLegacy
-
-            return CocoaNotificationCenterLegacy
-
         else:
             # Use dummy backend.
             logger.warning(
