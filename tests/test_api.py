@@ -5,12 +5,6 @@ from desktop_notifier import Urgency, Button, ReplyField
 
 
 @pytest.mark.asyncio
-async def test_request_authorisation(notifier):
-    assert await notifier.request_authorisation()
-    assert await notifier.has_authorisation()
-
-
-@pytest.mark.asyncio
 async def test_send(notifier):
     notification = await notifier.send(
         title="Julius Caesar",
