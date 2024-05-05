@@ -104,7 +104,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         self, center, response, completion_handler: objc_block
     ) -> None:
         # Get the notification which was clicked from the platform ID.
-        platform_nid = py_from_ns(response.notification.request._macos_identifier)
+        platform_nid = py_from_ns(response.notification.request.identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
 

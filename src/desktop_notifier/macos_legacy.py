@@ -47,7 +47,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
     def userNotificationCenter_didActivateNotification_(
         self, center, notification
     ) -> None:
-        platform_nid = py_from_ns(notification._macos_identifier)
+        platform_nid = py_from_ns(notification.identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
 
