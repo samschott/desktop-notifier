@@ -234,7 +234,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
-
         if notification_to_replace:
             platform_nid = notification_to_replace.identifier
         else:

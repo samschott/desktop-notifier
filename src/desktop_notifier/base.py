@@ -207,7 +207,6 @@ class DesktopNotifierBase:
 
         :param notification: Notification to send.
         """
-
         notification_to_replace: Notification | None
 
         if len(self._current_notifications) == self.notification_limit:
