@@ -64,14 +64,14 @@ jobs:
 
     - name: test
       run: |
-          ${{ matrix.pytest-run-prefix }} pytest --verbose --cov=desktop-notifier --cov-report=xml
+          ${{ matrix.pytest-run-prefix }} pytest --verbose --cov=desktop_notifier --cov-report=xml
 
     - name: upload code coverage
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: pytest
-        env_vars: OS,PYTHON,TYPE
+        env_vars: OS,PYTHON
         name: pytests
         token: ${{ secrets.CODECOV_TOKEN }}
       env:
