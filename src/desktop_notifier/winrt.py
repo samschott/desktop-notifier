@@ -10,10 +10,11 @@ Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
 from __future__ import annotations
 
 # system imports
+import sys
 import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
-from typing import TypeVar, cast
+from typing import TypeVar
 
 # external imports
 import winreg
@@ -44,6 +45,10 @@ T = TypeVar("T")
 
 
 def register_hkey(app_id: str, app_name: str) -> None:
+    # mypy type guard
+    if not sys.platform == "win32":
+        return
+
     winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
     key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
     with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as master_key:
@@ -121,7 +126,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         self,
         notification: Notification,
         notification_to_replace: Notification | None,
-    ) -> str:
+    ) -> None:
         """
         Asynchronously sends a notification.
 
@@ -129,7 +134,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         :param notification_to_replace: Notification to replace, if any.
         """
         if notification_to_replace:
-            platform_nid = cast(str, notification_to_replace.identifier)
+            platform_nid = notification_to_replace._winrt_identifier
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -283,14 +288,14 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         self.notifier.show(native)
 
-        return platform_nid
+        notification._winrt_identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """
         Asynchronously removes a notification from the notification center.
         """
         if self.manager.history:
-            self.manager.history.remove(str(notification.identifier))
+            self.manager.history.remove(notification._winrt_identifier)
 
     async def _clear_all(self) -> None:
         """

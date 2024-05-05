@@ -9,7 +9,7 @@ from __future__ import annotations
 
 # system imports
 import logging
-from typing import TypeVar, cast
+from typing import TypeVar
 
 # external imports
 from dbus_next import Variant
@@ -102,7 +102,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         self,
         notification: Notification,
         notification_to_replace: Notification | None,
-    ) -> int:
+    ) -> None:
         """
         Asynchronously sends a notification via the Dbus interface.
 
@@ -113,7 +113,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             self.interface = await self._init_dbus()
 
         if notification_to_replace:
-            replaces_nid = notification_to_replace.identifier
+            replaces_nid = notification_to_replace._dbus_identifier
         else:
             replaces_nid = 0
 
@@ -157,7 +157,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             timeout,  # expire_timeout (-1 = default)
         )
 
-        return cast(int, platform_nid)
+        notification._dbus_identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """
@@ -167,7 +167,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        await self.interface.call_close_notification(notification.identifier)
+        await self.interface.call_close_notification(notification._dbus_identifier)
 
     async def _clear_all(self) -> None:
         """
@@ -178,7 +178,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             return
 
         for notification in self.current_notifications:
-            await self.interface.call_close_notification(notification.identifier)
+            await self.interface.call_close_notification(notification._dbus_identifier)
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action

@@ -47,7 +47,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
     def userNotificationCenter_didActivateNotification_(
         self, center, notification
     ) -> None:
-        platform_nid = py_from_ns(notification.identifier)
+        platform_nid = py_from_ns(notification._macos_identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
 
@@ -114,7 +114,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
-    ) -> str:
+    ) -> None:
         """
         Uses NSUserNotificationCenter to schedule a notification.
 
@@ -122,7 +122,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         :param notification_to_replace: Notification to replace, if any.
         """
         if notification_to_replace:
-            platform_nid = str(notification_to_replace.identifier)
+            platform_nid = notification_to_replace._macos_identifier
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -148,7 +148,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
         self.nc.scheduleNotification(n)
 
-        return platform_nid
+        notification._macos_identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """

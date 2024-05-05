@@ -5,9 +5,6 @@ Dummy backend for unsupported platforms.
 
 from __future__ import annotations
 
-# system imports
-import uuid
-
 # local imports
 from .base import Notification, DesktopNotifierBase
 
@@ -40,11 +37,8 @@ class DummyNotificationCenter(DesktopNotifierBase):
         self,
         notification: Notification,
         notification_to_replace: Notification | None,
-    ) -> str:
-        if notification_to_replace:
-            return str(notification_to_replace.identifier)
-        else:
-            return str(uuid.uuid4())
+    ) -> None:
+        pass
 
     async def _clear(self, notification: Notification) -> None:
         pass
