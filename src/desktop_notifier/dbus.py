@@ -32,6 +32,18 @@ NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
 
+def identifier_from_dbus(nid: int) -> str:
+    if nid == 0:
+        return ""
+    return str(nid)
+
+
+def identifier_to_dbus(nid: str) -> int:
+    if nid == "":
+        return 0
+    return int(nid)
+
+
 class DBusDesktopNotifier(DesktopNotifierBase):
     """DBus notification backend for Linux
 
@@ -110,7 +122,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             self.interface = await self._init_dbus()
 
         if notification_to_replace:
-            replaces_nid = notification_to_replace._dbus_identifier
+            replaces_nid = identifier_to_dbus(notification_to_replace.identifier)
         else:
             replaces_nid = 0
 
@@ -151,7 +163,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
                 timeout,
             )
 
-            notification._dbus_identifier = platform_nid
+            notification.identifier = identifier_from_dbus(platform_nid)
 
     async def _clear(self, notification: Notification) -> None:
         """
@@ -162,7 +174,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         # dbus_next proxy APIs are generated at runtime.
         if hasattr(self.interface, "call_close_notification"):
-            await self.interface.call_close_notification(notification._dbus_identifier)
+            await self.interface.call_close_notification(
+                identifier_to_dbus(notification.identifier)
+            )
 
     async def _clear_all(self) -> None:
         """
@@ -175,13 +189,13 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if hasattr(self.interface, "call_close_notification"):
             for notification in self.current_notifications:
                 await self.interface.call_close_notification(
-                    notification._dbus_identifier
+                    identifier_to_dbus(notification.identifier)
                 )
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action
     # call will come first, in which case we are no longer interested in calling the
-    # on_dismissed callback.
+    # _on_closed callback.
 
     def _on_action(self, nid: int, action_key: str) -> None:
         """
@@ -194,7 +208,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         """
 
         # Get the notification instance from the platform ID.
-        notification = self._notification_for_nid.get(nid)
+        notification = self._notification_for_nid.get(identifier_from_dbus(nid))
 
         # Execute any callbacks for button clicks.
         if notification:
@@ -226,7 +240,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         """
 
         # Get the notification instance from the platform ID.
-        notification = self._notification_for_nid.get(nid)
+        notification = self._notification_for_nid.get(identifier_from_dbus(nid))
 
         # Execute callback for user dismissal.
         if notification:

@@ -134,7 +134,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         :param notification_to_replace: Notification to replace, if any.
         """
         if notification_to_replace:
-            platform_nid = notification_to_replace._winrt_identifier
+            platform_nid = notification_to_replace.identifier
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -288,14 +288,14 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         self.notifier.show(native)
 
-        notification._winrt_identifier = platform_nid
+        notification.identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """
         Asynchronously removes a notification from the notification center.
         """
         if self.manager.history:
-            self.manager.history.remove(notification._winrt_identifier)
+            self.manager.history.remove(notification.identifier)
 
     async def _clear_all(self) -> None:
         """

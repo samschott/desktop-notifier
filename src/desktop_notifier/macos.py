@@ -236,7 +236,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
 
         if notification_to_replace:
-            platform_nid = notification_to_replace._macos_identifier
+            platform_nid = notification_to_replace.identifier
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -307,7 +307,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             else:
                 raise RuntimeError(error.localizedDescription)  # type:ignore
 
-        notification._macos_identifier = platform_nid
+        notification.identifier = platform_nid
 
     async def _create_category_for_notification(
         self, notification: Notification
@@ -396,9 +396,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :param notification: Notification to clear.
         """
-        self.nc.removeDeliveredNotificationsWithIdentifiers(
-            [notification._macos_identifier]
-        )
+        self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
 
     async def _clear_all(self) -> None:
         """

@@ -137,6 +137,7 @@ class Notification:
         thread: str | None = None,
         timeout: int = -1,
     ) -> None:
+        self._identifier = ""
         self._winrt_identifier = ""
         self._macos_identifier = ""
         self._dbus_identifier = 0
@@ -156,17 +157,11 @@ class Notification:
 
     @property
     def identifier(self) -> str:
-        if platform.system() == "Darwin":
-            return self._macos_identifier
-        elif platform.system() == "Linux":
-            if self._dbus_identifier == 0:
-                return ""
-            else:
-                return str(self._dbus_identifier)
-        elif platform.system() == "Windows":
-            return self._winrt_identifier
-        else:
-            raise RuntimeError(f"Unsupported platform {platform.system()}")
+        return self._identifier
+
+    @identifier.setter
+    def identifier(self, nid: str) -> None:
+        self._identifier = nid
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(title='{self.title}', message='{self.message}')>"
@@ -188,7 +183,7 @@ class DesktopNotifierBase:
         self.app_name = app_name
         self.notification_limit = notification_limit
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
-        self._notification_for_nid: Dict[str | int, Notification] = {}
+        self._notification_for_nid: Dict[str, Notification] = {}
 
     async def request_authorisation(self) -> bool:
         """

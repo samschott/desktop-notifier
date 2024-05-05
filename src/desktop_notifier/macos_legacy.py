@@ -122,7 +122,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
         :param notification_to_replace: Notification to replace, if any.
         """
         if notification_to_replace:
-            platform_nid = notification_to_replace._macos_identifier
+            platform_nid = notification_to_replace.identifier
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -148,7 +148,7 @@ class CocoaNotificationCenterLegacy(DesktopNotifierBase):
 
         self.nc.scheduleNotification(n)
 
-        notification._macos_identifier = platform_nid
+        notification.identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """
