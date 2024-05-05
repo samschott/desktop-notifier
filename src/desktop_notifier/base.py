@@ -8,6 +8,7 @@ from __future__ import annotations
 
 # system imports
 import logging
+import platform
 from enum import Enum
 from collections import deque
 from pathlib import Path
@@ -136,7 +137,10 @@ class Notification:
         thread: str | None = None,
         timeout: int = -1,
     ) -> None:
-        self._identifier: str | int | None = None
+        self._winrt_identifier = ""
+        self._macos_identifier = ""
+        self._dbus_identifier = 0
+
         self.title = title
         self.message = message
         self.urgency = urgency
@@ -151,17 +155,18 @@ class Notification:
         self.timeout = timeout
 
     @property
-    def identifier(self) -> str | int | None:
-        """
-        An platform identifier which gets assigned to the notification after it was
-        sent. This may be a str or int.
-        """
-        return self._identifier
-
-    @identifier.setter
-    def identifier(self, value: str | int | None) -> None:
-        """Setter: identifier"""
-        self._identifier = value
+    def identifier(self) -> str:
+        if platform.system() == "Darwin":
+            return self._macos_identifier
+        elif platform.system() == "Linux":
+            if self._dbus_identifier == 0:
+                return ""
+            else:
+                return str(self._dbus_identifier)
+        elif platform.system() == "Windows":
+            return self._winrt_identifier
+        else:
+            raise RuntimeError(f"Unsupported platform {platform.system()}")
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(title='{self.title}', message='{self.message}')>"
@@ -217,7 +222,7 @@ class DesktopNotifierBase:
             notification_to_replace = None
 
         try:
-            platform_nid = await self._send(notification, notification_to_replace)
+            await self._send(notification, notification_to_replace)
         except Exception:
             # Notifications can fail for many reasons:
             # The dbus service may not be available, we might be in a headless session,
@@ -227,9 +232,8 @@ class DesktopNotifierBase:
                 self._current_notifications.appendleft(notification_to_replace)
             logger.warning("Notification failed", exc_info=True)
         else:
-            notification.identifier = platform_nid
             self._current_notifications.append(notification)
-            self._notification_for_nid[platform_nid] = notification
+            self._notification_for_nid[notification.identifier] = notification
 
     def _clear_notification_from_cache(self, notification: Notification) -> None:
         """
@@ -251,7 +255,7 @@ class DesktopNotifierBase:
         self,
         notification: Notification,
         notification_to_replace: Notification | None,
-    ) -> str | int:
+    ) -> None:
         """
         Method to send a notification via the platform. This should be implemented by
         subclasses.

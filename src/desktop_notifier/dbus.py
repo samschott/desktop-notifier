@@ -9,11 +9,12 @@ from __future__ import annotations
 
 # system imports
 import logging
-from typing import TypeVar, cast
+from typing import TypeVar
 
 # external imports
-from dbus_next import Variant
-from dbus_next.aio import MessageBus, ProxyInterface
+from dbus_next.signature import Variant
+from dbus_next.aio.message_bus import MessageBus
+from dbus_next.aio.proxy_object import ProxyInterface
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency
@@ -39,9 +40,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     :param app_name: The name of the app. If it matches the application name in an
         existing desktop entry, the icon from that entry will be used by default.
-    :param app_icon: The default icon to use for notifications. Will take precedence
-        over any icon from the desktop file. Should be a URI or a name in a
-        freedesktop.org-compliant icon theme.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center.
     """
@@ -89,7 +87,6 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         )
 
         # Some older interfaces may not support notification actions.
-
         if hasattr(self.interface, "on_notification_closed"):
             self.interface.on_notification_closed(self._on_closed)
 
@@ -102,7 +99,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         self,
         notification: Notification,
         notification_to_replace: Notification | None,
-    ) -> int:
+    ) -> None:
         """
         Asynchronously sends a notification via the Dbus interface.
 
@@ -113,11 +110,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             self.interface = await self._init_dbus()
 
         if notification_to_replace:
-            replaces_nid = notification_to_replace.identifier
+            replaces_nid = notification_to_replace._dbus_identifier
         else:
             replaces_nid = 0
 
-        # Create list of actions for a user interacting with the notification.
         actions = []
 
         if notification.on_clicked:
@@ -134,51 +130,53 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         hints = {"urgency": self._to_native_urgency[notification.urgency]}
 
-        # sound
         if notification.sound:
             hints["sound-name"] = Variant("s", "message-new-instant")
 
-        # attachment
         if notification.attachment:
             hints["image-path"] = Variant("s", notification.attachment)
 
-        # get the timeout in ms
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
 
-        # Post the new notification and record the platform ID assigned to it.
-        platform_nid = await self.interface.call_notify(
-            self.app_name,  # app_name
-            replaces_nid,  # replaces_id
-            notification.icon or "",  # app_icon
-            notification.title,  # summary
-            notification.message,  # body
-            actions,  # actions
-            hints,  # hints
-            timeout,  # expire_timeout (-1 = default)
-        )
+        # dbus_next proxy APIs are generated at runtime.
+        if hasattr(self.interface, "call_notify"):
+            platform_nid = await self.interface.call_notify(
+                self.app_name,
+                replaces_nid,
+                notification.icon or "",
+                notification.title,
+                notification.message,
+                actions,
+                hints,
+                timeout,
+            )
 
-        return cast(int, platform_nid)
+            notification._dbus_identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """
         Asynchronously removes a notification from the notification center
         """
-
         if not self.interface:
             return
 
-        await self.interface.call_close_notification(notification.identifier)
+        # dbus_next proxy APIs are generated at runtime.
+        if hasattr(self.interface, "call_close_notification"):
+            await self.interface.call_close_notification(notification._dbus_identifier)
 
     async def _clear_all(self) -> None:
         """
         Asynchronously clears all notifications from notification center
         """
-
         if not self.interface:
             return
 
-        for notification in self.current_notifications:
-            await self.interface.call_close_notification(notification.identifier)
+        # dbus_next proxy APIs are generated at runtime.
+        if hasattr(self.interface, "call_close_notification"):
+            for notification in self.current_notifications:
+                await self.interface.call_close_notification(
+                    notification._dbus_identifier
+                )
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action

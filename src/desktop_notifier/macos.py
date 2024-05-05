@@ -104,7 +104,7 @@ class NotificationCenterDelegate(NSObject):  # type: ignore
         self, center, response, completion_handler: objc_block
     ) -> None:
         # Get the notification which was clicked from the platform ID.
-        platform_nid = py_from_ns(response.notification.request.identifier)
+        platform_nid = py_from_ns(response.notification.request._macos_identifier)
         py_notification = self.interface._notification_for_nid[platform_nid]
         py_notification = cast(Notification, py_notification)
 
@@ -227,7 +227,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self,
         notification: Notification,
         notification_to_replace: Optional[Notification],
-    ) -> str:
+    ) -> None:
         """
         Uses UNUserNotificationCenter to schedule a notification.
 
@@ -236,7 +236,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
 
         if notification_to_replace:
-            platform_nid = str(notification_to_replace.identifier)
+            platform_nid = notification_to_replace._macos_identifier
         else:
             platform_nid = str(uuid.uuid4())
 
@@ -307,7 +307,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             else:
                 raise RuntimeError(error.localizedDescription)  # type:ignore
 
-        return platform_nid
+        notification._macos_identifier = platform_nid
 
     async def _create_category_for_notification(
         self, notification: Notification
@@ -396,7 +396,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :param notification: Notification to clear.
         """
-        self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
+        self.nc.removeDeliveredNotificationsWithIdentifiers(
+            [notification._macos_identifier]
+        )
 
     async def _clear_all(self) -> None:
         """
