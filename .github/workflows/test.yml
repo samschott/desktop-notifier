@@ -12,17 +12,37 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
-        python-version: ['3.8', '3.12']
+        python-version: ['3.9', '3.12']
+        include:
+        - pre-command: ""
+
+        - os: "ubuntu-latest"
+          # Install blackbox to provide a lightweight window manager.
+          pre-command: |
+            sudo apt update -y
+            sudo apt install -y --no-install-recommends blackbox
+
+            # Start Virtual X server
+            echo "Start X server..."
+            Xvfb :99 -screen 0 2048x1536x24 &
+            sleep 1
+
+            # Start Window manager
+            echo "Start window manager..."
+            DISPLAY=:99 blackbox &
+            sleep 1
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: set up python ${{ matrix.python-version }}
       uses: actions/setup-python@v5.1.0
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run:  |
+    - name: install dependencies
+      run:  |
+        ${{ matrix.pre-command }}
         python -m pip install --upgrade pip
         python -m pip install -U .[dev]
 
@@ -30,7 +50,7 @@ jobs:
       run: |
           pytest --verbose --cov=desktop-notifier --cov-report=xml
 
-    - name: Upload Code Coverage
+    - name: upload code coverage
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml

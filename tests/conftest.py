@@ -13,4 +13,4 @@ if platform.system() == "Darwin":
 
 @pytest.fixture
 def notifier():
-    return DesktopNotifier(app_name="Sample App")
+    return DesktopNotifier()

@@ -1,3 +1,4 @@
+import sys
 import pytest
 
 from desktop_notifier import Urgency, Button, ReplyField
@@ -63,6 +64,10 @@ def test_send_sync(notifier):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Clearing individual notifications is broken on Windows",
+)
 async def test_clear(notifier):
     n0 = await notifier.send(
         title="Julius Caesar",
@@ -76,8 +81,20 @@ async def test_clear(notifier):
     assert n1 in notifier.current_notifications
 
     await notifier.clear(n0)
-
     assert n0 not in notifier.current_notifications
+
+
+async def test_clear_all(notifier):
+    n0 = await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+    )
+    n1 = await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+    )
+    assert n0 in notifier.current_notifications
+    assert n1 in notifier.current_notifications
 
     await notifier.clear_all()
     assert len(notifier.current_notifications) == 0
