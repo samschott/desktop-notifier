@@ -18,7 +18,6 @@ macos_version = Version(platform.mac_ver()[0])
 
 
 __all__ = [
-    "is_bundle",
     "is_signed_bundle",
     "macos_version",
 ]
@@ -37,18 +36,6 @@ kSecCSDoNotValidateExecutable = 1 << 1
 kSecCSDoNotValidateResources = 1 << 2
 kSecCSCheckNestedCode = 1 << 3
 kSecCSStrictValidate = 1 << 4
-
-
-def is_bundle() -> bool:
-    """
-    Detect if we are in an app bundle / framework.
-
-    :returns: Whether we are inside a valid app bundle or framework.
-    """
-
-    main_bundle = NSBundle.mainBundle
-
-    return main_bundle.bundleIdentifier is not None
 
 
 def is_signed_bundle() -> bool:

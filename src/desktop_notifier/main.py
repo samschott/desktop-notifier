@@ -59,10 +59,9 @@ def get_implementation() -> Type[DesktopNotifierBase]:
     :raises RuntimeError: when passing ``macos_legacy = True`` on macOS 12.0 and later.
     """
     if platform.system() == "Darwin":
-        from .macos_support import is_bundle, is_signed_bundle, macos_version
+        from .macos_support import is_signed_bundle, macos_version
 
         has_unusernotificationcenter = macos_version >= Version("10.14")
-        has_nsusernotificationcenter = macos_version < Version("12.0")
         is_signed = is_signed_bundle()
 
         if has_unusernotificationcenter and is_signed:
@@ -71,11 +70,13 @@ def get_implementation() -> Type[DesktopNotifierBase]:
 
             return CocoaNotificationCenter
         else:
-            # Use dummy backend.
-            logger.warning(
-                "Notification Center can only be used "
-                "from a signed Framework or app bundle"
-            )
+            if has_unusernotificationcenter:
+                logger.warning(
+                    "Notification Center can only be used "
+                    "from a signed Framework or app bundle"
+                )
+            else:
+                logger.warning("Only macOS 10.14 and later are supported")
 
             from .dummy import DummyNotificationCenter
 
