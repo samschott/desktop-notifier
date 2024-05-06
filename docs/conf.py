@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 # -- Project information ---------------------------------------------------------------
 
 author = "Sam Schott"
-version = "3.5.7.dev1"
+version = "4.0.0.dev0"
 release = version
 project = "dekstop-notifier"
 title = "Desktop-Notifier Documentation"
