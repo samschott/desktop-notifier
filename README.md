@@ -18,7 +18,7 @@ Currently supported platforms are:
 `desktop-notifier` aims to be a good citizen of the platforms which it supports. It
 therefore stays within the limits of the native platform APIs and does not try to work
 around limitations which are often deliberate UI choices. For example, on macOS  and
-iOS, it is not possible to change the app icon which is shown on notifications. There
+iOS, it is not possible to change the app icon which is shown on notifications. There 
 are possible workarounds - that would likely be rejected by an App Store review - and
 desktop-notifier deliberately stays away from those.
 
@@ -63,7 +63,7 @@ notifier = DesktopNotifier()
 
 async def main():
     n = await notifier.send(title="Hello world!", message="Sent from Python")
-
+    
     await asyncio.sleep(5)  # wait a bit before clearing notification
 
     await notifier.clear(n)  # removes the notification
@@ -72,7 +72,7 @@ async def main():
 asyncio.run(main())
 ```
 
-For convenience, there is also a synchronous method ``send_sync()`` to send
+For convenience, there is also a synchronous method ``send_sync()`` to send 
 notifications without manually starting an asyncio event loop:
 
 ```Python
@@ -110,7 +110,7 @@ async def main():
       on_dismissed=lambda: print("Notification dismissed"),
       sound=True,
   )
-
+  
 
 loop = asyncio.get_event_loop()
 loop.create_task(main())
@@ -170,7 +170,7 @@ Note that the installer from [python.org](https://python.org) provides a properl
 Python framework but **homebrew does not** (manually signing the executable installed
 by homebrew *should* work as well).
 
-If you freeze your code with PyInstaller or a similar packaging solution, you must sign
+If you freeze your code with PyInstaller or a similar packaging solution, you must sign 
 the resulting app bundle for notifications to work. An ad-hoc signature will be
 sufficient but signing with an Apple developer certificate is recommended for
 distribution and may be required on future releases of macOS.
