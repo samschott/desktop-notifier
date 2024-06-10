@@ -222,7 +222,7 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool = False,
+        sound: bool | str = False,
         thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:
@@ -264,8 +264,9 @@ class DesktopNotifier:
             platforms and Linux notification servers support different types of
             attachments. Please consult the platform support section of the
             documentation.
-        :param sound: Whether to play a sound when the notification is shown. The
-            platform's default sound will be used, where available.
+        :param sound: Whether to play a sound when the notification is shown. If set to
+            True the default sound will be used. On macOS the user can choose from any
+            system sound in the /System/Library/Sounds/ directory by name.
         :param thread: An identifier to group related notifications together. This is
             ignored on Linux.
         :param timeout: The duration (in seconds) for which the notification is shown
@@ -310,7 +311,7 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool = False,
+        sound: bool | str = False,
         thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:

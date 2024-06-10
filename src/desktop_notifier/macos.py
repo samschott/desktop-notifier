@@ -234,6 +234,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification to send.
         :param notification_to_replace: Notification to replace, if any.
         """
+        print(f"_send() called with notification with sound: {notification.sound}")
         if notification_to_replace:
             platform_nid = notification_to_replace.identifier
         else:
@@ -253,7 +254,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             content.interruptionLevel = self._to_native_urgency[notification.urgency]
 
         if notification.sound:
-            content.sound = UNNotificationSound.defaultSound
+            if isinstance(notification.sound, str):
+                content.sound = UNNotificationSound.soundNamed(notification.sound)
+            else:
+                content.sound = UNNotificationSound.defaultSound
 
         if notification.attachment:
             path = unquote(urlparse(notification.attachment).path)

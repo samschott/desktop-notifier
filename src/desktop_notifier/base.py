@@ -116,7 +116,8 @@ class Notification:
     :param on_dismissed: Callback to call when the notification is dismissed. The
         callback will be called without any arguments.
     :attachment: URI for an attachment to the notification.
-    :param sound: Whether to play a sound when the notification is shown.
+    :param sound: Whether to play a sound when the notification is shown or (optionally on macOS)
+        the name of the sound to play.
     :param thread: An identifier to group related notifications together.
     :param timeout: Duration for which the notification in shown.
     """
@@ -132,7 +133,7 @@ class Notification:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: str | None = None,
-        sound: bool = False,
+        sound: bool | str = False,
         thread: str | None = None,
         timeout: int = -1,
     ) -> None:
