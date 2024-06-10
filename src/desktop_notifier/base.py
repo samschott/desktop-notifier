@@ -8,6 +8,7 @@ from __future__ import annotations
 
 # system imports
 import logging
+import platform
 from enum import Enum
 from collections import deque
 from pathlib import Path
@@ -117,7 +118,8 @@ class Notification:
         callback will be called without any arguments.
     :attachment: URI for an attachment to the notification.
     :param sound: Whether to play a sound when the notification is shown or (optionally on macOS)
-        the name of the sound to play.
+        a string specifying the name of the sound to play chosen from the files in
+        /System/Library/Sounds (e.g. 'Tink' or 'Submarine')
     :param thread: An identifier to group related notifications together.
     :param timeout: Duration for which the notification in shown.
     """
@@ -137,6 +139,10 @@ class Notification:
         thread: str | None = None,
         timeout: int = -1,
     ) -> None:
+        if isinstance(sound, str) and platform.system() != "Darwin":
+            logger.warning("Custom sounds are only supported on macOS.")
+            sound = True
+
         self._identifier = ""
         self._winrt_identifier = ""
         self._macos_identifier = ""
