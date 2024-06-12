@@ -146,7 +146,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         hints = {"urgency": self._to_native_urgency[notification.urgency]}
 
-        if notification.sound:
+        if notification.sound_file:
             hints["sound-name"] = Variant("s", "message-new-instant")
 
         if notification.attachment:

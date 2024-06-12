@@ -11,6 +11,7 @@ import platform
 from threading import RLock
 import logging
 import asyncio
+import warnings
 from pathlib import Path
 from typing import (
     Type,
@@ -32,6 +33,7 @@ from .base import (
     ReplyField,
     Notification,
     DesktopNotifierBase,
+    DEFAULT_SOUND,
     PYTHON_ICON_PATH,
 )
 
@@ -222,7 +224,8 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool | str = False,
+        sound: bool = False,
+        sound_file: str | None = None,
         thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:
@@ -264,9 +267,8 @@ class DesktopNotifier:
             platforms and Linux notification servers support different types of
             attachments. Please consult the platform support section of the
             documentation.
-        :param sound: Whether to play a sound when the notification is shown. If set to
-            True the default sound will be used. On macOS the user can choose from any
-            system sound in the /System/Library/Sounds/ directory by name.
+        :param sound_file: String identifying the sound to play when the notification is
+            shown. Pass desktop_notifier.DEFAULT_SOUND to use the default sound.
         :param thread: An identifier to group related notifications together. This is
             ignored on Linux.
         :param timeout: The duration (in seconds) for which the notification is shown
@@ -283,6 +285,10 @@ class DesktopNotifier:
         if isinstance(attachment, Path):
             attachment = attachment.as_uri()
 
+        if sound is True:
+            warnings.warn("Use sound_file=DEFAULT_SOUND instead of sound=True.", DeprecationWarning)
+            sound_file = DEFAULT_SOUND
+
         notification = Notification(
             title,
             message,
@@ -293,7 +299,7 @@ class DesktopNotifier:
             on_clicked,
             on_dismissed,
             attachment,
-            sound,
+            sound_file,
             thread,
             timeout,
         )
@@ -311,7 +317,8 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool | str = False,
+        sound: bool = False,
+        sound_file: str | None = None,
         thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:
@@ -331,6 +338,7 @@ class DesktopNotifier:
             on_dismissed,
             attachment,
             sound,
+            sound_file,
             thread,
             timeout,
         )

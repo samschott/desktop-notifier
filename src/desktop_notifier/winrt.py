@@ -209,7 +209,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 },
             )
 
-        if notification.sound:
+        if notification.sound_file:
             SubElement(
                 toast_xml, "audio", {"src": "ms-winsoundevent:Notification.Default"}
             )

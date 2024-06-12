@@ -8,7 +8,7 @@ from __future__ import annotations
 
 # system imports
 import logging
-import platform
+import warnings
 from enum import Enum
 from collections import deque
 from pathlib import Path
@@ -34,6 +34,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_SOUND = 'default'
 PYTHON_ICON_PATH = resource_path("desktop_notifier.resources", "python.png").__enter__()
 
 
@@ -117,9 +118,8 @@ class Notification:
     :param on_dismissed: Callback to call when the notification is dismissed. The
         callback will be called without any arguments.
     :attachment: URI for an attachment to the notification.
-    :param sound: Whether to play a sound when the notification is shown or (optionally on macOS)
-        a string specifying the name of the sound to play chosen from the files in
-        /System/Library/Sounds (e.g. 'Tink' or 'Submarine')
+    :param sound_file: String identifying the sound to play when the notification is
+        shown. Pass desktop_notifier.DEFAULT_SOUND to use the default sound.
     :param thread: An identifier to group related notifications together.
     :param timeout: Duration for which the notification in shown.
     """
@@ -135,14 +135,10 @@ class Notification:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: str | None = None,
-        sound: bool | str = False,
+        sound_file: str | None = None,
         thread: str | None = None,
         timeout: int = -1,
     ) -> None:
-        if isinstance(sound, str) and platform.system() != "Darwin":
-            logger.warning("Custom sounds are only supported on macOS.")
-            sound = True
-
         self._identifier = ""
         self._winrt_identifier = ""
         self._macos_identifier = ""
@@ -157,7 +153,7 @@ class Notification:
         self.on_clicked = on_clicked
         self.on_dismissed = on_dismissed
         self.attachment = attachment
-        self.sound = sound
+        self.sound_file = sound_file
         self.thread = thread
         self.timeout = timeout
 
