@@ -300,9 +300,10 @@ class DesktopNotifier:
             on_clicked,
             on_dismissed,
             attachment,
-            sound_file,
+            sound,
             thread,
             timeout,
+            sound_file
         )
 
         return await self.send_notification(notification)
