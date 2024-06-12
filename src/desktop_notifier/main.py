@@ -224,7 +224,7 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool = False,
+        sound: bool = False,  # Deprecated
         sound_file: str | None = None,
         thread: str | None = None,
         timeout: int = -1,
