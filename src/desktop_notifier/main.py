@@ -340,9 +340,9 @@ class DesktopNotifier:
             on_dismissed,
             attachment,
             sound,
-            sound_file,
             thread,
             timeout,
+            sound_file,
         )
         return self._run_coro_sync(coro)
 
