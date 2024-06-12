@@ -26,7 +26,7 @@ Please refer to the platform documentation for more detailed information:
    "reply_field", "An interactive reply field", "--", "✓", "✓"
    "on_clicked", "A callback to invoke on click", "✓ [#f3]_", "✓", "✓"
    "on_dismissed", "A callback to invoke on dismissal", "✓ [#f3]_", "✓", "✓"
-   "sound", "Play the named sound with the notification", "✓ [#f3]_ [#f6]_", "✓ [#f7]_", "✓ [#f6]_"
+   "sound_file", "Play the named sound with the notification", "✓ [#f3]_ [#f6]_", "✓ [#f7]_", "✓ [#f6]_"
    "thread", "An identifier to group notifications together", "--", "✓", "✓"
    "attachment", "File attachment, e.g., an image", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
    "timeout", "Duration until notification auto-dismissal", "✓ [#f3]_", "--", "--"
