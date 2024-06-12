@@ -287,7 +287,10 @@ class DesktopNotifier:
             attachment = attachment.as_uri()
 
         if sound is True:
-            warnings.warn("Use sound_file=DEFAULT_SOUND instead of sound=True.", DeprecationWarning)
+            warnings.warn(
+                "Use sound_file=DEFAULT_SOUND instead of sound=True.",
+                DeprecationWarning
+            )
             sound_file = DEFAULT_SOUND
 
         notification = Notification(
@@ -303,7 +306,7 @@ class DesktopNotifier:
             sound,
             thread,
             timeout,
-            sound_file
+            sound_file,
         )
 
         return await self.send_notification(notification)

@@ -34,7 +34,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SOUND = 'default'
+DEFAULT_SOUND = "default"
 PYTHON_ICON_PATH = resource_path("desktop_notifier.resources", "python.png").__enter__()
 
 
@@ -142,7 +142,10 @@ class Notification:
         sound_file: str | None = None,
     ) -> None:
         if sound is True:
-            warnings.warn("Use sound_file=DEFAULT_SOUND instead of sound=True.", DeprecationWarning)
+            warnings.warn(
+                "Use sound_file=DEFAULT_SOUND instead of sound=True.",
+                DeprecationWarning
+            )
             sound_file = DEFAULT_SOUND
 
         self._identifier = ""
