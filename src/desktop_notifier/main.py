@@ -225,9 +225,9 @@ class DesktopNotifier:
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
         sound: bool = False,  # Deprecated
-        sound_file: str | None = None,
         thread: str | None = None,
         timeout: int = -1,
+        sound_file: str | None = None,
     ) -> Notification:
         """
         Sends a desktop notification.
@@ -267,13 +267,14 @@ class DesktopNotifier:
             platforms and Linux notification servers support different types of
             attachments. Please consult the platform support section of the
             documentation.
-        :param sound_file: String identifying the sound to play when the notification is
-            shown. Pass desktop_notifier.DEFAULT_SOUND to use the default sound.
+        :param sound: [DEPRECATED] Use sound_file=DEFAULT_SOUND instead.
         :param thread: An identifier to group related notifications together. This is
             ignored on Linux.
         :param timeout: The duration (in seconds) for which the notification is shown
             unless dismissed. Only supported on Linux. Default is ``-1`` which implies
             OS-specified.
+        :param sound_file: String identifying the sound to play when the notification is
+            shown. Pass desktop_notifier.DEFAULT_SOUND to use the default sound.
 
         :returns: The scheduled notification instance.
         """
@@ -317,10 +318,10 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool = False,
-        sound_file: str | None = None,
+        sound: bool = False,  # Deprecated
         thread: str | None = None,
         timeout: int = -1,
+        sound_file: str | None = None,
     ) -> Notification:
         """
         Synchronous call of :meth:`send`, for use without an asyncio event loop.
