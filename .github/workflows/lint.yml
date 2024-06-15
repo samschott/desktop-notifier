@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  linting:
+  black:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
