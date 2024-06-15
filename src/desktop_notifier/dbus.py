@@ -17,7 +17,7 @@ from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
 
 # local imports
-from .base import Notification, DesktopNotifierBase, Urgency
+from .base import Notification, DesktopNotifierBase, Urgency, Capability
 
 
 __all__ = ["DBusDesktopNotifier"]
@@ -252,3 +252,30 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
             if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
                 notification.on_dismissed()
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        if not self.interface:
+            return frozenset()
+
+        # Base capabilities supported by all notification servers.
+        capabilities = {
+            Capability.APP_NAME,
+            Capability.ICON,
+            Capability.TITLE,
+            Capability.TIMEOUT,
+            Capability.ON_CLICKED,
+            Capability.ON_DISMISSED,
+        }
+
+        # Capabilities supported by some notification servers.
+        # See https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#protocol.
+        cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
+        if "actions" in cps:
+            capabilities.add(Capability.BUTTONS)
+        if "body" in cps:
+            capabilities.add(Capability.MESSAGE)
+        if "sound" in cps:
+            capabilities.add(Capability.SOUND)
+            capabilities.add(Capability.SOUND_NAME)
+
+        return frozenset(capabilities)
