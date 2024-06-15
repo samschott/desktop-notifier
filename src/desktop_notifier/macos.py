@@ -24,7 +24,13 @@ from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_id, objc_block
 
 # local imports
-from .base import Notification, DesktopNotifierBase, AuthorisationError, Urgency, DEFAULT_SOUND
+from .base import (
+    Notification,
+    DesktopNotifierBase,
+    AuthorisationError,
+    Urgency,
+    DEFAULT_SOUND,
+)
 from .macos_support import macos_version
 
 

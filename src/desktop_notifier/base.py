@@ -144,7 +144,7 @@ class Notification:
         if sound is True:
             warnings.warn(
                 "Use sound_file=DEFAULT_SOUND instead of sound=True.",
-                DeprecationWarning
+                DeprecationWarning,
             )
             sound_file = DEFAULT_SOUND
 

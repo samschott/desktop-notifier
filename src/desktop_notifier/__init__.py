@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-from .main import DesktopNotifier, Button, ReplyField, Notification, Urgency, DEFAULT_SOUND
+from .main import (
+    DesktopNotifier,
+    Button,
+    ReplyField,
+    Notification,
+    Urgency,
+    DEFAULT_SOUND,
+)
 
 
 __version__ = "4.0.0"
