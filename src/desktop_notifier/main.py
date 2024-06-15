@@ -43,6 +43,7 @@ __all__ = [
     "ReplyField",
     "Urgency",
     "DesktopNotifier",
+    "DEFAULT_SOUND",
 ]
 
 logger = logging.getLogger(__name__)
