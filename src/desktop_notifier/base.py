@@ -9,7 +9,7 @@ from __future__ import annotations
 # system imports
 import logging
 import warnings
-from enum import Enum
+from enum import Enum, auto
 from collections import deque
 from pathlib import Path
 from typing import (
@@ -178,6 +178,26 @@ class Notification:
         return f"<{self.__class__.__name__}(title='{self.title}', message='{self.message}')>"
 
 
+class Capability(Enum):
+    APP_NAME = auto()
+    TITLE = auto()
+    MESSAGE = auto()
+    URGENCY = auto()
+    ICON = auto()
+    ICON_FILE = auto()
+    ICON_NAME = auto()
+    BUTTONS = auto()
+    REPLY_FIELD = auto()
+    ATTACHMENT = auto()
+    ON_CLICKED = auto()
+    ON_DISMISSED = auto()
+    SOUND = auto()
+    SOUND_FILE = auto()
+    SOUND_NAME = auto()
+    THREAD = auto()
+    TIMEOUT = auto()
+
+
 class DesktopNotifierBase:
     """Base class for desktop notifier implementations
 
@@ -323,5 +343,12 @@ class DesktopNotifierBase:
         """
         Clears all notifications from the notification center. Should be implemented by
         subclasses.
+        """
+        raise NotImplementedError()
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        """
+        Returns the functionality supported by the implementation and, for Linux / dbus,
+        the notification server.
         """
         raise NotImplementedError()

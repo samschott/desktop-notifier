@@ -8,10 +8,10 @@ from __future__ import annotations
 
 # system imports
 import platform
-from threading import RLock
 import logging
 import asyncio
 import warnings
+from threading import RLock
 from pathlib import Path
 from typing import (
     Type,
@@ -28,6 +28,7 @@ from packaging.version import Version
 
 # local imports
 from .base import (
+    Capability,
     Urgency,
     Button,
     ReplyField,
@@ -43,6 +44,7 @@ __all__ = [
     "ReplyField",
     "Urgency",
     "DesktopNotifier",
+    "Capability",
     "DEFAULT_SOUND",
 ]
 
@@ -148,6 +150,8 @@ class DesktopNotifier:
         # Use our own event loop for the sync API so that we don't interfere with any
         # other ansycio event loops / threads, etc.
         self._loop = default_event_loop_policy.new_event_loop()
+
+        self._capabilities: frozenset[Capability] | None = None
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
         """
@@ -371,3 +375,13 @@ class DesktopNotifier:
         """
         with self._lock:
             await self._impl.clear_all()
+
+    @property
+    def capabilities(self) -> frozenset[Capability]:
+        """
+        The functionality supported by the implementation and, for Linux / dbus, the
+        notification server.
+        """
+        if not self._capabilities:
+            self._capabilities = self._run_coro_sync(self._impl.get_capabilities())
+        return self._capabilities

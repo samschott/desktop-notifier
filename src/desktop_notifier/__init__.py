@@ -5,6 +5,7 @@ from .main import (
     ReplyField,
     Notification,
     Urgency,
+    Capability,
     DEFAULT_SOUND,
 )
 
@@ -22,5 +23,6 @@ __all__ = [
     "ReplyField",
     "Urgency",
     "DesktopNotifier",
+    "Capability",
     "DEFAULT_SOUND",
 ]
