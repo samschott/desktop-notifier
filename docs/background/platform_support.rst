@@ -22,23 +22,22 @@ Please refer to the platform documentation for more detailed information:
    "title", "The notification title", "✓", "✓", "✓"
    "message", "The notification message", "✓", "✓", "✓"
    "urgency", "Determines persistence and appearance", "✓", "✓ [#f2]_", "✓"
-   "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓ [#f4]_", "✓"
+   "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓", "✓"
    "reply_field", "An interactive reply field", "--", "✓", "✓"
    "on_clicked", "A callback to invoke on click", "✓ [#f3]_", "✓", "✓"
    "on_dismissed", "A callback to invoke on dismissal", "✓ [#f3]_", "✓", "✓"
-   "sound_file", "Play the named sound with the notification", "✓ [#f3]_ [#f6]_", "✓ [#f7]_", "✓ [#f6]_"
+   "sound_file", "Play the named sound with the notification", "✓ [#f3]_ [#f5]_", "✓ [#f6]_", "✓ [#f5]_"
    "thread", "An identifier to group notifications together", "--", "✓", "✓"
-   "attachment", "File attachment, e.g., an image", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
+   "attachment", "File attachment, e.g., an image", "✓ [#f4]_", "✓ [#f4]_", "✓ [#f4]_"
    "timeout", "Duration until notification auto-dismissal", "✓ [#f3]_", "--", "--"
 
 .. [#f1] App name and icon on macOS and Windows are automatically determined by the
          calling application.
 .. [#f2] Only on macOS 12 and later.
 .. [#f3] May be ignored by some notification servers, depending on the desktop environment.
-.. [#f4] Only a single button is supported by our implementation for macOS 10.13 and lower.
-.. [#f5] Limitations on file types exist for each platform.
-.. [#f6] Currently only supports playing a default sound.
-.. [#f7] On macOS you can specify the filename stem of any file in `/System/Library/Sounds`,
+.. [#f4] Limitations on file types exist for each platform.
+.. [#f5] Currently only supports playing a default sound.
+.. [#f6] On macOS you can specify the filename stem of any file in `/System/Library/Sounds`,
          e.g. `'Tink'` or `'Submarine'`.
 
 Callbacks
@@ -55,14 +54,12 @@ The notification urgency may influence how a notification is displayed. For inst
 Gnome, notifications of critical urgency will remain visible until closed by the user
 and their buttons will always be expanded.
 
-This is currently not supported on macOS where critical notifications would require a
-special entitlement issued by Apple.
+On macOS, critical notifications require a special app entitlement issued by Apple.
 
 Buttons
 *******
 
-Our implementation for macOS 10.13 and lower supports only a single button. On iOS and
-macOS 10.14+, we support an unlimited number of buttons.
+macOS supports an unlimted number of buttons.
 
 Linux desktop environments and notification servers may or may not support a varying
 number of buttons. Gnome desktops typically support up to three buttons.
