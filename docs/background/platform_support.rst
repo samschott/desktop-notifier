@@ -26,7 +26,7 @@ Please refer to the platform documentation for more detailed information:
    "reply_field", "An interactive reply field", "--", "✓", "✓"
    "on_clicked", "A callback to invoke on click", "✓ [#f3]_", "✓", "✓"
    "on_dismissed", "A callback to invoke on dismissal", "✓ [#f3]_", "✓", "✓"
-   "sound", "Play a default sound with the notification", "✓ [#f3]_", "✓", "✓"
+   "sound_file", "Play the named sound with the notification", "✓ [#f3]_ [#f6]_", "✓ [#f7]_", "✓ [#f6]_"
    "thread", "An identifier to group notifications together", "--", "✓", "✓"
    "attachment", "File attachment, e.g., an image", "✓ [#f5]_", "✓ [#f5]_", "✓ [#f5]_"
    "timeout", "Duration until notification auto-dismissal", "✓ [#f3]_", "--", "--"
@@ -37,6 +37,9 @@ Please refer to the platform documentation for more detailed information:
 .. [#f3] May be ignored by some notification servers, depending on the desktop environment.
 .. [#f4] Only a single button is supported by our implementation for macOS 10.13 and lower.
 .. [#f5] Limitations on file types exist for each platform.
+.. [#f6] Currently only supports playing a default sound.
+.. [#f7] On macOS you can specify the filename stem of any file in `/System/Library/Sounds`,
+         e.g. `'Tink'` or `'Submarine'`.
 
 Callbacks
 *********

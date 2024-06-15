@@ -11,6 +11,7 @@ import platform
 from threading import RLock
 import logging
 import asyncio
+import warnings
 from pathlib import Path
 from typing import (
     Type,
@@ -32,6 +33,7 @@ from .base import (
     ReplyField,
     Notification,
     DesktopNotifierBase,
+    DEFAULT_SOUND,
     PYTHON_ICON_PATH,
 )
 
@@ -41,6 +43,7 @@ __all__ = [
     "ReplyField",
     "Urgency",
     "DesktopNotifier",
+    "DEFAULT_SOUND",
 ]
 
 logger = logging.getLogger(__name__)
@@ -222,9 +225,10 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool = False,
+        sound: bool = False,  # Deprecated
         thread: str | None = None,
         timeout: int = -1,
+        sound_file: str | None = None,
     ) -> Notification:
         """
         Sends a desktop notification.
@@ -264,13 +268,14 @@ class DesktopNotifier:
             platforms and Linux notification servers support different types of
             attachments. Please consult the platform support section of the
             documentation.
-        :param sound: Whether to play a sound when the notification is shown. The
-            platform's default sound will be used, where available.
+        :param sound: [DEPRECATED] Use sound_file=DEFAULT_SOUND instead.
         :param thread: An identifier to group related notifications together. This is
             ignored on Linux.
         :param timeout: The duration (in seconds) for which the notification is shown
             unless dismissed. Only supported on Linux. Default is ``-1`` which implies
             OS-specified.
+        :param sound_file: String identifying the sound to play when the notification is
+            shown. Pass desktop_notifier.DEFAULT_SOUND to use the system default sound.
 
         :returns: The scheduled notification instance.
         """
@@ -281,6 +286,13 @@ class DesktopNotifier:
 
         if isinstance(attachment, Path):
             attachment = attachment.as_uri()
+
+        if sound is True:
+            warnings.warn(
+                "Use sound_file=DEFAULT_SOUND instead of sound=True.",
+                DeprecationWarning,
+            )
+            sound_file = DEFAULT_SOUND
 
         notification = Notification(
             title,
@@ -295,6 +307,7 @@ class DesktopNotifier:
             sound,
             thread,
             timeout,
+            sound_file,
         )
 
         return await self.send_notification(notification)
@@ -310,9 +323,10 @@ class DesktopNotifier:
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Path | str | None = None,
-        sound: bool = False,
+        sound: bool = False,  # Deprecated
         thread: str | None = None,
         timeout: int = -1,
+        sound_file: str | None = None,
     ) -> Notification:
         """
         Synchronous call of :meth:`send`, for use without an asyncio event loop.
@@ -332,6 +346,7 @@ class DesktopNotifier:
             sound,
             thread,
             timeout,
+            sound_file,
         )
         return self._run_coro_sync(coro)
 

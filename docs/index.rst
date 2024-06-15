@@ -40,7 +40,7 @@ notification options, such as notification urgency, buttons, callbacks, etc:
 
 .. code-block:: python
 
-    from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
+    from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
 
     notifier = DesktopNotifier(
         app_name="Sample App",
@@ -65,7 +65,7 @@ notification options, such as notification urgency, buttons, callbacks, etc:
           ),
           on_clicked=lambda: print("Notification clicked"),
           on_dismissed=lambda: print("Notification dismissed"),
-          sound=True,
+          sound_file=DEFAULT_SOUND,
         )
 
     asyncio.run(main())

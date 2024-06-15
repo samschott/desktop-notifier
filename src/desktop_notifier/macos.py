@@ -24,7 +24,13 @@ from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_id, objc_block
 
 # local imports
-from .base import Notification, DesktopNotifierBase, AuthorisationError, Urgency
+from .base import (
+    Notification,
+    DesktopNotifierBase,
+    AuthorisationError,
+    Urgency,
+    DEFAULT_SOUND,
+)
 from .macos_support import macos_version
 
 
@@ -252,8 +258,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         if macos_version >= Version("12.0"):
             content.interruptionLevel = self._to_native_urgency[notification.urgency]
 
-        if notification.sound:
-            content.sound = UNNotificationSound.defaultSound
+        if notification.sound_file:
+            if notification.sound_file == DEFAULT_SOUND:
+                content.sound = UNNotificationSound.defaultSound
+            else:
+                content.sound = UNNotificationSound.soundNamed(notification.sound_file)
 
         if notification.attachment:
             path = unquote(urlparse(notification.attachment).path)

@@ -1,4 +1,4 @@
-from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
+from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
 
 
 notify = DesktopNotifier(
@@ -24,5 +24,5 @@ notify.send_sync(
     ),
     on_clicked=lambda: print("Notification clicked"),
     on_dismissed=lambda: print("Notification dismissed"),
-    sound=True,
+    sound_file=DEFAULT_SOUND,
 )

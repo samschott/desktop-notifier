@@ -1,7 +1,7 @@
 import asyncio
 import platform
 
-from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField
+from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
 
 
 notify = DesktopNotifier(
@@ -29,7 +29,7 @@ async def main() -> None:
         ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
-        sound=True,
+        sound_file=DEFAULT_SOUND,
     )
 
 

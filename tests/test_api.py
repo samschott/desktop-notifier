@@ -1,7 +1,7 @@
 import sys
 import pytest
 
-from desktop_notifier import Urgency, Button, ReplyField
+from desktop_notifier import Urgency, Button, ReplyField, DEFAULT_SOUND
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_send(notifier):
         ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
-        sound=True,
+        sound_file=DEFAULT_SOUND,
         thread="test_notifications",
         timeout=5,
     )
@@ -49,7 +49,7 @@ def test_send_sync(notifier):
         ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
-        sound=True,
+        sound_file=DEFAULT_SOUND,
         thread="test_notifications",
         timeout=5,
     )

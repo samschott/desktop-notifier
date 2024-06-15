@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-from .main import DesktopNotifier, Button, ReplyField, Notification, Urgency
+from .main import (
+    DesktopNotifier,
+    Button,
+    ReplyField,
+    Notification,
+    Urgency,
+    DEFAULT_SOUND,
+)
 
 
 __version__ = "4.0.0"
@@ -15,4 +22,5 @@ __all__ = [
     "ReplyField",
     "Urgency",
     "DesktopNotifier",
+    "DEFAULT_SOUND",
 ]
