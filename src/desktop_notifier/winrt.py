@@ -34,7 +34,7 @@ from winrt.windows.applicationmodel.core import CoreApplication
 from winrt.system import Object as WinRTObject
 
 # local imports
-from .base import Notification, DesktopNotifierBase, Urgency
+from .base import Notification, DesktopNotifierBase, Urgency, Capability
 
 
 __all__ = ["WinRTDesktopNotifier"]
@@ -303,3 +303,19 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         """
         if self.manager.history:
             self.manager.history.clear(self.app_id)
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        capabilities = {
+            Capability.TITLE,
+            Capability.MESSAGE,
+            Capability.ICON,
+            Capability.BUTTONS,
+            Capability.REPLY_FIELD,
+            Capability.ON_CLICKED,
+            Capability.ON_DISMISSED,
+            Capability.THREAD,
+            Capability.ATTACHMENT,
+            Capability.SOUND,
+            Capability.SOUND_NAME,
+        }
+        return frozenset(capabilities)

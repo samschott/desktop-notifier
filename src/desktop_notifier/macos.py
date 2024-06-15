@@ -29,6 +29,7 @@ from .base import (
     DesktopNotifierBase,
     AuthorisationError,
     Urgency,
+    Capability,
     DEFAULT_SOUND,
 )
 from .macos_support import macos_version
@@ -327,7 +328,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
-
         if not (notification.buttons or notification.reply_field):
             return None
 
@@ -337,7 +337,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
-
         categories = await self._get_notification_categories()
         category_ids = set(py_from_ns(c.identifier) for c in categories.allObjects())  # type: ignore
 
@@ -363,7 +362,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 actions.append(action)
 
             # Add category for new set of buttons.
-
             new_categories = categories.setByAddingObject(  # type: ignore
                 UNNotificationCategory.categoryWithIdentifier(
                     category_id,
@@ -412,3 +410,21 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         any notification requests that are scheduled, but have not yet been delivered.
         """
         self.nc.removeAllDeliveredNotifications()
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        capabilities = {
+            Capability.TITLE,
+            Capability.MESSAGE,
+            Capability.BUTTONS,
+            Capability.REPLY_FIELD,
+            Capability.ON_CLICKED,
+            Capability.ON_DISMISSED,
+            Capability.SOUND,
+            Capability.SOUND_NAME,
+            Capability.THREAD,
+            Capability.ATTACHMENT,
+        }
+        if macos_version >= Version("12.0"):
+            capabilities.add(Capability.URGENCY)
+
+        return frozenset(capabilities)
