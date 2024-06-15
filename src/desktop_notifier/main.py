@@ -275,7 +275,7 @@ class DesktopNotifier:
             unless dismissed. Only supported on Linux. Default is ``-1`` which implies
             OS-specified.
         :param sound_file: String identifying the sound to play when the notification is
-            shown. Pass desktop_notifier.DEFAULT_SOUND to use the default sound.
+            shown. Pass desktop_notifier.DEFAULT_SOUND to use the system default sound.
 
         :returns: The scheduled notification instance.
         """
