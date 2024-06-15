@@ -18,6 +18,7 @@ macos_version = Version(platform.mac_ver()[0])
 
 
 __all__ = [
+    "is_bundle",
     "is_signed_bundle",
     "macos_version",
 ]
@@ -38,22 +39,29 @@ kSecCSCheckNestedCode = 1 << 3
 kSecCSStrictValidate = 1 << 4
 
 
+def is_bundle() -> bool:
+    """
+    Detect if we are in an app bundle
+
+    :returns: Whether we are inside an app bundle.
+    """
+    main_bundle = NSBundle.mainBundle
+    return main_bundle.bundleIdentifier is not None
+
+
 def is_signed_bundle() -> bool:
     """
-    Detect if we are in a signed app bundle / framework.
+    Detect if we are in a signed app bundle
 
-    :returns: Whether we are inside a signed app bundle or framework.
+    :returns: Whether we are inside a signed app bundle.
     """
-
     main_bundle = NSBundle.mainBundle
 
     if main_bundle.bundleIdentifier is None:
         return False
 
     # Check for valid signature.
-
     static_code = ctypes.c_void_p(0)
-
     err = sec.SecStaticCodeCreateWithPath(
         main_bundle.bundleURL, kSecCSDefaultFlags, ctypes.byref(static_code)
     )
@@ -61,10 +69,9 @@ def is_signed_bundle() -> bool:
     if err != 0:
         return False
 
-    signed_status = sec.SecStaticCodeCheckValidityWithErrors(
+    signed_status = sec.SecStaticCodeCheckValidity(
         static_code,
         kSecCSCheckAllArchitectures | kSecCSCheckNestedCode | kSecCSStrictValidate,
-        None,
         None,
     )
 
