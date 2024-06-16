@@ -255,7 +255,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
-            return frozenset()
+            self.interface = await self._init_dbus()
 
         # Base capabilities supported by all notification servers.
         capabilities = {
