@@ -52,21 +52,61 @@ async def test_default_icon(notifier):
 
 @pytest.mark.asyncio
 async def test_icon_name(notifier):
-    notification = await notifier.send(
-        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(name="blue")
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(name="call-start")
     )
 
 
 @pytest.mark.asyncio
 async def test_icon_path(notifier):
-    notification = await notifier.send(
-        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(path=Path("blue"))
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(path=Path("/blue"))
     )
 
 
+@pytest.mark.asyncio
 async def test_icon_uri(notifier):
-    notification = await notifier.send(
+    await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", icon=Icon(uri="file:///blue")
+    )
+
+
+@pytest.mark.asyncio
+async def test_sound_name(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", sound=Sound(name="Tink")
+    )
+
+
+@pytest.mark.asyncio
+async def test_sound_path(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", sound=Sound(path=Path("/blue"))
+    )
+
+
+@pytest.mark.asyncio
+async def test_sound_uri(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", sound=Sound(uri="file:///blue")
+    )
+
+
+@pytest.mark.asyncio
+async def test_attachment_path(notifier):
+    await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        attachment=Attachment(path=Path("/blue")),
+    )
+
+
+@pytest.mark.asyncio
+async def test_attachment_uri(notifier):
+    await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        attachment=Attachment(uri="file:///blue"),
     )
 
 
