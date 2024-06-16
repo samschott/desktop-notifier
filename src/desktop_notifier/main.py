@@ -353,8 +353,7 @@ class DesktopNotifier:
     @property
     def capabilities(self) -> frozenset[Capability]:
         """
-        The functionality supported by the implementation and, for Linux / dbus, the
-        notification server.
+        Returns which functionality us supported by the implementation.
         """
         if not self._capabilities:
             self._capabilities = self._run_coro_sync(self._impl.get_capabilities())

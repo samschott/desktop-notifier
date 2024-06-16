@@ -6,6 +6,7 @@
 * Expand attachment API to allow passing a URI or path.
 * Fixes segfaults on macOS when passing an attachment path that does not refer to an
   actual file.
+* Add a `capabilities()` API that returns which features are supported by a platform.
 
 # v4.0.0
 
