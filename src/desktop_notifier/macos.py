@@ -8,14 +8,15 @@ UNUserNotificationCenter backend for macOS.
   signed Python framework (for example from python.org).
 * Requires a running CFRunLoop to invoke callbacks.
 """
-
 # system imports
+import shutil
+import tempfile
 import uuid
 import logging
 import enum
 import asyncio
+from pathlib import Path
 from concurrent.futures import Future
-from urllib.parse import urlparse, unquote
 from typing import cast, Optional
 
 # external imports
@@ -259,19 +260,30 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         if macos_version >= Version("12.0"):
             content.interruptionLevel = self._to_native_urgency[notification.urgency]
 
-        if notification.sound_file:
-            if notification.sound_file == DEFAULT_SOUND:
+        if notification.sound:
+            if notification.sound == DEFAULT_SOUND:
                 content.sound = UNNotificationSound.defaultSound
-            else:
-                content.sound = UNNotificationSound.soundNamed(notification.sound_file)
+            elif notification.sound.name:
+                content.sound = UNNotificationSound.soundNamed(notification.sound.name)
 
         if notification.attachment:
-            path = unquote(urlparse(notification.attachment).path)
-            url = NSURL.fileURLWithPath(path, isDirectory=False)
-            attachment = UNNotificationAttachment.attachmentWithIdentifier(
-                "", URL=url, options={}, error=None
-            )
-            content.attachments = [attachment]
+            # Copy attachment to temporary file to ensure that it exists and that we can
+            # access it. Invalid file paths can otherwise cause a segfault when creating
+            # UNNotificationAttachment. The temporary file will be deleted by macOS
+            # after usage.
+            attachment_path = notification.attachment.as_path()
+            tmp_dir = tempfile.mkdtemp()
+            try:
+                tmp_path = Path(tmp_dir) / attachment_path.name
+                shutil.copy(attachment_path, tmp_path)
+            except OSError:
+                logger.warning("Could not access attachment file", exc_info=True)
+            else:
+                url = NSURL.fileURLWithPath(str(tmp_path), isDirectory=False)
+                attachment = UNNotificationAttachment.attachmentWithIdentifier(
+                    "", URL=url, options={}, error=None
+                )
+                content.attachments = [attachment]
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
             platform_nid, content=content, trigger=None

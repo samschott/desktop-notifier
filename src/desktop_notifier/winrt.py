@@ -34,7 +34,7 @@ from winrt.windows.applicationmodel.core import CoreApplication
 from winrt.system import Object as WinRTObject
 
 # local imports
-from .base import Notification, DesktopNotifierBase, Urgency, Capability
+from .base import Notification, DesktopNotifierBase, Urgency, Capability, DEFAULT_SOUND
 
 
 __all__ = ["WinRTDesktopNotifier"]
@@ -163,16 +163,21 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         message_xml = SubElement(binding, "text")
         message_xml.text = notification.message
 
-        if notification.icon:
+        if notification.icon and notification.icon.is_file():
             SubElement(
                 binding,
                 "image",
-                {"placement": "appLogoOverride", "src": notification.icon},
+                {
+                    "placement": "appLogoOverride",
+                    "src": notification.icon.as_uri(),
+                },
             )
 
         if notification.attachment:
             SubElement(
-                binding, "image", {"placement": "hero", "src": notification.attachment}
+                binding,
+                "image",
+                {"placement": "hero", "src": notification.attachment.as_uri()},
             )
 
         if notification.reply_field:
@@ -209,12 +214,17 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 },
             )
 
-        if notification.sound_file:
-            SubElement(
-                toast_xml, "audio", {"src": "ms-winsoundevent:Notification.Default"}
-            )
+        if notification.sound:
+            if notification.sound == DEFAULT_SOUND:
+                sound_attr = {"src": "ms-winsoundevent:Notification.Default"}
+            elif notification.sound.name:
+                sound_attr = {"src": notification.sound.name}
+            else:
+                sound_attr = {"src": notification.sound.as_uri()}
         else:
-            SubElement(toast_xml, "audio", {"silent": "true"})
+            sound_attr = {"silent": "true"}
+
+        SubElement(toast_xml, "audio", sound_attr)
 
         xml_document = XmlDocument()
         xml_document.load_xml(tostring(toast_xml, encoding="unicode"))
@@ -317,5 +327,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             Capability.ATTACHMENT,
             Capability.SOUND,
             Capability.SOUND_NAME,
+            Capability.SOUND_FILE,
         }
         return frozenset(capabilities)

@@ -1,7 +1,17 @@
 import sys
 import pytest
 
-from desktop_notifier import Urgency, Button, ReplyField, DEFAULT_SOUND
+from pathlib import Path
+from desktop_notifier import (
+    Urgency,
+    Button,
+    Icon,
+    Sound,
+    Attachment,
+    ReplyField,
+    DEFAULT_SOUND,
+    DEFAULT_ICON,
+)
 
 
 @pytest.mark.asyncio
@@ -23,12 +33,81 @@ async def test_send(notifier):
         ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
-        sound_file=DEFAULT_SOUND,
+        sound=DEFAULT_SOUND,
         thread="test_notifications",
         timeout=5,
     )
     assert notification in notifier.current_notifications
     assert notification.identifier != ""
+
+
+@pytest.mark.asyncio
+async def test_default_icon(notifier):
+    notification = await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+    )
+    assert notification.icon == DEFAULT_ICON
+
+
+@pytest.mark.asyncio
+async def test_icon_name(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(name="call-start")
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_path(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(path=Path("/blue"))
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_uri(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", icon=Icon(uri="file:///blue")
+    )
+
+
+@pytest.mark.asyncio
+async def test_sound_name(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", sound=Sound(name="Tink")
+    )
+
+
+@pytest.mark.asyncio
+async def test_sound_path(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", sound=Sound(path=Path("/blue"))
+    )
+
+
+@pytest.mark.asyncio
+async def test_sound_uri(notifier):
+    await notifier.send(
+        title="Julius Caesar", message="Et tu, Brute?", sound=Sound(uri="file:///blue")
+    )
+
+
+@pytest.mark.asyncio
+async def test_attachment_path(notifier):
+    await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        attachment=Attachment(path=Path("/blue")),
+    )
+
+
+@pytest.mark.asyncio
+async def test_attachment_uri(notifier):
+    await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        attachment=Attachment(uri="file:///blue"),
+    )
 
 
 def test_send_sync(notifier):
@@ -49,7 +128,7 @@ def test_send_sync(notifier):
         ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
-        sound_file=DEFAULT_SOUND,
+        sound=DEFAULT_SOUND,
         thread="test_notifications",
         timeout=5,
     )
@@ -78,6 +157,7 @@ async def test_clear(notifier):
     assert n0 not in notifier.current_notifications
 
 
+@pytest.mark.asyncio
 async def test_clear_all(notifier):
     n0 = await notifier.send(
         title="Julius Caesar",
