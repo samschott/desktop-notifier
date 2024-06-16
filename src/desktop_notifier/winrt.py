@@ -19,7 +19,6 @@ from typing import TypeVar
 # external imports
 import winreg
 from winrt.windows.foundation.interop import unbox
-from winrt.windows.foundation.metadata import ApiInformation
 from winrt.windows.ui.notifications import (
     ToastNotificationManager,
     ToastNotificationPriority,
@@ -328,9 +327,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             Capability.ATTACHMENT,
             Capability.SOUND,
             Capability.SOUND_NAME,
+            Capability.SOUND_FILE,
         }
-        if ApiInformation.IsApiContractPresent(
-            "Windows.Foundation.UniversalApiContract", 2
-        ):
-            capabilities.add(Capability.SOUND_FILE)
         return frozenset(capabilities)
