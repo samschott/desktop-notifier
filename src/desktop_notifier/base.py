@@ -26,6 +26,23 @@ from typing import (
     ContextManager,
 )
 
+__all__ = [
+    "Capability",
+    "FileResource",
+    "Resource",
+    "Icon",
+    "Sound",
+    "Attachment",
+    "Button",
+    "ReplyField",
+    "Urgency",
+    "AuthorisationError",
+    "Notification",
+    "DesktopNotifierBase",
+    "DEFAULT_ICON",
+    "DEFAULT_SOUND",
+]
+
 try:
     from importlib.resources import as_file, files
 
@@ -38,7 +55,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH = resource_path(
+python_icon_path = resource_path(
     package="desktop_notifier.resources", resource="python.png"
 ).__enter__()
 
@@ -132,7 +149,7 @@ class Sound(Resource):
     pass
 
 
-DEFAULT_ICON = Icon(path=PYTHON_ICON_PATH)
+DEFAULT_ICON = Icon(path=python_icon_path)
 """Python icon"""
 
 DEFAULT_SOUND = Sound(name="default")
