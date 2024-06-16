@@ -11,7 +11,6 @@ import platform
 import logging
 import asyncio
 import warnings
-from threading import RLock
 from pathlib import Path
 from typing import (
     Type,
@@ -144,7 +143,7 @@ class DesktopNotifier:
         else:
             self.app_icon = app_icon
 
-        self._lock = RLock()
+        self._lock = asyncio.Lock()
         self._impl = impl_cls(app_name, notification_limit)
         self._did_request_authorisation = False
 
@@ -189,7 +188,7 @@ class DesktopNotifier:
 
         :returns: Whether authorisation has been granted.
         """
-        with self._lock:
+        async with self._lock:
             self._did_request_authorisation = True
             return await self._impl.request_authorisation()
 
@@ -207,7 +206,7 @@ class DesktopNotifier:
 
         :param notification: The notification to send.
         """
-        with self._lock:
+        async with self._lock:
             # Ask for authorisation if not already done. On some platforms, this will
             # trigger a system dialog to ask the user for permission.
             if not self._did_request_authorisation:
@@ -366,7 +365,7 @@ class DesktopNotifier:
 
         :param notification: Notification to clear.
         """
-        with self._lock:
+        async with self._lock:
             await self._impl.clear(notification)
 
     async def clear_all(self) -> None:
@@ -374,7 +373,7 @@ class DesktopNotifier:
         Removes all currently displayed notifications for this app from the notification
         center.
         """
-        with self._lock:
+        async with self._lock:
             await self._impl.clear_all()
 
     @property
