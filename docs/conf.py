@@ -20,11 +20,10 @@ copyright = "{}, {}".format(time.localtime().tm_year, author)
 # -- General configuration -------------------------------------------------------------
 
 extensions = [
+    "autoapi.extension",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.autodoc",
-    "autoapi.extension",
     "sphinx_mdinclude",
 ]
 source_suffix = [".rst", ".md"]
@@ -37,12 +36,6 @@ language = "en"
 html_theme = "furo"
 
 # -- Extension configuration -----------------------------------------------------------
-
-# sphinx.ext.autodoc
-autodoc_typehints = "description"
-autoclass_content = "both"
-autodoc_member_order = "bysource"
-autodoc_inherit_docstrings = False
 
 # autoapi.extension
 autoapi_type = "python"
