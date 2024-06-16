@@ -11,6 +11,7 @@ import platform
 import logging
 import asyncio
 import warnings
+from urllib import parse
 from pathlib import Path
 from typing import (
     Type,
@@ -31,20 +32,27 @@ from .base import (
     Urgency,
     Button,
     ReplyField,
+    Icon,
+    Sound,
+    Attachment,
     Notification,
     DesktopNotifierBase,
     DEFAULT_SOUND,
-    PYTHON_ICON_PATH,
+    DEFAULT_ICON,
 )
 
 __all__ = [
     "Notification",
     "Button",
     "ReplyField",
+    "Icon",
+    "Sound",
+    "Attachment",
     "Urgency",
     "DesktopNotifier",
     "Capability",
     "DEFAULT_SOUND",
+    "DEFAULT_ICON",
 ]
 
 logger = logging.getLogger(__name__)
@@ -55,7 +63,7 @@ T = TypeVar("T")
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
-def get_implementation() -> Type[DesktopNotifierBase]:
+def get_implementation_class() -> Type[DesktopNotifierBase]:
     """
     Return the backend class depending on the platform and version.
 
@@ -128,20 +136,36 @@ class DesktopNotifier:
         notification center. This may be ignored by some implementations.
     """
 
-    app_icon: str | None
+    app_icon: Icon | None
 
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Path | str | None = PYTHON_ICON_PATH,
+        app_icon: Path | str | Icon | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        impl_cls = get_implementation()
+        impl_cls = get_implementation_class()
+
+        if isinstance(app_icon, str):
+            warnings.warn(
+                message="Pass an Icon instance instead of a string. "
+                "Support for string input will be removed in a future release.",
+                category=DeprecationWarning,
+            )
+            if parse.urlparse(app_icon).hostname != "":
+                app_icon = Icon(uri=app_icon)
+            else:
+                app_icon = Icon(name=app_icon)
 
         if isinstance(app_icon, Path):
-            self.app_icon = app_icon.as_uri()
-        else:
-            self.app_icon = app_icon
+            warnings.warn(
+                message="Pass an Icon instance instead of a Path. "
+                "Support for string input will be removed in a future release.",
+                category=DeprecationWarning,
+            )
+            app_icon = Icon(path=app_icon)
+
+        self.app_icon = app_icon
 
         self._lock = asyncio.Lock()
         self._impl = impl_cls(app_name, notification_limit)
@@ -206,6 +230,9 @@ class DesktopNotifier:
 
         :param notification: The notification to send.
         """
+        if not notification.icon:
+            notification.icon = self.app_icon
+
         async with self._lock:
             # Ask for authorisation if not already done. On some platforms, this will
             # trigger a system dialog to ask the user for permission.
@@ -223,97 +250,46 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Path | str | None = None,
+        icon: str | Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
-        attachment: Path | str | None = None,
-        sound: bool = False,  # Deprecated
+        attachment: str | Attachment | None = None,
+        sound: bool | Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,
-        sound_file: str | None = None,
     ) -> Notification:
         """
-        Sends a desktop notification.
+        Sends a desktop notification
 
-        Some arguments may be ignored, depending on the backend.
+        Arguments are the same as and will be passed on to :class:`Notification`.
 
-        This method will always return a :class:`base.Notification` instance and will
-        not raise an exception when scheduling the notification fails. If the
-        notification was scheduled successfully, its ``identifier`` will be set to the
-        platform's native notification identifier. Otherwise, the ``identifier`` will be
-        ``None``.
+        This method will always return a :class:`Notification` instance and will not
+        raise an exception when scheduling the notification fails. If the notification
+        was scheduled successfully, its ``identifier`` will be set to the platform's
+        native notification identifier. Otherwise, the ``identifier`` will be ``None``.
 
         Note that even a successfully scheduled notification may not be displayed to the
         user, depending on their notification center settings (for instance if "do not
         disturb" is enabled on macOS).
 
-        :param title: Notification title.
-        :param message: Notification message.
-        :param urgency: Notification level: low, normal or critical. This may be
-            interpreted differently by some implementations, for instance causing the
-            notification to remain visible for longer, or may be ignored.
-        :param icon: Optional URI string, :class:`pathlib.Path` or icon name to use. If
-            given, this will replace the icon specified by :attr:`app_icon`. Will be
-            ignored on macOS.
-        :param buttons: A list of buttons with callbacks for the notification.
-        :param reply_field: Optional reply field to show with the notification. Can be
-            used for instance in chat apps.
-        :param on_clicked: Optional callback to call when the notification is clicked.
-            The callback will be called without any arguments. This is ignored by some
-            implementations.
-        :param on_dismissed: Optional callback to call when the notification is
-            dismissed. The callback will be called without any arguments. This is
-            ignored by some implementations.
-        :param attachment: Optional URI string or :class:`pathlib.Path` for an
-            attachment to the notification such as an image, movie, or audio file. A
-            preview of this may be displayed together with the notification. Different
-            platforms and Linux notification servers support different types of
-            attachments. Please consult the platform support section of the
-            documentation.
-        :param sound: [DEPRECATED] Use sound_file=DEFAULT_SOUND instead.
-        :param thread: An identifier to group related notifications together. This is
-            ignored on Linux.
-        :param timeout: The duration (in seconds) for which the notification is shown
-            unless dismissed. Only supported on Linux. Default is ``-1`` which implies
-            OS-specified.
-        :param sound_file: String identifying the sound to play when the notification is
-            shown. Pass desktop_notifier.DEFAULT_SOUND to use the system default sound.
-
         :returns: The scheduled notification instance.
         """
-        if icon is None:
-            icon = self.app_icon
-        elif isinstance(icon, Path):
-            icon = icon.as_uri()
-
-        if isinstance(attachment, Path):
-            attachment = attachment.as_uri()
-
-        if sound is True:
-            warnings.warn(
-                "Use sound_file=DEFAULT_SOUND instead of sound=True.",
-                DeprecationWarning,
-            )
-            sound_file = DEFAULT_SOUND
-
         notification = Notification(
             title,
             message,
-            urgency,
-            icon,
-            buttons,
-            reply_field,
-            on_clicked,
-            on_dismissed,
-            attachment,
-            sound,
-            thread,
-            timeout,
-            sound_file,
+            urgency=urgency,
+            icon=icon,
+            buttons=buttons,
+            reply_field=reply_field,
+            on_clicked=on_clicked,
+            on_dismissed=on_dismissed,
+            attachment=attachment,
+            sound=sound,
+            thread=thread,
+            timeout=timeout,
         )
-
         return await self.send_notification(notification)
 
     def send_sync(
@@ -321,16 +297,15 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: Path | str | None = None,
+        icon: str | Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
-        attachment: Path | str | None = None,
-        sound: bool = False,  # Deprecated
+        attachment: str | Attachment | None = None,
+        sound: bool | Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,
-        sound_file: str | None = None,
     ) -> Notification:
         """
         Synchronous call of :meth:`send`, for use without an asyncio event loop.
@@ -340,17 +315,16 @@ class DesktopNotifier:
         coro = self.send(
             title,
             message,
-            urgency,
-            icon,
-            buttons,
-            reply_field,
-            on_clicked,
-            on_dismissed,
-            attachment,
-            sound,
-            thread,
-            timeout,
-            sound_file,
+            urgency=urgency,
+            icon=icon,
+            buttons=buttons,
+            reply_field=reply_field,
+            on_clicked=on_clicked,
+            on_dismissed=on_dismissed,
+            attachment=attachment,
+            sound=sound,
+            thread=thread,
+            timeout=timeout,
         )
         return self._run_coro_sync(coro)
 

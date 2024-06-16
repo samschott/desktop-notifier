@@ -6,7 +6,11 @@ from .main import (
     Notification,
     Urgency,
     Capability,
+    Icon,
+    Sound,
+    Attachment,
     DEFAULT_SOUND,
+    DEFAULT_ICON,
 )
 
 
@@ -22,7 +26,11 @@ __all__ = [
     "Button",
     "ReplyField",
     "Urgency",
+    "Icon",
+    "Sound",
+    "Attachment",
     "DesktopNotifier",
     "Capability",
     "DEFAULT_SOUND",
+    "DEFAULT_ICON",
 ]

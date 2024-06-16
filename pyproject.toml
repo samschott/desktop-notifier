@@ -32,6 +32,7 @@ dependencies = [
     "winrt-windows.foundation;sys_platform=='win32'",
     "winrt-windows.foundation.collections;sys_platform=='win32'",
     "winrt-windows.foundation.interop;sys_platform=='win32'",
+    "winrt-windows.foundation.metadata;sys_platform=='win32'",
     "winrt-windows.ui.notifications;sys_platform=='win32'",
 ]
 

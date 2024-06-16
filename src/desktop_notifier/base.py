@@ -6,9 +6,12 @@ must inherit from :class:`DesktopNotifierBase`.
 
 from __future__ import annotations
 
-# system imports
 import logging
+from urllib.parse import urlparse, unquote
+import urllib.parse
 import warnings
+import dataclasses
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from collections import deque
@@ -35,8 +38,92 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SOUND = "default"
-PYTHON_ICON_PATH = resource_path("desktop_notifier.resources", "python.png").__enter__()
+PYTHON_ICON_PATH = resource_path(
+    package="desktop_notifier.resources", resource="python.png"
+).__enter__()
+
+
+@dataclass(frozen=True)
+class FileResource:
+    """
+    A file resource represented by a URI or path
+    """
+
+    path: Path | None = None
+    uri: str | None = None
+
+    def __post_init__(self) -> None:
+        fields = dataclasses.fields(self)
+        set_fields = [f for f in fields if getattr(self, f.name) != f.default]
+        if len(set_fields) > 1:
+            raise RuntimeError("Only a single field can be set")
+        if len(set_fields) == 0:
+            field_names = [f.name for f in fields]
+            raise RuntimeError(f"Either of {field_names} must be set")
+
+    def as_uri(self) -> str:
+        """
+        Returns the represented resource as a URI string
+        """
+        if self.uri is not None:
+            return self.uri
+        if self.path is not None:
+            return self.path.as_uri()
+        raise AttributeError("No path or URI provided")
+
+    def as_path(self) -> Path:
+        """
+        Returns the represented resource as a Path
+
+        Note that any information about the URI scheme is lost on conversion.
+        """
+        if self.path is not None:
+            return self.path
+        if self.uri is not None:
+            parsed_uri = urlparse(self.uri)
+            return Path(unquote(parsed_uri.path))
+
+        raise AttributeError("No path or URI provided")
+
+
+@dataclass(frozen=True)
+class Resource(FileResource):
+    """A resource represented by a resource name, URI or path"""
+
+    name: str | None = None
+
+    def is_named(self) -> bool:
+        """Returns whether the instance was initialized with ``name``"""
+        return self.name is not None
+
+    def is_file(self) -> bool:
+        """Returns whether the instance was initialized with ``path`` or ``uri``"""
+        return self.path is not None or self.uri is not None
+
+
+@dataclass(frozen=True)
+class Icon(Resource):
+    """An icon represented by an icon name, URI or path"""
+
+    pass
+
+
+@dataclass(frozen=True)
+class Attachment(FileResource):
+    """An attachment represented by a URI or path"""
+
+    pass
+
+
+@dataclass(frozen=True)
+class Sound(Resource):
+    """A sound represented by a sound name, URI or path"""
+
+    pass
+
+
+DEFAULT_ICON = Icon(path=PYTHON_ICON_PATH)
+DEFAULT_SOUND = Sound(name="default")
 
 
 class AuthorisationError(Exception):
@@ -108,10 +195,12 @@ class ReplyField:
 class Notification:
     """A desktop notification
 
+    Some arguments may be ignored, depending on the backend.
+
     :param title: Notification title.
     :param message: Notification message.
     :param urgency: Notification level: low, normal or critical.
-    :param icon: URI for an icon to use for the notification or icon name.
+    :param icon: Icon to use for the notification.
     :param buttons: A list of buttons for the notification.
     :param reply_field: An optional reply field/
     :param on_clicked: Callback to call when the notification is clicked. The
@@ -119,11 +208,10 @@ class Notification:
     :param on_dismissed: Callback to call when the notification is dismissed. The
         callback will be called without any arguments.
     :param attachment: URI for an attachment to the notification.
-    :param sound: [DEPRECATED] Use sound_file=DEFAULT_SOUND instead.
+    :param sound: Sound to use for the notification. Use DEFAULT_SOUND for the
+        platform's default notification sound.
     :param thread: An identifier to group related notifications together.
     :param timeout: Duration for which the notification in shown.
-    :param sound_file: String identifying the sound to play when the notification is
-        shown. Pass desktop_notifier.DEFAULT_SOUND to use the default sound.
     """
 
     def __init__(
@@ -131,23 +219,47 @@ class Notification:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: str | None = None,
+        icon: str | Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
-        attachment: str | None = None,
-        sound: bool = False,
+        attachment: str | Attachment | None = None,
+        sound: bool | Sound | None = False,
         thread: str | None = None,
         timeout: int = -1,
-        sound_file: str | None = None,
     ) -> None:
         if sound is True:
             warnings.warn(
-                "Use sound_file=DEFAULT_SOUND instead of sound=True.",
-                DeprecationWarning,
+                message="Use sound=DEFAULT_SOUND instead of sound=True. "
+                "Support for boolean input will be removed in a future release.",
+                category=DeprecationWarning,
             )
-            sound_file = DEFAULT_SOUND
+            sound = DEFAULT_SOUND
+        if sound is False:
+            warnings.warn(
+                message="Use sound=None instead of sound=False. "
+                "Support for boolean input will be removed in a future release.",
+                category=DeprecationWarning,
+            )
+            sound = None
+        if isinstance(icon, str):
+            warnings.warn(
+                message="Pass an Icon instance instead of a string. "
+                "Support for string input will be removed in a future release.",
+                category=DeprecationWarning,
+            )
+            if urllib.parse.urlparse(icon).hostname != "":
+                icon = Icon(uri=icon)
+            else:
+                icon = Icon(name=icon)
+        if isinstance(attachment, str):
+            warnings.warn(
+                message="Pass an Attachment instance instead of a string. "
+                "Support for string input will be removed in a future release.",
+                category=DeprecationWarning,
+            )
+            attachment = Attachment(uri=attachment)
 
         self._identifier = ""
         self._winrt_identifier = ""
@@ -160,10 +272,10 @@ class Notification:
         self.icon = icon
         self.buttons = buttons
         self.reply_field = reply_field
+        self.sound = sound
         self.on_clicked = on_clicked
         self.on_dismissed = on_dismissed
         self.attachment = attachment
-        self.sound_file = sound_file
         self.thread = thread
         self.timeout = timeout
 

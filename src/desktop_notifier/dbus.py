@@ -146,20 +146,30 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         hints = {"urgency": self._to_native_urgency[notification.urgency]}
 
-        if notification.sound_file:
-            hints["sound-name"] = Variant("s", "message-new-instant")
+        if notification.sound:
+            if notification.sound.is_named():
+                hints["sound-name"] = Variant("s", "message-new-instant")
+            else:
+                hints["sound-file"] = Variant("s", notification.sound.as_uri())
 
         if notification.attachment:
-            hints["image-path"] = Variant("s", notification.attachment)
+            hints["image-path"] = Variant("s", notification.attachment.as_uri())
 
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
+        if notification.icon:
+            if notification.icon.is_named():
+                icon = notification.icon.name
+            else:
+                icon = notification.icon.as_uri()
+        else:
+            icon = ""
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
         platform_nid = await self.interface.call_notify(  # type:ignore[attr-defined]
             self.app_name,
             replaces_nid,
-            notification.icon or "",
+            icon,
             notification.title,
             notification.message,
             actions,
