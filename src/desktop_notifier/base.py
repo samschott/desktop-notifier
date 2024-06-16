@@ -9,6 +9,7 @@ from __future__ import annotations
 # system imports
 import logging
 import warnings
+from abc import ABC, abstractmethod
 from enum import Enum, auto
 from collections import deque
 from pathlib import Path
@@ -198,7 +199,7 @@ class Capability(Enum):
     TIMEOUT = auto()
 
 
-class DesktopNotifierBase:
+class DesktopNotifierBase(ABC):
     """Base class for desktop notifier implementations
 
     :param app_name: Name to identify the application in the notification center.
@@ -216,19 +217,21 @@ class DesktopNotifierBase:
         self._current_notifications: Deque[Notification] = deque([], notification_limit)
         self._notification_for_nid: Dict[str, Notification] = {}
 
+    @abstractmethod
     async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.
 
         :returns: Whether authorisation has been granted.
         """
-        raise NotImplementedError()
+        ...
 
+    @abstractmethod
     async def has_authorisation(self) -> bool:
         """
         Returns whether we have authorisation to send notifications.
         """
-        raise NotImplementedError()
+        ...
 
     async def send(self, notification: Notification) -> None:
         """
@@ -276,6 +279,7 @@ class DesktopNotifierBase:
             except KeyError:
                 pass
 
+    @abstractmethod
     async def _send(
         self,
         notification: Notification,
@@ -294,7 +298,7 @@ class DesktopNotifierBase:
         :param notification_to_replace: Notification to replace, if any.
         :returns: The platform's ID for the scheduled notification.
         """
-        raise NotImplementedError()
+        ...
 
     @property
     def current_notifications(self) -> List[Notification]:
@@ -318,6 +322,7 @@ class DesktopNotifierBase:
 
         self._clear_notification_from_cache(notification)
 
+    @abstractmethod
     async def _clear(self, notification: Notification) -> None:
         """
         Removes the given notification from the notification center. Should be
@@ -325,7 +330,7 @@ class DesktopNotifierBase:
 
         :param notification: Notification to clear.
         """
-        raise NotImplementedError()
+        ...
 
     async def clear_all(self) -> None:
         """
@@ -339,16 +344,18 @@ class DesktopNotifierBase:
         self._current_notifications.clear()
         self._notification_for_nid.clear()
 
+    @abstractmethod
     async def _clear_all(self) -> None:
         """
         Clears all notifications from the notification center. Should be implemented by
         subclasses.
         """
-        raise NotImplementedError()
+        ...
 
+    @abstractmethod
     async def get_capabilities(self) -> frozenset[Capability]:
         """
         Returns the functionality supported by the implementation and, for Linux / dbus,
         the notification server.
         """
-        raise NotImplementedError()
+        ...
