@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Dummy backend for unsupported platforms.
+Dummy backend for unsupported platforms
 """
 
 from __future__ import annotations

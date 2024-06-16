@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Support module for macOS.
-
-"""
 
 import platform
 import ctypes

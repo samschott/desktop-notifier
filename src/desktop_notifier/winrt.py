@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Notification backend for Windows. Unlike other platforms, sending rich "toast"
-notifications cannot be done via FFI / ctypes because the C winapi only supports basic
-notifications with a title and message. This backend therefore requires interaction with
-the Windows Runtime and uses the winrt package with compiled components published by
-Microsoft (https://github.com/microsoft/xlang, https://pypi.org/project/winrt/).
+Notification backend for Windows
+
+Unlike other platforms, sending rich "toast" notifications cannot be done via FFI /
+ctypes because the C winapi only supports basic notifications with a title and message.
+This backend therefore requires interaction with the Windows Runtime and uses the winrt
+package with compiled components.
 """
 
 from __future__ import annotations
