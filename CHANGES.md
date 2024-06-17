@@ -1,12 +1,28 @@
 # v5.0.0
 
-* Add support for custom sounds on all backends.
-* Expand API to allow passing sounds and icons that are specified either by name (for
-  existing system sounds) or by URI or path for custom resources.
+## Added:
+
+* Support custom notification sounds on all backends.
+* Allow specifying sounds and icons either by name (for existing system sounds) or as a
+  referenced by a URI or path.
 * Expand attachment API to allow passing a URI or path.
+* Add a `capabilities()` API that returns which features are supported by a platform.
+
+## Fixed:
+
 * Fixes segfaults on macOS when passing an attachment path that does not refer to an
   actual file.
-* Add a `capabilities()` API that returns which features are supported by a platform.
+
+## Deprecated:
+
+* Deprecated the synchronous `send_sync()` API. Use the async `send` API instead and 
+  wrap it in `asyncio.run` as required to block on the call.
+* Deprecated specifying icons as strings. Use the `base.Icon` class instead.
+* Deprecated specifying attachments as URI strings. Use the `base.Attachement` class
+  instead.
+* Deprecated specifying notification sounds as boolean (`True` = default sound,
+  `False` = no sound). Use `base.DEFAULT_SOUND` for the system default and `None` for no
+  sound instead. Use the `base.Sound` class for custom sounds.
 
 # v4.0.0
 
