@@ -20,41 +20,33 @@ copyright = "{}, {}".format(time.localtime().tm_year, author)
 # -- General configuration -------------------------------------------------------------
 
 extensions = [
+    "autoapi.extension",
+    "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.autodoc",
-    "autoapi.extension",
     "sphinx_mdinclude",
 ]
 source_suffix = [".rst", ".md"]
 master_doc = "index"
 language = "en"
-# html4_writer = True
 
 # -- Options for HTML output -----------------------------------------------------------
 
 html_theme = "furo"
 
 # -- Extension configuration -----------------------------------------------------------
-
-# sphinx.ext.autodoc
 autodoc_typehints = "description"
-autoclass_content = "both"
-autodoc_member_order = "bysource"
-autodoc_inherit_docstrings = False
 
-# autoapi.extension
-autoapi_type = "python"
 autoapi_dirs = ["../src/desktop_notifier"]
 autoapi_options = [
     "members",
     "show-inheritance",
     "show-module-summary",
-    "undoc-members",
-    "private-members",
+    "inherited-members",
 ]
-autoapi_add_toctree_entry = False
+autoapi_member_order = "groupwise"
+autoapi_root = "reference"
 
 # sphinx.ext.todo
 todo_include_todos = True

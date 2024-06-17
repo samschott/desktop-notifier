@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-UNUserNotificationCenter backend for macOS.
+UNUserNotificationCenter backend for macOS
 
 * Introduced in macOS 10.14.
 * Cross-platform with iOS and iPadOS.

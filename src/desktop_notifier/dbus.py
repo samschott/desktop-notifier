@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Notification backend for Linux. Includes an implementation to send desktop notifications
-over Dbus. Responding to user interaction with a notification requires a running asyncio
-event loop.
+Notification backend for Linux
+
+Includes an implementation to send desktop notifications over Dbus. Responding to user
+interaction with a notification requires a running asyncio event loop.
 """
 
 from __future__ import annotations

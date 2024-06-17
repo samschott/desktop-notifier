@@ -19,9 +19,6 @@ reference for the main module and platform implementations.
    :caption: Reference
    :maxdepth: 2
 
-   autoapi/desktop_notifier/main/index
-   autoapi/desktop_notifier/base/index
-
 Getting started
 ***************
 

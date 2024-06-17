@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Desktop notifications for Windows, Linux, macOS, iOS and iPadOS.
+"""
 from .main import (
     DesktopNotifier,
     Button,

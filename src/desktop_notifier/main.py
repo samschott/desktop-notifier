@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module handles desktop notifications and supports multiple backends, depending on
-the platform.
+Desktop notifications for Windows, Linux, macOS, iOS and iPadOS.
 """
 
 from __future__ import annotations

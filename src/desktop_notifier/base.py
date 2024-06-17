@@ -26,6 +26,23 @@ from typing import (
     ContextManager,
 )
 
+__all__ = [
+    "Capability",
+    "FileResource",
+    "Resource",
+    "Icon",
+    "Sound",
+    "Attachment",
+    "Button",
+    "ReplyField",
+    "Urgency",
+    "AuthorisationError",
+    "Notification",
+    "DesktopNotifierBase",
+    "DEFAULT_ICON",
+    "DEFAULT_SOUND",
+]
+
 try:
     from importlib.resources import as_file, files
 
@@ -38,7 +55,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-PYTHON_ICON_PATH = resource_path(
+python_icon_path = resource_path(
     package="desktop_notifier.resources", resource="python.png"
 ).__enter__()
 
@@ -47,10 +64,15 @@ PYTHON_ICON_PATH = resource_path(
 class FileResource:
     """
     A file resource represented by a URI or path
+
+    Only one of :attr:`path` or :attr:`uri` can be set.
     """
 
     path: Path | None = None
+    """Path to a local file"""
+
     uri: str | None = None
+    """URI reference to a file"""
 
     def __post_init__(self) -> None:
         fields = dataclasses.fields(self)
@@ -88,9 +110,14 @@ class FileResource:
 
 @dataclass(frozen=True)
 class Resource(FileResource):
-    """A resource represented by a resource name, URI or path"""
+    """
+    A resource represented by a resource name, URI or path
+
+    Only one of :attr:`path`, :attr:`uri` or :attr:`name` can be set.
+    """
 
     name: str | None = None
+    """Name of the system resource"""
 
     def is_named(self) -> bool:
         """Returns whether the instance was initialized with ``name``"""
@@ -122,8 +149,11 @@ class Sound(Resource):
     pass
 
 
-DEFAULT_ICON = Icon(path=PYTHON_ICON_PATH)
+DEFAULT_ICON = Icon(path=python_icon_path)
+"""Python icon"""
+
 DEFAULT_SOUND = Sound(name="default")
+"""Default system notification sound"""
 
 
 class AuthorisationError(Exception):
@@ -281,6 +311,10 @@ class Notification:
 
     @property
     def identifier(self) -> str:
+        """Unique identifier for this notification
+
+        Populated by the platform after scheduling the notification.
+        """
         return self._identifier
 
     @identifier.setter
@@ -292,23 +326,58 @@ class Notification:
 
 
 class Capability(Enum):
+    """Notification capabilities that can be supported by a platform"""
+
     APP_NAME = auto()
+    """Supports setting a custom app name"""
+
     TITLE = auto()
+    """Supports setting a notification title"""
+
     MESSAGE = auto()
+    """Supports setting a notification message"""
+
     URGENCY = auto()
+    """Supports different urgency levels"""
+
     ICON = auto()
+    """Supports custom notification icons"""
+
     ICON_FILE = auto()
+    """Supports setting a custom icon from a user-provided file"""
+
     ICON_NAME = auto()
+    """Supports setting a named system icon as notification icon"""
+
     BUTTONS = auto()
+    """Supports at least two notification buttons"""
+
     REPLY_FIELD = auto()
+    """Supports reply fields"""
+
     ATTACHMENT = auto()
+    """Supports notification attachments. Allowed file types vary by platform."""
+
     ON_CLICKED = auto()
+    """Supports on-clicked callbacks"""
+
     ON_DISMISSED = auto()
+    """Supports on-dismissed callbacks"""
+
     SOUND = auto()
+    """Supports custom notification sounds"""
+
     SOUND_FILE = auto()
+    """Supports setting a custom sound from a user-provided file"""
+
     SOUND_NAME = auto()
+    """Supports setting a named system sound as notification sound"""
+
     THREAD = auto()
+    """Supports grouping notifications by topic thread"""
+
     TIMEOUT = auto()
+    """Supports notification timeouts"""
 
 
 class DesktopNotifierBase(ABC):
