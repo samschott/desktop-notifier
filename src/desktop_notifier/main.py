@@ -311,6 +311,12 @@ class DesktopNotifier:
 
         :returns: The scheduled notification instance.
         """
+        warnings.warn(
+            message="'send_sync' is deprecated and will be removed in a future "
+            "version. Use the async 'send' API instead",
+            category=DeprecationWarning,
+        )
+
         coro = self.send(
             title,
             message,
