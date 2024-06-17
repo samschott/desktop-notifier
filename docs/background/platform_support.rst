@@ -21,24 +21,23 @@ Please refer to the platform documentation for more detailed information:
    "app_icon", "The icon shown with the notification", "✓", "-- [#f1]_", "-- [#f1]_"
    "title", "The notification title", "✓", "✓", "✓"
    "message", "The notification message", "✓", "✓", "✓"
-   "urgency", "Determines persistence and appearance", "✓", "✓ [#f2]_", "✓"
-   "buttons", "One or more buttons with callbacks", "✓ [#f3]_", "✓", "✓"
+   "urgency", "Determines persistence and appearance", "✓ [#f2]_", "✓ [#f3]_", "✓"
+   "buttons", "One or more buttons with callbacks", "✓ [#f4]_", "✓", "✓ [#f4]_"
    "reply_field", "An interactive reply field", "--", "✓", "✓"
-   "on_clicked", "A callback to invoke on click", "✓ [#f3]_", "✓", "✓"
-   "on_dismissed", "A callback to invoke on dismissal", "✓ [#f3]_", "✓", "✓"
-   "sound_file", "Play the named sound with the notification", "✓ [#f3]_ [#f5]_", "✓ [#f6]_", "✓ [#f5]_"
+   "on_clicked", "A callback to invoke on click", "✓", "✓", "✓"
+   "on_dismissed", "A callback to invoke on dismissal", "✓", "✓", "✓"
+   "sound", "Play a sound with the notification", "✓ [#f2]_", "✓ [#f5]_", "✓"
    "thread", "An identifier to group notifications together", "--", "✓", "✓"
-   "attachment", "File attachment, e.g., an image", "✓ [#f4]_", "✓ [#f4]_", "✓ [#f4]_"
-   "timeout", "Duration until notification auto-dismissal", "✓ [#f3]_", "--", "--"
+   "attachment", "File attachment, e.g., an image", "✓ [#f2]_ [#f6]_", "✓ [#f6]_", "✓ [#f6]_"
+   "timeout", "Duration until notification auto-dismissal", "✓", "--", "--"
 
 .. [#f1] App name and icon on macOS and Windows are automatically determined by the
          calling application.
-.. [#f2] Only on macOS 12 and later.
-.. [#f3] May be ignored by some notification servers, depending on the desktop environment.
-.. [#f4] Limitations on file types exist for each platform.
-.. [#f5] Currently only supports playing a default sound.
-.. [#f6] On macOS you can specify the filename stem of any file in `/System/Library/Sounds`,
-         e.g. `'Tink'` or `'Submarine'`.
+.. [#f2] May be ignored by some Linux notification servers.
+.. [#f3] Only on macOS 12 and later.
+.. [#f4] Number of buttons may be limited. See section below.
+.. [#f5] macOS only supports named sounds, e.g., from `/System/Library/Sounds`.
+.. [#f6] Limitations on file types exist for each platform. See section below.
 
 Callbacks
 *********
@@ -59,7 +58,7 @@ On macOS, critical notifications require a special app entitlement issued by App
 Buttons
 *******
 
-macOS supports an unlimted number of buttons.
+macOS supports an unlimited number of buttons.
 
 Linux desktop environments and notification servers may or may not support a varying
 number of buttons. Gnome desktops typically support up to three buttons.
