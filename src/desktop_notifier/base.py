@@ -300,7 +300,7 @@ class Notification:
         self.message = message
         self.urgency = urgency
         self.icon = icon
-        self.buttons = buttons
+        self.buttons = tuple(buttons)
         self.reply_field = reply_field
         self.sound = sound
         self.on_clicked = on_clicked
