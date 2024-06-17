@@ -8,6 +8,13 @@
 * Expand attachment API to allow passing a URI or path.
 * Add a `capabilities()` API that returns which features are supported by a platform.
 
+## Changed:
+
+* Removed code signing requirement for macOS binaries. Instead of preventing
+  notification requests, only log a warning that notifications may fail. It is not
+  documented which code signature checks an app must pass to send notifications and this
+  allows apps that fail some of the checks to still send notifications.
+
 ## Fixed:
 
 * Fixes segfaults on macOS when passing an attachment path that does not refer to an
