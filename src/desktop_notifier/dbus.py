@@ -221,11 +221,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param action_key: A string identifying the action to take. We choose those keys
             ourselves when scheduling the notification.
         """
-
-        # Get the notification instance from the platform ID.
         notification = self._notification_for_nid.get(identifier_from_dbus(nid))
 
-        # Execute any callbacks for button clicks.
         if notification:
             self._clear_notification_from_cache(notification)
 
@@ -253,11 +250,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param nid: The platform's notification ID as an integer.
         :param reason: An integer describing the reason why the notification was closed.
         """
-
-        # Get the notification instance from the platform ID.
         notification = self._notification_for_nid.get(identifier_from_dbus(nid))
 
-        # Execute callback for user dismissal.
         if notification:
             self._clear_notification_from_cache(notification)
 

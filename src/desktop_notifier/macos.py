@@ -183,7 +183,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :returns: Whether authorisation has been granted.
         """
-
         future: Future[tuple[bool, str]] = Future()
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
@@ -207,9 +206,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
     async def has_authorisation(self) -> bool:
         """Whether we have authorisation to send notifications."""
-
-        # Get existing notification categories.
-
         future: Future[UNNotificationSettings] = Future()  # type:ignore
 
         def handler(settings: objc_id) -> None:
@@ -220,13 +216,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc.getNotificationSettingsWithCompletionHandler(handler)
 
         settings = await asyncio.wrap_future(future)
-
         authorized = settings.authorizationStatus in (  # type:ignore
             UNAuthorizationStatusAuthorized,
             UNAuthorizationStatusProvisional,
             UNAuthorizationStatusEphemeral,
         )
-
         settings.release()  # type:ignore
 
         return authorized
@@ -388,7 +382,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
     async def _get_notification_categories(self) -> NSSet:  # type:ignore
         """Returns the registered notification categories for this app / Python."""
-
         future: Future[NSSet] = Future()  # type:ignore
 
         def handler(categories: objc_id) -> None:
