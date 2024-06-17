@@ -309,6 +309,10 @@ class DesktopNotifier:
         """
         Synchronous call of :meth:`send`, for use without an asyncio event loop.
 
+        .. deprecated:: 5.0.0
+            Use the async :func:`send` instead and schedule and block on its completion
+            if required.
+
         :returns: The scheduled notification instance.
         """
         warnings.warn(
