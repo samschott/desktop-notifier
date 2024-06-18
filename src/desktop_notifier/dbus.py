@@ -262,18 +262,19 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             self.interface = await self._init_dbus()
 
-        # Base capabilities supported by all notification servers.
         capabilities = {
             Capability.APP_NAME,
             Capability.ICON,
             Capability.TITLE,
             Capability.TIMEOUT,
-            Capability.ON_CLICKED,
-            Capability.ON_DISMISSED,
         }
 
         # Capabilities supported by some notification servers.
         # See https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#protocol.
+        if hasattr(self.interface, "on_notification_closed"):
+            capabilities.add(Capability.ON_CLICKED)
+            capabilities.add(Capability.ON_DISMISSED)
+
         cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
         if "actions" in cps:
             capabilities.add(Capability.BUTTONS)
