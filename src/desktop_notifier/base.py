@@ -454,11 +454,10 @@ class DesktopNotifierBase(ABC):
         except ValueError:
             pass
 
-        if notification.identifier:
-            try:
-                self._notification_for_nid.pop(notification.identifier)
-            except KeyError:
-                pass
+        try:
+            self._notification_for_nid.pop(notification.identifier)
+        except KeyError:
+            pass
 
     @abstractmethod
     async def _send(
@@ -497,7 +496,6 @@ class DesktopNotifierBase(ABC):
 
         :param notification: Notification to clear.
         """
-
         if notification.identifier:
             await self._clear(notification)
 
