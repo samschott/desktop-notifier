@@ -187,8 +187,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
             ns_error = py_from_ns(error)
-            error_str = str(ns_error.localizedDescription) if ns_error else ""
-            future.set_result((granted, error_str))
+            if ns_error:
+                ns_error.retain()
+            future.set_result((granted, ns_error))
 
         self.nc.requestAuthorizationWithOptions(
             UNAuthorizationOptionAlert
@@ -197,12 +198,16 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             completionHandler=on_auth_completed,
         )
 
-        granted, error_str = await asyncio.wrap_future(future)
+        has_authorization, error = await asyncio.wrap_future(future)
 
-        if error_str:
-            logger.warning("Authorisation denied: %s", error_str)
+        if error:
+            logger.warning(
+                "Authorisation denied: %s",
+                error.localizedDescription  # type:ignore
+            )
+            error.autorelease()  # type:ignore
 
-        return granted
+        return has_authorization
 
     async def has_authorisation(self) -> bool:
         """Whether we have authorisation to send notifications."""
