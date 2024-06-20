@@ -166,7 +166,6 @@ class DesktopNotifier:
 
         self.app_icon = app_icon
 
-        self._lock = asyncio.Lock()
         self._impl = impl_cls(app_name, notification_limit)
         self._did_request_authorisation = False
 
@@ -211,9 +210,8 @@ class DesktopNotifier:
 
         :returns: Whether authorisation has been granted.
         """
-        async with self._lock:
-            self._did_request_authorisation = True
-            return await self._impl.request_authorisation()
+        self._did_request_authorisation = True
+        return await self._impl.request_authorisation()
 
     async def has_authorisation(self) -> bool:
         """Returns whether we have authorisation to send notifications."""
@@ -232,17 +230,16 @@ class DesktopNotifier:
         if not notification.icon:
             notification.icon = self.app_icon
 
-        async with self._lock:
-            # Ask for authorisation if not already done. On some platforms, this will
-            # trigger a system dialog to ask the user for permission.
-            if not self._did_request_authorisation:
-                await self.request_authorisation()
+        # Ask for authorisation if not already done. On some platforms, this will
+        # trigger a system dialog to ask the user for permission.
+        if not self._did_request_authorisation:
+            await self.request_authorisation()
 
-            # We attempt to send the notification regardless of authorization.
-            # The user may have changed settings in the meantime.
-            await self._impl.send(notification)
+        # We attempt to send the notification regardless of authorization.
+        # The user may have changed settings in the meantime.
+        await self._impl.send(notification)
 
-            return notification
+        return notification
 
     async def send(
         self,
@@ -348,16 +345,14 @@ class DesktopNotifier:
 
         :param notification: Notification to clear.
         """
-        async with self._lock:
-            await self._impl.clear(notification)
+        await self._impl.clear(notification)
 
     async def clear_all(self) -> None:
         """
         Removes all currently displayed notifications for this app from the notification
         center.
         """
-        async with self._lock:
-            await self._impl.clear_all()
+        await self._impl.clear_all()
 
     @property
     def capabilities(self) -> frozenset[Capability]:
