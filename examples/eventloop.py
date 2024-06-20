@@ -29,15 +29,14 @@ async def main() -> None:
         ),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
-        sound_file=DEFAULT_SOUND,
+        sound=DEFAULT_SOUND,
     )
 
 
-if platform.system() == "Darwin":
-    from rubicon.objc.eventloop import EventLoopPolicy
+if __name__ == "__main__":
+    if platform.system() == "Darwin":
+        from rubicon.objc.eventloop import EventLoopPolicy
 
-    asyncio.set_event_loop_policy(EventLoopPolicy())
+        asyncio.set_event_loop_policy(EventLoopPolicy())
 
-loop = asyncio.get_event_loop()
-loop.create_task(main())
-loop.run_forever()
+    asyncio.run(main())

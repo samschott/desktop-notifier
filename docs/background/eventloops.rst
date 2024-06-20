@@ -18,10 +18,6 @@ Core Foundation CFRunLoop with asyncio:
     # Install the event loop policy
     asyncio.set_event_loop_policy(EventLoopPolicy())
 
-    # Get an event loop, and run it!
-    loop = asyncio.get_event_loop()
-    loop.run_forever()
-
 
 Desktop-notifier itself uses Rubicon Objective-C to interface with Cocoa APIs so you
 will not be adding a new dependency. A full example integrating with the CFRunLoop is

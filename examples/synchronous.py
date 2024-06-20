@@ -24,5 +24,5 @@ notify.send_sync(
     ),
     on_clicked=lambda: print("Notification clicked"),
     on_dismissed=lambda: print("Notification dismissed"),
-    sound_file=DEFAULT_SOUND,
+    sound=DEFAULT_SOUND,
 )
