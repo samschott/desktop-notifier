@@ -322,7 +322,10 @@ class Notification:
         self._identifier = nid
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(title='{self.title}', message='{self.message}')>"
+        return (
+            f"<{self.__class__.__name__}(identifier='{self.identifier}', "
+            f"title='{self.title}', message='{self.message}')>"
+        )
 
 
 class Capability(Enum):
