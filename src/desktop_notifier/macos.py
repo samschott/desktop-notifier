@@ -202,8 +202,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         if error:
             logger.warning(
-                "Authorisation denied: %s",
-                error.localizedDescription  # type:ignore
+                "Authorisation denied: %s", error.localizedDescription  # type:ignore
             )
             error.autorelease()  # type:ignore
 
@@ -305,27 +304,20 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         error = await asyncio.wrap_future(future)
 
         if error:
+            error_domain = str(error.domain)  # type:ignore
+            error_code = int(error.code)
+            error_description = str(error.localizedDescription)  # type:ignore
             error.autorelease()  # type:ignore
 
-            if error.domain == UNErrorDomain:  # type:ignore
-                if error.code == UNErrorCode.NotificationsNotAllowed:  # type:ignore
-                    raise AuthorisationError("Not authorised")
-                elif error.code == UNErrorCode.NotificationInvalidNoDate:  # type:ignore
+            if error_domain:
+                # Raise hard errors for internal desktop-notifier issues.
+                # Otherwise, only log an error message.
+                if error_code == UNErrorCode.NotificationInvalidNoDate:
                     raise RuntimeError("Missing notification date")
-                elif (
-                    error.code  # type:ignore
-                    == UNErrorCode.NotificationInvalidNoContent
-                ):
+                elif error_code == UNErrorCode.NotificationInvalidNoContent:
                     raise RuntimeError("Missing notification content")
-                else:
-                    # In case of attachment errors, the notification will still be
-                    # delivered, just without an attachment. We therefore do not raise
-                    # the error.
-                    logger.warning(
-                        f"{error.localizedDescription}: {notification.attachment}"  # type:ignore
-                    )
-            else:
-                raise RuntimeError(error.localizedDescription)  # type:ignore
+
+            logger.warning("Error when scheduling notification: %s", error_description)
 
         notification.identifier = platform_nid
 
