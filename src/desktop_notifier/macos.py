@@ -226,7 +226,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             UNAuthorizationStatusProvisional,
             UNAuthorizationStatusEphemeral,
         )
-        settings.release()  # type:ignore
+        settings.autorelease()  # type:ignore
 
         return authorized
 
