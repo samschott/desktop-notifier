@@ -81,20 +81,6 @@ UNAuthorizationStatusAuthorized = 2
 UNAuthorizationStatusProvisional = 3
 UNAuthorizationStatusEphemeral = 4
 
-UNErrorDomain = "UNErrorDomain"
-
-
-class UNErrorCode(enum.Enum):
-    NotificationsNotAllowed = 1
-    AttachmentInvalidURL = 100
-    AttachmentUnrecognizedType = 101
-    AttachmentInvalidFileSize = 102
-    AttachmentNotInDataStore = 103
-    AttachmentMoveIntoDataStoreFailed = 104
-    AttachmentCorrupt = 105
-    NotificationInvalidNoDate = 1400
-    NotificationInvalidNoContent = 1401
-
 
 class UNNotificationInterruptionLevel(enum.Enum):
     Passive = 0
@@ -200,10 +186,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         has_authorization, error = await asyncio.wrap_future(future)
 
         if error:
-            logger.warning(
-                "Authorisation denied: %s", error.localizedDescription  # type:ignore
-            )
-            error.autorelease()  # type:ignore
+            log_nserror(error, "Authorisation denied")
+            error.autorelease()  # type:ignore[attr-defined]
 
         return has_authorization
 
@@ -303,20 +287,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         error = await asyncio.wrap_future(future)
 
         if error:
-            error_domain = str(error.domain)  # type:ignore
-            error_code = int(error.code)
-            error_description = str(error.localizedDescription)  # type:ignore
-            error.autorelease()  # type:ignore
-
-            if error_domain:
-                # Raise hard errors for internal desktop-notifier issues.
-                # Otherwise, only log an error message.
-                if error_code == UNErrorCode.NotificationInvalidNoDate:
-                    raise RuntimeError("Missing notification date")
-                elif error_code == UNErrorCode.NotificationInvalidNoContent:
-                    raise RuntimeError("Missing notification content")
-
-            logger.warning("Error when scheduling notification: %s", error_description)
+            log_nserror(error, "Error when scheduling notification")
+            error.autorelease()  # type:ignore[attr-defined]
 
         notification.identifier = platform_nid
 
@@ -432,3 +404,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             capabilities.add(Capability.URGENCY)
 
         return frozenset(capabilities)
+
+
+def log_nserror(error: NSError, prefix: str) -> None:  # type:ignore[valid-type]
+    domain = str(error.domain)  # type:ignore[attr-defined]
+    code = int(error.code)  # type:ignore[attr-defined]
+    description = str(error.localizedDescription)  # type:ignore[attr-defined]
+
+    logger.warning(
+        "%s: domain=%s, code=%s, description=%s", prefix, domain, code, description
+    )
