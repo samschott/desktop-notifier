@@ -1,5 +1,6 @@
 import asyncio
 import platform
+import signal
 
 from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
 
@@ -11,6 +12,13 @@ notify = DesktopNotifier(
 
 
 async def main() -> None:
+    loop = asyncio.get_running_loop()
+
+    def stop_loop(loop: asyncio.AbstractEventLoop) -> None:
+        loop.stop()
+
+    loop.add_signal_handler(signal.SIGINT, stop_loop, loop)
+    loop.add_signal_handler(signal.SIGTERM, stop_loop, loop)
 
     await notify.send(
         title="Julius Caesar",
@@ -39,4 +47,8 @@ if __name__ == "__main__":
 
         asyncio.set_event_loop_policy(EventLoopPolicy())
 
-    asyncio.run(main())
+    # Run the event loop forever to respond to user interactions with the notification.
+    # Otherwise, a simpler `asyncio.run(main())` call would work as well.
+    loop = asyncio.new_event_loop()
+    loop.create_task(main())
+    loop.run_forever()
