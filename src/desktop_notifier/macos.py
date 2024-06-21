@@ -28,7 +28,6 @@ from rubicon.objc.runtime import load_library, objc_id, objc_block
 from .base import (
     Notification,
     DesktopNotifierBase,
-    AuthorisationError,
     Urgency,
     Capability,
     DEFAULT_SOUND,
