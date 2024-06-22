@@ -155,10 +155,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if notification.attachment:
             hints_v["image-path"] = Variant("s", notification.attachment.as_uri())
 
-        # The current notification spec defines hints as a DBUS dictionary 'a{sv}' type,
-        # represented in Python as dict[str, Variant], but some older notification
-        # servers expect 'a{ss}', or dict[str, str]. We therefore check the expected
-        # type at runtime and conform to the legacy API.
+        # The current notification spec defines hints as a Dbus dictionary type 'a{sv}',
+        # represented in Python as dict[str, Variant]. However, some older notification
+        # servers expect 'a{ss}' (Python dict[str, str]). We therefore check the
+        # expected argument type at runtime and cast arguments accordingly.
         # See https://github.com/samschott/desktop-notifier/issues/143.
         hints_signature = get_hints_signature(self.interface)
 
@@ -172,7 +172,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             hints = hints_v
         elif hints_signature == "a{ss}":
             hints = {k: str(v.value) for k, v in hints_v.items()}
-        elif hints_signature != "a{sv}":
+        else:
             hints = {}
 
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
@@ -316,6 +316,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
 
 def get_hints_signature(interface: ProxyInterface) -> str:
+    """Returns the dbus type signature for the hints argument"""
     methods = interface.introspection.methods
     notify_method = next(m for m in methods if m.name == "Notify")
     try:
