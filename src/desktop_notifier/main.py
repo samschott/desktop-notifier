@@ -171,7 +171,7 @@ class DesktopNotifier:
 
         # Use our own event loop for the sync API so that we don't interfere with any
         # other ansycio event loops / threads, etc.
-        self._loop = default_event_loop_policy.new_event_loop()
+        self._loop = asyncio.new_event_loop()
 
         self._capabilities: frozenset[Capability] | None = None
 
