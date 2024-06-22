@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Desktop notifications for Windows, Linux, macOS, iOS and iPadOS.
+Asynchronous desktop notification API
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import (
     Type,
     Callable,
-    Coroutine,
     List,
     Any,
     TypeVar,
@@ -143,8 +142,6 @@ class DesktopNotifier:
         app_icon: Path | str | Icon | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        impl_cls = get_implementation_class()
-
         if isinstance(app_icon, str):
             warnings.warn(
                 message="Pass an Icon instance instead of a string. "
@@ -166,27 +163,11 @@ class DesktopNotifier:
 
         self.app_icon = app_icon
 
+        impl_cls = get_implementation_class()
         self._impl = impl_cls(app_name, notification_limit)
         self._did_request_authorisation = False
 
-        # Use our own event loop for the sync API so that we don't interfere with any
-        # other ansycio event loops / threads, etc.
-        self._loop = asyncio.new_event_loop()
-
         self._capabilities: frozenset[Capability] | None = None
-
-    def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
-        """
-        Runs the given coroutine and returns the result synchronously. This is used as a
-        wrapper to conveniently convert the async API calls to synchronous ones.
-        """
-        if self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
-            res = future.result()
-        else:
-            res = self._loop.run_until_complete(coro)
-
-        return res
 
     @property
     def app_name(self) -> str:
@@ -287,60 +268,6 @@ class DesktopNotifier:
             timeout=timeout,
         )
         return await self.send_notification(notification)
-
-    def send_sync(
-        self,
-        title: str,
-        message: str,
-        urgency: Urgency = Urgency.Normal,
-        icon: str | Icon | None = None,
-        buttons: Sequence[Button] = (),
-        reply_field: ReplyField | None = None,
-        on_clicked: Callable[[], Any] | None = None,
-        on_dismissed: Callable[[], Any] | None = None,
-        attachment: str | Attachment | None = None,
-        sound: bool | Sound | None = None,
-        thread: str | None = None,
-        timeout: int = -1,
-    ) -> Notification:
-        """
-        Synchronous call of :meth:`send`, for use without an asyncio event loop.
-
-        .. warning::
-            Callbacks on interaction with the notification will not work on macOS or
-            Linux without a running event loop.
-
-        .. warning::
-            Mixing synchronous and asynchronous calls from the same instance will fail
-            on Linux where the Dbus interface is initialized with asyncio queues that
-            are attached to a specific event loop.
-
-        .. deprecated:: 5.0.0
-            Use the async :func:`send` instead and block on its completion if required.
-
-        :returns: The scheduled notification instance.
-        """
-        warnings.warn(
-            message="'send_sync' is deprecated and will be removed in a future "
-            "version. Use the async 'send' API instead",
-            category=DeprecationWarning,
-        )
-
-        coro = self.send(
-            title,
-            message,
-            urgency=urgency,
-            icon=icon,
-            buttons=buttons,
-            reply_field=reply_field,
-            on_clicked=on_clicked,
-            on_dismissed=on_dismissed,
-            attachment=attachment,
-            sound=sound,
-            thread=thread,
-            timeout=timeout,
-        )
-        return self._run_coro_sync(coro)
 
     @property
     def current_notifications(self) -> List[Notification]:
