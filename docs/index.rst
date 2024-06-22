@@ -47,25 +47,27 @@ notification options, such as notification urgency, buttons, callbacks, etc:
 
     async def main():
         await notify.send(
-          title="Julius Caesar",
-          message="Et tu, Brute?",
-          urgency=Urgency.Critical,
-          buttons=[
-            Button(
-              title="Mark as read",
-              on_pressed=lambda: print("Marked as read")),
-          ],
-          reply_field=ReplyField(
-            title="Reply",
-            button_title="Send",
-            on_replied=lambda text: print("Brutus replied:", text),
-          ),
-          on_clicked=lambda: print("Notification clicked"),
-          on_dismissed=lambda: print("Notification dismissed"),
-          sound_file=DEFAULT_SOUND,
+            title="Julius Caesar",
+            message="Et tu, Brute?",
+            buttons=[
+                Button(
+                  title="Mark as read",
+                  on_pressed=lambda: print("Marked as read")
+                ),
+            ],
+            reply_field=ReplyField(
+                title="Reply",
+                button_title="Send",
+                on_replied=lambda text: print("Brutus replied:", text),
+            ),
+            on_clicked=lambda: print("Notification clicked"),
+            on_dismissed=lambda: print("Notification dismissed"),
         )
 
     asyncio.run(main())
+
+More elaborate examples can be found at
+https://github.com/samschott/desktop-notifier/tree/main/examples.
 
 Note that some platforms may not support all options. Any options or configuration
 which are not supported by the platform will be silently ignored. Please refer to
@@ -79,13 +81,13 @@ platform. Please refer to the API docs for the evolving functionality.
 Notes on macOS
 **************
 
-On macOS 10.14 and higher, the implementation uses the ``UNUserNotificationCenter``
-instead of the deprecated ``NSUserNotificationCenter``. ``UNUserNotificationCenter``
-restricts sending desktop notifications to signed executables. This means that
-notifications will only work if the Python executable or bundled app has been signed.
-Note that the installer from `python.org <https://python.org>`__ provides a properly
-signed Python framework but **homebrew does not** (manually signing the executable
-installed by homebrew _should_ work as well).
+On macOS the implementation uses the ``UNUserNotificationCenter`` instead of the
+deprecated ``NSUserNotificationCenter``. ``UNUserNotificationCenter`` restricts sending
+desktop notifications to signed executables. This means that notifications will only
+work if the Python executable or bundled app has been signed. Note that the installer
+from `python.org <https://python.org>`__ provides a properly signed Python framework but
+**homebrew does not** (manually signing the executable installed by homebrew _should_
+work as well).
 
 If you freeze your code with PyInstaller or a similar package, you must sign the
 resulting app bundle for notifications to work. An ad-hoc signature will be sufficient
