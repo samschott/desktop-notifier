@@ -2,7 +2,7 @@ import platform
 import asyncio
 
 import pytest
-from desktop_notifier import DesktopNotifier
+from desktop_notifier import DesktopNotifier, DesktopNotifierSync
 
 
 if platform.system() == "Darwin":
@@ -16,4 +16,12 @@ def notifier():
     dn = DesktopNotifier()
     # Skip requesting authorization to void blocking if not granted.
     dn._did_request_authorisation = True
+    return dn
+
+
+@pytest.fixture
+def notifier_sync():
+    dn = DesktopNotifierSync()
+    # Skip requesting authorization to void blocking if not granted.
+    dn._async_api._did_request_authorisation = True
     return dn
