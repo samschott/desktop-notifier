@@ -102,13 +102,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # Some older interfaces may not support notification actions.
         if hasattr(self.interface, "on_notification_closed"):
             self.interface.on_notification_closed(self._on_closed)
-        else:
-            logger.warning("on_closed callbacks not supported")
 
         if hasattr(self.interface, "on_action_invoked"):
             self.interface.on_action_invoked(self._on_action)
-        else:
-            logger.warning("on_action_invoked callbacks not supported")
 
         return self.interface
 
