@@ -306,9 +306,17 @@ class DesktopNotifier:
         """
         Synchronous call of :meth:`send`, for use without an asyncio event loop.
 
+        .. warning::
+            Callbacks on interaction with the notification will not work on macOS or
+            Linux without a running event loop.
+
+        .. warning::
+            Mixing synchronous and asynchronous calls from the same instance will fail
+            on Linux where the Dbus interface is initialized with asyncio queues that
+            are attached to a specific event loop.
+
         .. deprecated:: 5.0.0
-            Use the async :func:`send` instead and schedule and block on its completion
-            if required.
+            Use the async :func:`send` instead and block on its completion if required.
 
         :returns: The scheduled notification instance.
         """
