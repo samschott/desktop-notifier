@@ -131,7 +131,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         else:
             replaces_nid = 0
 
-        actions = []
+        actions: list[str] = []
 
         if notification.on_clicked:
             # The "default" action is typically invoked when clicking on the
@@ -145,7 +145,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         for n, button in enumerate(notification.buttons):
             actions += [str(n), button.title]
 
-        hints = {"urgency": self._to_native_urgency[notification.urgency]}
+        hints: dict[str, Variant] = {
+            "urgency": self._to_native_urgency[notification.urgency]
+        }
 
         if notification.sound:
             if notification.sound.is_named():
