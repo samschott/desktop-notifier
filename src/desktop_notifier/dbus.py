@@ -57,11 +57,13 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         notification center.
     """
 
-    _to_native_urgency = {
+    to_native_urgency = {
         Urgency.Low: Variant("y", 0),
         Urgency.Normal: Variant("y", 1),
         Urgency.Critical: Variant("y", 2),
     }
+
+    supported_hint_signatures = {"a{sv}", "a{ss}"}
 
     def __init__(
         self,
@@ -141,18 +143,37 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         for n, button in enumerate(notification.buttons):
             actions += [str(n), button.title]
 
-        hints: dict[str, Variant] = {
-            "urgency": self._to_native_urgency[notification.urgency]
-        }
+        hints_v: dict[str, Variant] = dict()
+        hints_v["urgency"] = self.to_native_urgency[notification.urgency]
 
         if notification.sound:
             if notification.sound.is_named():
-                hints["sound-name"] = Variant("s", "message-new-instant")
+                hints_v["sound-name"] = Variant("s", "message-new-instant")
             else:
-                hints["sound-file"] = Variant("s", notification.sound.as_uri())
+                hints_v["sound-file"] = Variant("s", notification.sound.as_uri())
 
         if notification.attachment:
-            hints["image-path"] = Variant("s", notification.attachment.as_uri())
+            hints_v["image-path"] = Variant("s", notification.attachment.as_uri())
+
+        # The current notification spec defines hints as a DBUS dictionary 'a{sv}' type,
+        # represented in Python as dict[str, Variant], but some older notification
+        # servers expect 'a{ss}', or dict[str, str]. We therefore check the expected
+        # type at runtime and conform to the legacy API.
+        # See https://github.com/samschott/desktop-notifier/issues/143.
+        hints_signature = get_hints_signature(self.interface)
+
+        if hints_signature == "":
+            logger.warning("Notification server not supported")
+            return
+
+        hints: dict[str, str] | dict[str, Variant]
+
+        if hints_signature == "a{sv}":
+            hints = hints_v
+        elif hints_signature == "a{ss}":
+            hints = {k: str(v.value) for k, v in hints_v.items()}
+        elif hints_signature != "a{sv}":
+            hints = {}
 
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
         if notification.icon:
@@ -265,6 +286,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             Capability.ICON,
             Capability.TITLE,
             Capability.TIMEOUT,
+            Capability.URGENCY,
         }
 
         # Capabilities supported by some notification servers.
@@ -282,4 +304,21 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             capabilities.add(Capability.SOUND)
             capabilities.add(Capability.SOUND_NAME)
 
+        hints_signature = get_hints_signature(self.interface)
+        if hints_signature not in self.supported_hint_signatures:
+            # Any hint-based capabilities are not supported because we got an unexpected
+            # DBus interface.
+            capabilities.discard(Capability.SOUND)
+            capabilities.discard(Capability.SOUND_NAME)
+            capabilities.discard(Capability.URGENCY)
+
         return frozenset(capabilities)
+
+
+def get_hints_signature(interface: ProxyInterface) -> str:
+    methods = interface.introspection.methods
+    notify_method = next(m for m in methods if m.name == "Notify")
+    try:
+        return str(notify_method.in_args[6].signature)
+    except IndexError:
+        return ""

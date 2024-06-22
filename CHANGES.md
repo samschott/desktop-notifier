@@ -7,6 +7,8 @@
   referenced by a URI or path.
 * Expand attachment API to allow passing a URI or path.
 * Add a `capabilities()` API that returns which features are supported by a platform.
+* Compatibility with Ubuntu 20.04 and other older Dbus notification servers which do not
+  conform to the current API spec.
 
 ## Changed:
 
