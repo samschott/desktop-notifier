@@ -5,7 +5,7 @@ Dummy backend for unsupported platforms
 
 from __future__ import annotations
 
-# local imports
+from . import Capability
 from .base import Notification, DesktopNotifierBase
 
 
@@ -45,3 +45,6 @@ class DummyNotificationCenter(DesktopNotifierBase):
 
     async def _clear_all(self) -> None:
         pass
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        return frozenset()
