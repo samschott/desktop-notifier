@@ -23,7 +23,7 @@ from .base import (
     DEFAULT_ICON,
 )
 
-__all__ = "DesktopNotifierSync"
+__all__ = ["DesktopNotifierSync"]
 
 
 T = TypeVar("T")
@@ -31,7 +31,7 @@ T = TypeVar("T")
 
 class DesktopNotifierSync:
     """
-    A synchronous counterpart to :class:`main.DesktopNotifier`
+    A synchronous counterpart to :class:`desktop_notifier.main.DesktopNotifier`
 
     .. warning::
         Callbacks on interaction with the notification will not work on macOS or Linux
@@ -48,10 +48,8 @@ class DesktopNotifierSync:
         self._loop = asyncio.new_event_loop()
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
-        """
-        Runs the given coroutine and returns the result synchronously. This is used as a
-        wrapper to conveniently convert the async API calls to synchronous ones.
-        """
+        # Make sure to always use the same loop because async queues, future, etc. are
+        # always bound to a loop.
         if self._loop.is_running():
             future = asyncio.run_coroutine_threadsafe(coro, self._loop)
             res = future.result()
@@ -71,17 +69,17 @@ class DesktopNotifierSync:
         self._async_api.app_name = value
 
     def request_authorisation(self) -> bool:
-        """See :meth:`main.DesktopNotifier.request_authorisation`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.request_authorisation`"""
         coro = self._async_api.request_authorisation()
         return self._run_coro_sync(coro)
 
     def has_authorisation(self) -> bool:
-        """See :meth:`main.DesktopNotifier.has_authorisation`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.has_authorisation`"""
         coro = self._async_api.has_authorisation()
         return self._run_coro_sync(coro)
 
     def send_notification(self, notification: Notification) -> Notification:
-        """See :meth:`main.DesktopNotifier.send_notification`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.send_notification`"""
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
 
@@ -100,7 +98,7 @@ class DesktopNotifierSync:
         thread: str | None = None,
         timeout: int = -1,
     ) -> Notification:
-        """See :meth:`main.DesktopNotifier.send`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.send`"""
         notification = Notification(
             title,
             message,
@@ -124,16 +122,16 @@ class DesktopNotifierSync:
         return self._async_api.current_notifications
 
     def clear(self, notification: Notification) -> None:
-        """See :meth:`main.DesktopNotifier.notification`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.notification`"""
         coro = self._async_api.clear(notification)
         return self._run_coro_sync(coro)
 
     def clear_all(self) -> None:
-        """See :meth:`main.DesktopNotifier.clear_all`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.clear_all`"""
         coro = self._async_api.clear_all()
         return self._run_coro_sync(coro)
 
     def get_capabilities(self) -> frozenset[Capability]:
-        """See :meth:`main.DesktopNotifier.get_capabilities`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.get_capabilities`"""
         coro = self._async_api.get_capabilities()
         return self._run_coro_sync(coro)

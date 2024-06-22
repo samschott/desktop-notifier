@@ -125,11 +125,10 @@ class DesktopNotifier:
         Linux, this should correspond to the application name in a desktop entry. On
         macOS, this argument is ignored and the app is identified by the bundle ID of
         the sending program (e.g., Python).
-    :param app_icon: Default icon to use for notifications. This should be either a URI
-        string, a :class:`pathlib.Path` path, or a name in a freedesktop.org-compliant
-        icon theme. If None, the icon of the calling application will be used if it
-        can be determined. On macOS, this argument is ignored and the app icon is
-        identified by the bundle ID of the sending program (e.g., Python).
+    :param app_icon: Default icon to use for notifications. This should be a
+        :class:`desktop_notifier.base.Icon` instance referencing either a file or a
+        named system icon. :class:`str` or :class:`pathlib.Path` are also accepted but
+        deprecated.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center. This may be ignored by some implementations.
     """
@@ -139,7 +138,7 @@ class DesktopNotifier:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Path | str | Icon | None = DEFAULT_ICON,
+        app_icon: Icon | Path | str | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
         if isinstance(app_icon, str):
@@ -202,11 +201,17 @@ class DesktopNotifier:
         """
         Sends a desktop notification.
 
-        This method takes a fully constructed :class:`Notification` instance as input.
-        Use :meth:`send` to provide separate notification properties such as ``title``,
-        ``message``, etc., instead.
+        This method does not raise an exception when scheduling the notification fails
+        but logs warnings instead. If the notification was scheduled successfully, its
+        ``identifier`` will be set to the platform's native notification identifier.
+        Otherwise, the ``identifier`` will be ``None``.
+
+        Note that even a successfully scheduled notification may not be displayed to the
+        user, depending on their notification center settings (for instance if "do not
+        disturb" is enabled on macOS).
 
         :param notification: The notification to send.
+        :returns: The passed notification instance with a unique identifier populated.
         """
         if not notification.icon:
             notification.icon = self.app_icon
@@ -240,16 +245,9 @@ class DesktopNotifier:
         """
         Sends a desktop notification
 
-        Arguments are the same as and will be passed on to :class:`Notification`.
-
-        This method will always return a :class:`Notification` instance and will not
-        raise an exception when scheduling the notification fails. If the notification
-        was scheduled successfully, its ``identifier`` will be set to the platform's
-        native notification identifier. Otherwise, the ``identifier`` will be ``None``.
-
-        Note that even a successfully scheduled notification may not be displayed to the
-        user, depending on their notification center settings (for instance if "do not
-        disturb" is enabled on macOS).
+        This is a convenience function which creates a
+        :class:`desktop_notifier.base.Notification` with the provided arguments and then
+        calls :meth:`send_notification`.
 
         :returns: The scheduled notification instance.
         """

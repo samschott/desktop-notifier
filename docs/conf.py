@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 author = "Sam Schott"
 version = "5.0.0.dev1"
 release = version
-project = "dekstop-notifier"
+project = "desktop-notifier"
 title = "Desktop-Notifier Documentation"
 copyright = "{}, {}".format(time.localtime().tm_year, author)
 
@@ -22,7 +22,6 @@ copyright = "{}, {}".format(time.localtime().tm_year, author)
 extensions = [
     "autoapi.extension",
     "sphinx.ext.autodoc",
-    "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx.ext.intersphinx",
     "sphinx_mdinclude",
@@ -38,7 +37,7 @@ html_theme = "furo"
 # -- Extension configuration -----------------------------------------------------------
 autodoc_typehints = "description"
 
-autoapi_dirs = ["../src/desktop_notifier"]
+autoapi_dirs = ["../src/"]
 autoapi_options = [
     "members",
     "show-inheritance",
@@ -46,7 +45,6 @@ autoapi_options = [
     "inherited-members",
 ]
 autoapi_member_order = "groupwise"
-autoapi_root = "reference"
 
 # sphinx.ext.todo
 todo_include_todos = True
