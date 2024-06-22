@@ -354,11 +354,10 @@ class DesktopNotifier:
         """
         await self._impl.clear_all()
 
-    @property
-    def capabilities(self) -> frozenset[Capability]:
+    async def get_capabilities(self) -> frozenset[Capability]:
         """
-        Returns which functionality us supported by the implementation.
+        Returns which functionality is supported by the implementation.
         """
         if not self._capabilities:
-            self._capabilities = self._run_coro_sync(self._impl.get_capabilities())
+            self._capabilities = await self._impl.get_capabilities()
         return self._capabilities
