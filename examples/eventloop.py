@@ -5,22 +5,20 @@ import signal
 from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
 
 
-notify = DesktopNotifier(
-    app_name="Sample App",
-    notification_limit=10,
-)
+# Integrate with Core Foundation event loop on macOS to allow receiving callbacks.
+if platform.system() == "Darwin":
+    from rubicon.objc.eventloop import EventLoopPolicy
+
+    asyncio.set_event_loop_policy(EventLoopPolicy())
 
 
 async def main() -> None:
-    loop = asyncio.get_running_loop()
+    notifier = DesktopNotifier(
+        app_name="Sample App",
+        notification_limit=10,
+    )
 
-    def stop_loop(loop: asyncio.AbstractEventLoop) -> None:
-        loop.stop()
-
-    loop.add_signal_handler(signal.SIGINT, stop_loop, loop)
-    loop.add_signal_handler(signal.SIGTERM, stop_loop, loop)
-
-    await notify.send(
+    await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
         urgency=Urgency.Critical,
@@ -40,15 +38,15 @@ async def main() -> None:
         sound=DEFAULT_SOUND,
     )
 
+    # Run the event loop forever to respond to user interactions with the notification.
+    event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+
+    loop.add_signal_handler(signal.SIGINT, event.set)
+    loop.add_signal_handler(signal.SIGTERM, event.set)
+
+    await event.wait()
+
 
 if __name__ == "__main__":
-    if platform.system() == "Darwin":
-        from rubicon.objc.eventloop import EventLoopPolicy
-
-        asyncio.set_event_loop_policy(EventLoopPolicy())
-
-    # Run the event loop forever to respond to user interactions with the notification.
-    # Otherwise, a simpler `asyncio.run(main())` call would work as well.
-    loop = asyncio.new_event_loop()
-    loop.create_task(main())
-    loop.run_forever()
+    asyncio.run(main())

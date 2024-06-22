@@ -1,13 +1,13 @@
-from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
+from desktop_notifier import DesktopNotifierSync, Urgency, Button, ReplyField, DEFAULT_SOUND
 
 
-notify = DesktopNotifier(
+notifier = DesktopNotifierSync(
     app_name="Sample App",
     notification_limit=10,
 )
 
 
-notify.send_sync(
+notifier.send(
     title="Julius Caesar",
     message="Et tu, Brute?",
     urgency=Urgency.Critical,
