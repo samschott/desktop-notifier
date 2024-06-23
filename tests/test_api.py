@@ -110,32 +110,6 @@ async def test_attachment_uri(notifier):
     )
 
 
-def test_send_sync(notifier):
-    notification = notifier.send_sync(
-        title="Julius Caesar",
-        message="Et tu, Brute?",
-        urgency=Urgency.Critical,
-        buttons=[
-            Button(
-                title="Mark as read",
-                on_pressed=lambda: print("Marked as read"),
-            )
-        ],
-        reply_field=ReplyField(
-            title="Reply",
-            button_title="Send",
-            on_replied=lambda text: print("Brutus replied:", text),
-        ),
-        on_clicked=lambda: print("Notification clicked"),
-        on_dismissed=lambda: print("Notification dismissed"),
-        sound=DEFAULT_SOUND,
-        thread="test_notifications",
-        timeout=5,
-    )
-    assert notification in notifier.current_notifications
-    assert notification.identifier != ""
-
-
 @pytest.mark.asyncio
 @pytest.mark.skipif(
     sys.platform.startswith("win"),

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Desktop notifications for Windows, Linux, macOS, iOS and iPadOS.
+Asynchronous desktop notification API
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import (
     Type,
     Callable,
-    Coroutine,
     List,
     Any,
     TypeVar,
@@ -126,11 +125,10 @@ class DesktopNotifier:
         Linux, this should correspond to the application name in a desktop entry. On
         macOS, this argument is ignored and the app is identified by the bundle ID of
         the sending program (e.g., Python).
-    :param app_icon: Default icon to use for notifications. This should be either a URI
-        string, a :class:`pathlib.Path` path, or a name in a freedesktop.org-compliant
-        icon theme. If None, the icon of the calling application will be used if it
-        can be determined. On macOS, this argument is ignored and the app icon is
-        identified by the bundle ID of the sending program (e.g., Python).
+    :param app_icon: Default icon to use for notifications. This should be a
+        :class:`desktop_notifier.base.Icon` instance referencing either a file or a
+        named system icon. :class:`str` or :class:`pathlib.Path` are also accepted but
+        deprecated.
     :param notification_limit: Maximum number of notifications to keep in the system's
         notification center. This may be ignored by some implementations.
     """
@@ -140,11 +138,9 @@ class DesktopNotifier:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Path | str | Icon | None = DEFAULT_ICON,
+        app_icon: Icon | Path | str | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        impl_cls = get_implementation_class()
-
         if isinstance(app_icon, str):
             warnings.warn(
                 message="Pass an Icon instance instead of a string. "
@@ -166,27 +162,11 @@ class DesktopNotifier:
 
         self.app_icon = app_icon
 
+        impl_cls = get_implementation_class()
         self._impl = impl_cls(app_name, notification_limit)
         self._did_request_authorisation = False
 
-        # Use our own event loop for the sync API so that we don't interfere with any
-        # other ansycio event loops / threads, etc.
-        self._loop = asyncio.new_event_loop()
-
         self._capabilities: frozenset[Capability] | None = None
-
-    def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
-        """
-        Runs the given coroutine and returns the result synchronously. This is used as a
-        wrapper to conveniently convert the async API calls to synchronous ones.
-        """
-        if self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
-            res = future.result()
-        else:
-            res = self._loop.run_until_complete(coro)
-
-        return res
 
     @property
     def app_name(self) -> str:
@@ -221,11 +201,17 @@ class DesktopNotifier:
         """
         Sends a desktop notification.
 
-        This method takes a fully constructed :class:`Notification` instance as input.
-        Use :meth:`send` to provide separate notification properties such as ``title``,
-        ``message``, etc., instead.
+        This method does not raise an exception when scheduling the notification fails
+        but logs warnings instead. If the notification was scheduled successfully, its
+        ``identifier`` will be set to the platform's native notification identifier.
+        Otherwise, the ``identifier`` will be ``None``.
+
+        Note that even a successfully scheduled notification may not be displayed to the
+        user, depending on their notification center settings (for instance if "do not
+        disturb" is enabled on macOS).
 
         :param notification: The notification to send.
+        :returns: The passed notification instance with a unique identifier populated.
         """
         if not notification.icon:
             notification.icon = self.app_icon
@@ -259,16 +245,9 @@ class DesktopNotifier:
         """
         Sends a desktop notification
 
-        Arguments are the same as and will be passed on to :class:`Notification`.
-
-        This method will always return a :class:`Notification` instance and will not
-        raise an exception when scheduling the notification fails. If the notification
-        was scheduled successfully, its ``identifier`` will be set to the platform's
-        native notification identifier. Otherwise, the ``identifier`` will be ``None``.
-
-        Note that even a successfully scheduled notification may not be displayed to the
-        user, depending on their notification center settings (for instance if "do not
-        disturb" is enabled on macOS).
+        This is a convenience function which creates a
+        :class:`desktop_notifier.base.Notification` with the provided arguments and then
+        calls :meth:`send_notification`.
 
         :returns: The scheduled notification instance.
         """
@@ -287,60 +266,6 @@ class DesktopNotifier:
             timeout=timeout,
         )
         return await self.send_notification(notification)
-
-    def send_sync(
-        self,
-        title: str,
-        message: str,
-        urgency: Urgency = Urgency.Normal,
-        icon: str | Icon | None = None,
-        buttons: Sequence[Button] = (),
-        reply_field: ReplyField | None = None,
-        on_clicked: Callable[[], Any] | None = None,
-        on_dismissed: Callable[[], Any] | None = None,
-        attachment: str | Attachment | None = None,
-        sound: bool | Sound | None = None,
-        thread: str | None = None,
-        timeout: int = -1,
-    ) -> Notification:
-        """
-        Synchronous call of :meth:`send`, for use without an asyncio event loop.
-
-        .. warning::
-            Callbacks on interaction with the notification will not work on macOS or
-            Linux without a running event loop.
-
-        .. warning::
-            Mixing synchronous and asynchronous calls from the same instance will fail
-            on Linux where the Dbus interface is initialized with asyncio queues that
-            are attached to a specific event loop.
-
-        .. deprecated:: 5.0.0
-            Use the async :func:`send` instead and block on its completion if required.
-
-        :returns: The scheduled notification instance.
-        """
-        warnings.warn(
-            message="'send_sync' is deprecated and will be removed in a future "
-            "version. Use the async 'send' API instead",
-            category=DeprecationWarning,
-        )
-
-        coro = self.send(
-            title,
-            message,
-            urgency=urgency,
-            icon=icon,
-            buttons=buttons,
-            reply_field=reply_field,
-            on_clicked=on_clicked,
-            on_dismissed=on_dismissed,
-            attachment=attachment,
-            sound=sound,
-            thread=thread,
-            timeout=timeout,
-        )
-        return self._run_coro_sync(coro)
 
     @property
     def current_notifications(self) -> List[Notification]:

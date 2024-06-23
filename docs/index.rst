@@ -7,17 +7,11 @@ reference for the main module and platform implementations.
 
 .. toctree::
    :hidden:
-   :caption: Background
    :maxdepth: 2
 
    background/platform_support
    background/eventloops
    background/contributing
-
-.. toctree::
-   :hidden:
-   :caption: Reference
-   :maxdepth: 2
 
 Getting started
 ***************
@@ -47,21 +41,17 @@ notification options, such as notification urgency, buttons, callbacks, etc:
 
     async def main():
         await notify.send(
-            title="Julius Caesar",
-            message="Et tu, Brute?",
-            buttons=[
-                Button(
-                  title="Mark as read",
-                  on_pressed=lambda: print("Marked as read")
-                ),
-            ],
-            reply_field=ReplyField(
-                title="Reply",
-                button_title="Send",
-                on_replied=lambda text: print("Brutus replied:", text),
-            ),
-            on_clicked=lambda: print("Notification clicked"),
-            on_dismissed=lambda: print("Notification dismissed"),
+          title="Julius Caesar",
+          message="Et tu, Brute?",
+          urgency=Urgency.Critical,
+          reply_field=ReplyField(
+            title="Reply",
+            button_title="Send",
+            on_replied=lambda text: print("Brutus replied:", text),
+          ),
+          on_clicked=lambda: print("Notification clicked"),
+          on_dismissed=lambda: print("Notification dismissed"),
+          sound_file=DEFAULT_SOUND,
         )
 
     asyncio.run(main())
@@ -77,6 +67,21 @@ In addition to sending notifications, :class:`desktop_notifier.main.DesktopNotif
 provides methods to clear notifications from the platform's notification center and to
 request and verify user permissions to send notifications where this is required by the
 platform. Please refer to the API docs for the evolving functionality.
+
+Synchronous API
+***************
+
+``desktop-notifier`` is a asynchronous library, designed to work with Python's asyncio.
+This essential to integrate with event loops of the respective platforms and respond to
+user interactions with notifications. It also simplifies usage in GUI apps where
+blocking calls will cause the user interface to 'hang'.
+
+Nevertheless, there may be some use cases where blocking is not a concern and callbacks
+are not important. This might be the case for example for a daemon just sending status
+updates.
+
+For such cases, the synchronous API ``DesktopNotifierSync`` is a convenient wrapper
+around ``DesktopNotifier`` to make 'regular' blocking calls.
 
 Notes on macOS
 **************
