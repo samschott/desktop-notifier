@@ -14,8 +14,6 @@ Currently supported platforms are:
 
 ## Features
 
-![gif](https://github.com/samschott/desktop-notifier/blob/main/screenshots/macOS.gif?raw=true)
-
 Where supported by the native platform APIs, `desktop-notifier` allows for:
 
 * Clickable notifications with callbacks on user interaction
@@ -24,6 +22,10 @@ Where supported by the native platform APIs, `desktop-notifier` allows for:
 * Notification sounds
 * Notification threads (grouping notifications by topic)
 * Limiting the maximum number of notifications shown in the notification center
+
+An example of how some of this looks like on macOS:
+
+![gif](https://github.com/samschott/desktop-notifier/blob/main/screenshots/macOS.gif?raw=true)
 
 An exhaustive list of features and their platform support is provided in the
 [documentation](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html).
