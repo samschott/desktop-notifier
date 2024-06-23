@@ -2,37 +2,42 @@
 
 ## Added:
 
-* Support custom notification sounds on all backends.
+* Support for custom notification sounds on all backends.
 * Allow specifying sounds and icons either by name (for existing system sounds) or as a
   referenced by a URI or path.
-* Expand attachment API to allow passing a URI or path.
-* Add a `capabilities()` API that returns which features are supported by a platform.
+* Allow specifying  attachments either by URI or path.
+* Add a `get_capabilities()` API that returns which features are supported by a 
+  platform.
 * Compatibility with Ubuntu 20.04 and other older Dbus notification servers which do not
-  conform to the current API spec.
-* A dedicated class `DesktopNotifierSync` with blocking API instead of the async API.
+  conform to the current desktop notification API spec.
+* A dedicated class `DesktopNotifierSync` with a blocking API instead of the async API 
+  of `DesktopNotifier`.
 
 ## Changed:
 
 * Removed code signing requirement for macOS binaries. Instead of preventing
   notification requests, only log a warning that notifications may fail. It is not
   documented which code signature checks an app must pass to send notifications and this
-  allows apps that fail some of the checks to still send notifications.
+  allows apps that fail some of the checks and still send notifications.
 
 ## Fixed:
 
-* Fixes segfaults on macOS when passing an attachment path that does not refer to an
+* Fixed a segfault on macOS when passing an attachment path that does not refer to an
   actual file.
 
 ## Deprecated:
 
-* Deprecated the synchronous `send_sync()` API. Use the async `send` API instead and 
-  wrap it in `asyncio.run` as required to block on the call.
 * Deprecated specifying icons as strings. Use the `base.Icon` class instead.
 * Deprecated specifying attachments as URI strings. Use the `base.Attachement` class
   instead.
 * Deprecated specifying notification sounds as boolean (`True` = default sound,
   `False` = no sound). Use `base.DEFAULT_SOUND` for the system default and `None` for no
   sound instead. Use the `base.Sound` class for custom sounds.
+
+## Removed:
+
+* Removed the synchronous `DesktopNotifier.send_sync()` API. Use `DesktopNotifierSync`
+  instead.
 
 # v4.0.0
 
@@ -92,7 +97,8 @@ which is the default value.
 
 # v3.3.5
 
-* Fixes callbacks not being called when pressing the button with index 0 when using the Dbus backend.
+* Fixes callbacks not being called when pressing the button with index 0 when using the
+  Dbus backend.
 
 # v3.3.1
 
@@ -101,4 +107,5 @@ which is the default value.
 # v3.3.0
 
 * Added support for notification urgencies in macOS 12 and iOS 15.
-* Fixed a segfault when running from a non-framework build of Python on macOS 10.14 and higher.
+* Fixed a segfault when running from a non-framework build of Python on macOS 10.14 and
+  higher.
