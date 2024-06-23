@@ -12,22 +12,6 @@ Currently supported platforms are:
 * macOS and iOS via the Notification Center framework
 * Windows via the WinRT / Python bridge
 
-Design choices by `desktop-notifier`:
-
-* It does not try to work around platform restrictions, such as changing the app icon on
-  macOS. Workarounds would be hacky and likely be rejected by an App Store review.
-* The main API consists of async methods and a running event loop is required to respond
-  to user interactions with a notification. This simplifies integration with GUI apps.
-* Dependencies are pure Python packages without extension modules. This simplifies app
-  bundling and distribution. We make an exception for Windows because interoperability
-  with the Windows Runtime is difficult to achieve without extension modules.
-* If a certain feature is not supported by a platform, using it will not raise an
-  exception. This allows clients to use a wide feature set where available without
-  worrying about exception handling.
-* If a notification cannot be scheduled, this is logged as a warning and does not raise
-  an exception. Most platforms allow the user to control if and how notifications are
-  delivered and notification delivery therefore cannot be taken as guaranteed.
-
 ## Features
 
 ![gif](https://github.com/samschott/desktop-notifier/blob/main/screenshots/macOS.gif?raw=true)
@@ -164,6 +148,24 @@ If you freeze your code with PyInstaller or a similar packaging solution, you mu
 the resulting app bundle for notifications to work. An ad-hoc signature will be
 sufficient but signing with an Apple developer certificate is recommended for
 distribution and may be required on future releases of macOS.
+
+## Design choices
+
+This package is opinionated in a few ways:
+
+* It does not try to work around platform restrictions, such as changing the app icon on
+  macOS. Workarounds would be hacky and likely be rejected by an App Store review.
+* The main API consists of async methods and a running event loop is required to respond
+  to user interactions with a notification. This simplifies integration with GUI apps.
+* Dependencies are pure Python packages without extension modules. This simplifies app
+  bundling and distribution. We make an exception for Windows because interoperability
+  with the Windows Runtime is difficult to achieve without extension modules.
+* If a certain feature is not supported by a platform, using it will not raise an
+  exception. This allows clients to use a wide feature set where available without
+  worrying about exception handling.
+* If a notification cannot be scheduled, this is logged as a warning and does not raise
+  an exception. Most platforms allow the user to control if and how notifications are
+  delivered and notification delivery therefore cannot be taken as guaranteed.
 
 ## Dependencies
 
