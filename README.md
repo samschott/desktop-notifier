@@ -1,26 +1,36 @@
+
+# Desktop Notifier
+
 [![PyPi Release](https://img.shields.io/pypi/v/desktop-notifier.svg)](https://pypi.org/project/desktop-notifier/)
 [![Pyversions](https://img.shields.io/pypi/pyversions/desktop-notifier.svg)](https://pypi.org/pypi/desktop-notifier/)
 [![Documentation Status](https://readthedocs.org/projects/desktop-notifier/badge/?version=latest)](https://desktop-notifier.readthedocs.io/en/latest/?badge=latest)
-
-# Desktop Notifier
 
 `desktop-notifier`  is a Python library for cross-platform desktop notifications.
 Currently supported platforms are:
 
 * Linux via the dbus service org.freedesktop.Notifications
 * macOS and iOS via the Notification Center framework
-* [**experimental**] Windows via the WinRT / Python bridge.
+* Windows via the WinRT / Python bridge
 
-![gif](screenshots/macOS.gif)
+Design choices by `desktop-notifier`:
+
+* It does not try to work around platform restrictions, such as changing the app icon on
+  macOS. Workarounds would be hacky and likely be rejected by an App Store review.
+* The main API consists of async methods and a running event loop is required to respond
+  to user interactions with a notification. This simplifies integration with GUI apps.
+* Dependencies are pure Python packages without extension modules. This simplifies app
+  bundling and distribution. We make an exception for Windows because interoperability
+  with the Windows Runtime is difficult to achieve without extension modules.
+* If a certain feature is not supported by a platform, using it will not raise an
+  exception. This allows clients to use a wide feature set where available without
+  worrying about exception handling.
+* If a notification cannot be scheduled, this is logged as a warning and does not raise
+  an exception. Most platforms allow the user to control if and how notifications are
+  delivered and notification delivery therefore cannot be taken as guaranteed.
 
 ## Features
 
-`desktop-notifier` aims to be a good citizen of the platforms which it supports. It
-therefore stays within the limits of the native platform APIs and does not try to work
-around limitations which are often deliberate UI choices. For example, on macOS  and
-iOS, it is not possible to change the app icon which is shown on notifications. There
-are possible workarounds - that would likely be rejected by an App Store review - and
-desktop-notifier deliberately stays away from those.
+![gif](https://github.com/samschott/desktop-notifier/blob/main/screenshots/macOS.gif?raw=true)
 
 Where supported by the native platform APIs, `desktop-notifier` allows for:
 
@@ -33,14 +43,11 @@ Where supported by the native platform APIs, `desktop-notifier` allows for:
 
 An exhaustive list of features and their platform support is provided in the
 [documentation](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html).
+In addition, you can query supported features at runtime with
+`DesktopNotifier.get_capabilities()`.
 
-Design choices by `desktop-notifier`:
-
-* Async API: The main API consists of async methods and a running event loop
-  is required to respond to user interactions with a notification.
-* Prefer pure Python dependencies over extension modules. We make an exception for
-  Windows because interoperability with the Windows Runtime is difficult to achieve
-  otherwise.
+Any options or configurations which are not supported by the platform will be silently
+ignored.
 
 ## Installation
 
@@ -62,71 +69,58 @@ from desktop_notifier import DesktopNotifier
 notifier = DesktopNotifier()
 
 async def main():
-    n = await notifier.send(title="Hello world!", message="Sent from Python")
-
-    await asyncio.sleep(5)  # wait a bit before clearing notification
-
-    await notifier.clear(n)  # removes the notification
-    await notifier.clear_all()  # removes all notifications for this app
+    await notifier.send(title="Hello world!", message="Sent from Python")
 
 asyncio.run(main())
-```
-
-For convenience, there is also a synchronous method ``send_sync()`` to send
-notifications without manually starting an asyncio event loop:
-
-```Python
-notifier.send_sync(title="Hello world!", message="Sent from Python")
 ```
 
 By default, "Python" will be used as the app name for all notifications, but you can
 manually specify an app name and icon in the ``DesktopNotifier`` constructor. Advanced
 usage also allows setting different notification options such as urgency, buttons,
-callbacks, etc. The following code will generate the notification shown in the gif at
-the top of the page:
+callbacks, etc. For example, for the gif displayed above:
 
 ```Python
 import asyncio
+import signal
+
 from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
 
-notifier = DesktopNotifier()
 
-async def main():
-  await notifier.send(
-      title="Julius Caesar",
-      message="Et tu, Brute?",
-      urgency=Urgency.Critical,
-      buttons=[
-        Button(
-          title="Mark as read",
-          on_pressed=lambda: print("Marked as read")),
-      ],
-      reply_field=ReplyField(
-        title="Reply",
-        button_title="Send",
-        on_replied=lambda text: print("Brutus replied:", text),
-      ),
-      on_clicked=lambda: print("Notification clicked"),
-      on_dismissed=lambda: print("Notification dismissed"),
-      sound_file=DEFAULT_SOUND,
-  )
+async def main() -> None:
+    notifier = DesktopNotifier(
+        app_name="Sample App",
+        notification_limit=10,
+    )
 
+    await notifier.send(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        urgency=Urgency.Critical,
+        buttons=[
+            Button(
+                title="Mark as read",
+                on_pressed=lambda: print("Marked as read"),
+            )
+        ],
+        reply_field=ReplyField(
+            on_replied=lambda text: print("Brutus replied:", text),
+        ),
+        on_clicked=lambda: print("Notification clicked"),
+        on_dismissed=lambda: print("Notification dismissed"),
+        sound=DEFAULT_SOUND,
+    )
 
-loop = asyncio.get_event_loop()
-loop.create_task(main())
-loop.run_forever()
+    # Run the event loop forever to respond to user interactions with the notification.
+    stop_event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+
+    loop.add_signal_handler(signal.SIGINT, stop_event.set)
+    loop.add_signal_handler(signal.SIGTERM, stop_event.set)
+
+    await stop_event.wait()
+
+asyncio.run(main())
 ```
-
-Note that some platforms may not support all options. For instance, some Linux desktop
-environments may not support notifications with buttons. macOS does not support manually
-setting the app icon or name. Instead, both are always determined by the application
-which uses the Library. This can be Python itself, or a frozen app bundle when packaged
-with PyInstaller or similar solutions. Please refer to the
-[Platform Support](https://desktop-notifier.readthedocs.io/en/latest/background/platform_support.html)
-chapter of the documentation for more information on limitations for certain platforms.
-
-Any options or configurations which are not supported by the platform will be silently
-ignored.
 
 ## Event loop integration
 
@@ -144,10 +138,6 @@ from rubicon.objc.eventloop import EventLoopPolicy
 
 # Install the event loop policy
 asyncio.set_event_loop_policy(EventLoopPolicy())
-
-# Get an event loop, and run it!
-loop = asyncio.get_event_loop()
-loop.run_forever()
 ```
 
 Desktop-notifier itself uses Rubicon Objective-C to interface with Cocoa APIs. A full
@@ -175,13 +165,8 @@ the resulting app bundle for notifications to work. An ad-hoc signature will be
 sufficient but signing with an Apple developer certificate is recommended for
 distribution and may be required on future releases of macOS.
 
-## Requirements
-
-* macOS 10.13 or higher
-* Linux desktop environment providing a dbus desktop notifications service
-
 ## Dependencies
 
 * [dbus-next](https://github.com/altdesktop/python-dbus-next) on Linux
 * [rubicon-objc](https://github.com/beeware/rubicon-objc) on macOS
-* [winsdk](https://github.com/pywinrt/python-winsdk) on Windows
+* [pywinrt](https://github.com/pywinrt/pywinrt) on Windows
