@@ -9,6 +9,7 @@
 * Add a `capabilities()` API that returns which features are supported by a platform.
 * Compatibility with Ubuntu 20.04 and other older Dbus notification servers which do not
   conform to the current API spec.
+* A dedicated class `DesktopNotifierSync` with blocking API instead of the async API.
 
 ## Changed:
 
