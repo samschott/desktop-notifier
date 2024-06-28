@@ -54,17 +54,14 @@ class DesktopNotifierSync:
         # Make sure to always use the same loop because async queues, future, etc. are
         # always bound to a loop.
         if self._get_event_loop().is_running():
-            #future = self._get_event_loop().create_future()
-            #self._get_event_loop().call_soon(coro, future, 'the result')
-            print(f"creating task...")
             task = self._get_event_loop().create_task(coro)
-            print(f"Created task...")
-            #future = asyncio.run_coroutine_threadsafe(coro, self._get_event_loop())
-            # while not task.done():
-            #     print(f"Waiting for task to complete...")
-            #     sleep(SLEEP_INTERVAL_SECONDS)
+            print(f"Created asyncio.Task in currently running event loop: {task}")
 
-            res = task.result()
+            # Can't actually wait for the task to finish here. Something like
+            #    while not task.done():
+            #        sleep(SLEEP_INTERVAL_SECONDS)
+            # Never finishes because the event loop is never given control to run the task.
+            res = None
         else:
             res = self._get_event_loop().run_until_complete(coro)
 
