@@ -256,7 +256,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 tmp_path = Path(tmp_dir) / attachment_path.name
                 shutil.copy(attachment_path, tmp_path)
             except OSError:
-                Logger.logger().warning("Could not access attachment file", exc_info=True)
+                Logger.logger().warning(
+                    "Could not access attachment file",
+                    exc_info=True
+                )
             else:
                 url = NSURL.fileURLWithPath(str(tmp_path), isDirectory=False)
                 attachment = UNNotificationAttachment.attachmentWithIdentifier(
