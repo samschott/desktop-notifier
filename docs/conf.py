@@ -6,6 +6,7 @@ import time
 
 from desktop_notifier import (
     __DESKTOP_NOTIFIER_PACKAGE_NAME__,
+    __author__,
     __version__
 )
 
@@ -15,7 +16,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 
 # -- Project information ---------------------------------------------------------------
 
-author = "Sam Schott"
+author = __author__
 version = __version__
 release = version
 project = __DESKTOP_NOTIFIER_PACKAGE_NAME__
