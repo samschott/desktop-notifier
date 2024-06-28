@@ -10,15 +10,14 @@ __desktop_notifier_metadata = metadata(__DESKTOP_NOTIFIER_PACKAGE_NAME__)
 
 def _get_project_url() -> str | None:
     """Parse project URLs from pyproject.toml package metadata."""
-    project_urls = __desktop_notifier_metadata.get('Project-URL')
-
-    if not project_urls is None:
-        return None
+    project_urls = __desktop_notifier_metadata.get("Project-URL")
 
     # 'project_urls' should be a string that looks like this
     #    "Homepage, https://github.com/samschott/desktop-notifier"
     if isinstance(project_urls, str):
         return project_urls.split(',', maxsplit=1)[1].strip()
+    else:
+        print(f"WARNING: Could not parse project URL from {project_urls}")
 
 
 # Using the approach in https://stackoverflow.com/questions/75801738/importlib-metadata-doesnt-appear-to-handle-the-authors-field-from-a-pyproject-t

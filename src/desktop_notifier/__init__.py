@@ -20,7 +20,7 @@ from .main import (
 from .util.pkg_metadata_helper import (
     __DESKTOP_NOTIFIER_PACKAGE_NAME__,
     _get_primary_author_name,
-    _get_project_url
+    _get_project_url,
 )
 from .sync import DesktopNotifierSync
 
@@ -30,6 +30,7 @@ __author__ = _get_primary_author_name()
 __url__ = _get_project_url()
 
 __all__ = [
+    "__DESKTOP_NOTIFIER_PACKAGE_NAME__",
     "__version__",
     "__author__",
     "__url__",

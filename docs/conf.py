@@ -4,6 +4,11 @@ import os
 import sys
 import time
 
+from desktop_notifier import (
+    __DESKTOP_NOTIFIER_PACKAGE_NAME__,
+    __version__
+)
+
 # -- Path setup ------------------------------------------------------------------------
 
 sys.path.insert(0, os.path.abspath("../src"))
@@ -11,9 +16,9 @@ sys.path.insert(0, os.path.abspath("../src"))
 # -- Project information ---------------------------------------------------------------
 
 author = "Sam Schott"
-version = "5.0.0"
+version = __version__
 release = version
-project = "desktop-notifier"
+project = __DESKTOP_NOTIFIER_PACKAGE_NAME__
 title = "Desktop-Notifier Documentation"
 copyright = "{}, {}".format(time.localtime().tm_year, author)
 
