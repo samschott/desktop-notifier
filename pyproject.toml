@@ -14,7 +14,8 @@ keywords = [
     "desktop-notifier",
     "notifications",
     "Notification Center",
-
+    "push notifications",
+    "Toast notifications",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
