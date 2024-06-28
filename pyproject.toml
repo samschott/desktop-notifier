@@ -9,8 +9,6 @@ authors = [{name = "Sam Schott", email = "sam.schott@outlook.com"}]
 license = {text = "MIT"}
 description = "Python library for cross-platform desktop notifications"
 keywords = [
-    "D-Bus",
-    "Desktop Bus",
     "desktop-notifier",
     "notifications",
     "Notification Center",
@@ -22,7 +20,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
-    "Operating System :: iOS",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: OS Independent",
