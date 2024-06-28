@@ -9,7 +9,6 @@ interaction with a notification requires a running asyncio event loop.
 from __future__ import annotations
 
 # system imports
-import logging
 from typing import TypeVar
 
 # external imports

@@ -13,9 +13,8 @@ from __future__ import annotations
 # system imports
 import sys
 import uuid
-import logging
-from xml.etree.ElementTree import Element, SubElement, tostring
 from typing import TypeVar
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 # external imports
 import winreg
