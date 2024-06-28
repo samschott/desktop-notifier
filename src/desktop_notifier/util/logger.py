@@ -14,6 +14,7 @@ Then:
     Logger.logger().info("This will be logged using the logger named 'my_logger'")
 """
 import logging
+from typing import Optional
 
 from desktop_notifier.util.pkg_metadata_helper import __DESKTOP_NOTIFIER_PACKAGE_NAME__
 
@@ -21,7 +22,7 @@ DEFAULT_LOGGER = logging.getLogger(__DESKTOP_NOTIFIER_PACKAGE_NAME__)
 
 
 class Logger:
-    _logger: logging.Logger | None = None
+    _logger: Optional[logging.Logger] = None
 
     @classmethod
     def logger(cls) -> logging.Logger:
