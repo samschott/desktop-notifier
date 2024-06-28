@@ -54,6 +54,8 @@ venv/
 # IntelliJ Idea family of suites
 .idea
 *.iml
+# VSCode config
+.vscode/
 ## File-based project format:
 *.ipr
 *.iws
