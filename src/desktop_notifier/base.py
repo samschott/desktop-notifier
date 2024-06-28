@@ -6,10 +6,9 @@ must inherit from :class:`DesktopNotifierBase`.
 
 from __future__ import annotations
 
-from urllib.parse import urlparse, unquote
+import dataclasses
 import urllib.parse
 import warnings
-import dataclasses
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum, auto
@@ -24,6 +23,7 @@ from typing import (
     Sequence,
     ContextManager,
 )
+from urllib.parse import unquote
 
 from desktop_notifier.util.logger import Logger
 
@@ -102,7 +102,7 @@ class FileResource:
         if self.path is not None:
             return self.path
         if self.uri is not None:
-            parsed_uri = urlparse(self.uri)
+            parsed_uri = urllib.parse.urlparse(self.uri)
             return Path(unquote(parsed_uri.path))
 
         raise AttributeError("No path or URI provided")
