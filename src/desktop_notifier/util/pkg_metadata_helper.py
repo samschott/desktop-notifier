@@ -5,12 +5,13 @@ hopefully future-proof way.
 """
 from email import parser, policy
 from importlib.metadata import metadata
+from typing import Optional
 
 __DESKTOP_NOTIFIER_PACKAGE_NAME__ = "desktop-notifier"
 __desktop_notifier_metadata = metadata(__DESKTOP_NOTIFIER_PACKAGE_NAME__)
 
 
-def _get_project_url() -> str | None:
+def _get_project_url() -> Optional[str]:
     """Parse project URLs from pyproject.toml package metadata."""
     project_urls = __desktop_notifier_metadata.get("Project-URL")
 
