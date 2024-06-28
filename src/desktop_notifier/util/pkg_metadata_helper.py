@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-# Helper methods for parsing data out of the pyproject.toml configuration in a
-# hopefully future-proof way.
+"""
+Helper methods for parsing data out of the pyproject.toml configuration in a
+hopefully future-proof way.
+"""
 from email import parser, policy
 from importlib.metadata import metadata
 
