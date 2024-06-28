@@ -7,6 +7,7 @@ from __future__ import annotations
 
 # system imports
 import asyncio
+from time import sleep
 from typing import Callable, Coroutine, Any, Sequence, TypeVar, List
 
 # local imports
@@ -28,6 +29,8 @@ __all__ = ["DesktopNotifierSync"]
 
 T = TypeVar("T")
 
+SLEEP_INTERVAL_SECONDS = 0.1
+
 
 class DesktopNotifierSync:
     """
@@ -45,16 +48,25 @@ class DesktopNotifierSync:
         notification_limit: int | None = None,
     ) -> None:
         self._async_api = DesktopNotifier(app_name, app_icon, notification_limit)
-        self._loop = asyncio.new_event_loop()
+        self._loop = None
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
         # Make sure to always use the same loop because async queues, future, etc. are
         # always bound to a loop.
-        if self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
-            res = future.result()
+        if self._get_event_loop().is_running():
+            #future = self._get_event_loop().create_future()
+            #self._get_event_loop().call_soon(coro, future, 'the result')
+            print(f"creating task...")
+            task = self._get_event_loop().create_task(coro)
+            print(f"Created task...")
+            #future = asyncio.run_coroutine_threadsafe(coro, self._get_event_loop())
+            # while not task.done():
+            #     print(f"Waiting for task to complete...")
+            #     sleep(SLEEP_INTERVAL_SECONDS)
+
+            res = task.result()
         else:
-            res = self._loop.run_until_complete(coro)
+            res = self._get_event_loop().run_until_complete(coro)
 
         return res
 
@@ -70,6 +82,7 @@ class DesktopNotifierSync:
 
     def request_authorisation(self) -> bool:
         """See :meth:`desktop_notifier.main.DesktopNotifier.request_authorisation`"""
+        print(f"Requesting authorization...")
         coro = self._async_api.request_authorisation()
         return self._run_coro_sync(coro)
 
@@ -80,6 +93,7 @@ class DesktopNotifierSync:
 
     def send_notification(self, notification: Notification) -> Notification:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send_notification`"""
+        print(f"Sending notification...")
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
 
@@ -135,3 +149,15 @@ class DesktopNotifierSync:
         """See :meth:`desktop_notifier.main.DesktopNotifier.get_capabilities`"""
         coro = self._async_api.get_capabilities()
         return self._run_coro_sync(coro)
+
+    def _get_event_loop(self) -> asyncio.AbstractEventLoop:
+        """Returns the event loop used by the synchronous API"""
+        if self._loop is None:
+            try:
+                print("Found running event loop, using it.")
+                self._loop = asyncio.get_running_loop()
+            except RuntimeError:
+                print("No running event loop found, creating a new one.")
+                self._loop = asyncio.new_event_loop()
+
+        return self._loop
