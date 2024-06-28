@@ -8,12 +8,20 @@ version = "5.0.0"
 authors = [{name = "Sam Schott", email = "sam.schott@outlook.com"}]
 license = {text = "MIT"}
 description = "Python library for cross-platform desktop notifications"
-keywords = ["desktop-notifier"]
+keywords = [
+    "D-Bus",
+    "Desktop Bus",
+    "desktop-notifier",
+    "notifications",
+    "Notification Center",
+
+]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -22,6 +30,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Communications",
+    "Topic :: Desktop Environment :: Gnome",
+    "Topic :: Desktop Environment :: K Desktop Environment (KDE)",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.7"
 dependencies = [
