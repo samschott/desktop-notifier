@@ -36,11 +36,10 @@ from winrt.system import Object as WinRTObject
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency, Capability, DEFAULT_SOUND
+from desktop_notifier.util.logger import Logger
 
 
 __all__ = ["WinRTDesktopNotifier"]
-
-logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -287,11 +286,11 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
         ) -> None:
             if failed_args:
-                logger.warning(
+                Logger.logger().warning(
                     f"Notification failed (error code {failed_args.error_code.value})"
                 )
             else:
-                logger.warning("Notification failed (unknown error code)")
+                Logger.logger().warning("Notification failed (unknown error code)")
 
         native.add_activated(on_activated)
         native.add_dismissed(on_dismissed)

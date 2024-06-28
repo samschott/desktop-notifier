@@ -12,7 +12,6 @@ UNUserNotificationCenter backend for macOS
 import shutil
 import tempfile
 import uuid
-import logging
 import enum
 import asyncio
 from pathlib import Path
@@ -33,11 +32,10 @@ from .base import (
     DEFAULT_SOUND,
 )
 from .macos_support import macos_version
+from desktop_notifier.util.logger import Logger
 
 
 __all__ = ["CocoaNotificationCenter"]
-
-logger = logging.getLogger(__name__)
 
 foundation = load_library("Foundation")
 uns = load_library("UserNotifications")
@@ -258,7 +256,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 tmp_path = Path(tmp_dir) / attachment_path.name
                 shutil.copy(attachment_path, tmp_path)
             except OSError:
-                logger.warning("Could not access attachment file", exc_info=True)
+                Logger.logger().warning("Could not access attachment file", exc_info=True)
             else:
                 url = NSURL.fileURLWithPath(str(tmp_path), isDirectory=False)
                 attachment = UNNotificationAttachment.attachmentWithIdentifier(
@@ -411,6 +409,6 @@ def log_nserror(error: NSError, prefix: str) -> None:  # type:ignore[valid-type]
     code = int(error.code)  # type:ignore[attr-defined]
     description = str(error.localizedDescription)  # type:ignore[attr-defined]
 
-    logger.warning(
+    Logger.logger().warning(
         "%s: domain=%s, code=%s, description=%s", prefix, domain, code, description
     )

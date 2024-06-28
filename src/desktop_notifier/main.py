@@ -7,7 +7,6 @@ from __future__ import annotations
 
 # system imports
 import platform
-import logging
 import asyncio
 import warnings
 from urllib import parse
@@ -38,6 +37,7 @@ from .base import (
     DEFAULT_SOUND,
     DEFAULT_ICON,
 )
+from desktop_notifier.util.logger import Logger
 
 __all__ = [
     "Notification",
@@ -52,8 +52,6 @@ __all__ = [
     "DEFAULT_SOUND",
     "DEFAULT_ICON",
 ]
-
-logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -77,17 +75,17 @@ def get_implementation_class() -> Type[DesktopNotifierBase]:
             from .macos import CocoaNotificationCenter
 
             if not is_signed_bundle():
-                logger.warning(
+                Logger.logger().warning(
                     "Could not very signature of app bundle, notifications may fail"
                 )
             return CocoaNotificationCenter
         else:
             if has_unusernotificationcenter:
-                logger.warning(
+                Logger.logger().warning(
                     "Notification Center can only be used from an app bundle"
                 )
             else:
-                logger.warning("Only macOS 10.14 and later are supported")
+                Logger.logger().warning("Only macOS 10.14 and later are supported")
 
             from .dummy import DummyNotificationCenter
 

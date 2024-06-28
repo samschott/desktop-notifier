@@ -19,11 +19,9 @@ from dbus_next.aio.proxy_object import ProxyInterface
 
 # local imports
 from .base import Notification, DesktopNotifierBase, Urgency, Capability
-
+from desktop_notifier.util.logger import Logger
 
 __all__ = ["DBusDesktopNotifier"]
-
-logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -163,7 +161,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         hints_signature = get_hints_signature(self.interface)
 
         if hints_signature == "":
-            logger.warning("Notification server not supported")
+            Logger.logger().warning("Notification server not supported")
             return
 
         hints: dict[str, str] | dict[str, Variant]

@@ -6,7 +6,6 @@ must inherit from :class:`DesktopNotifierBase`.
 
 from __future__ import annotations
 
-import logging
 from urllib.parse import urlparse, unquote
 import urllib.parse
 import warnings
@@ -26,6 +25,8 @@ from typing import (
     ContextManager,
 )
 
+from desktop_notifier.util.logger import Logger
+
 __all__ = [
     "Capability",
     "FileResource",
@@ -43,6 +44,7 @@ __all__ = [
     "DEFAULT_SOUND",
 ]
 
+
 try:
     from importlib.resources import as_file, files
 
@@ -52,8 +54,6 @@ try:
 except ImportError:
     from importlib.resources import path as resource_path
 
-
-logger = logging.getLogger(__name__)
 
 python_icon_path = resource_path(
     package="desktop_notifier.resources", resource="python.png"
@@ -442,7 +442,7 @@ class DesktopNotifierBase(ABC):
             # a warning.
             if notification_to_replace:
                 self._current_notifications.appendleft(notification_to_replace)
-            logger.warning("Notification failed", exc_info=True)
+            Logger.logger().warning("Notification failed", exc_info=True)
         else:
             self._current_notifications.append(notification)
             self._notification_for_nid[notification.identifier] = notification

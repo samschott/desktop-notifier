@@ -17,13 +17,12 @@ from .main import (
     DEFAULT_SOUND,
     DEFAULT_ICON,
 )
-from .util.pkg_metadata_helper import (
+from .sync import DesktopNotifierSync
+from desktop_notifier.util.pkg_metadata_helper import (
     __DESKTOP_NOTIFIER_PACKAGE_NAME__,
     _get_primary_author_name,
     _get_project_url,
 )
-from .sync import DesktopNotifierSync
-
 
 __version__ = version(__DESKTOP_NOTIFIER_PACKAGE_NAME__)
 __author__ = _get_primary_author_name()
