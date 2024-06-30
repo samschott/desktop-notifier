@@ -3,8 +3,8 @@
 Synchronous desktop notification API
 """
 
-import logging
 from __future__ import annotations
+import logging
 
 # system imports
 import asyncio
