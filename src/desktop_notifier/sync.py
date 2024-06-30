@@ -7,7 +7,7 @@ from __future__ import annotations
 
 # system imports
 import asyncio
-from typing import Callable, Coroutine, Any, Sequence, TypeVar, List
+from typing import Any, Callable, Coroutine, List, Optional, Sequence, TypeVar
 
 # local imports
 from .main import DesktopNotifier
@@ -45,7 +45,7 @@ class DesktopNotifierSync:
         notification_limit: int | None = None,
     ) -> None:
         self._async_api = DesktopNotifier(app_name, app_icon, notification_limit)
-        self._event_loop = None
+        self._event_loop: Optional[asyncio.AbstractEventLoop] = None
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
         # Make sure to always use the same loop because async queues, future, etc. are
