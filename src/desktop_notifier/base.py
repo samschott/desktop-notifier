@@ -6,11 +6,9 @@ must inherit from :class:`DesktopNotifierBase`.
 
 from __future__ import annotations
 
-import logging
-from urllib.parse import urlparse, unquote
+import dataclasses
 import urllib.parse
 import warnings
-import dataclasses
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum, auto
@@ -25,6 +23,9 @@ from typing import (
     Sequence,
     ContextManager,
 )
+from urllib.parse import unquote
+
+from desktop_notifier.util.logger import Logger
 
 __all__ = [
     "Capability",
@@ -43,6 +44,7 @@ __all__ = [
     "DEFAULT_SOUND",
 ]
 
+
 try:
     from importlib.resources import as_file, files
 
@@ -52,8 +54,6 @@ try:
 except ImportError:
     from importlib.resources import path as resource_path
 
-
-logger = logging.getLogger(__name__)
 
 python_icon_path = resource_path(
     package="desktop_notifier.resources", resource="python.png"
@@ -102,7 +102,7 @@ class FileResource:
         if self.path is not None:
             return self.path
         if self.uri is not None:
-            parsed_uri = urlparse(self.uri)
+            parsed_uri = urllib.parse.urlparse(self.uri)
             return Path(unquote(parsed_uri.path))
 
         raise AttributeError("No path or URI provided")
@@ -442,7 +442,7 @@ class DesktopNotifierBase(ABC):
             # a warning.
             if notification_to_replace:
                 self._current_notifications.appendleft(notification_to_replace)
-            logger.warning("Notification failed", exc_info=True)
+            Logger.logger().warning("Notification failed", exc_info=True)
         else:
             self._current_notifications.append(notification)
             self._notification_for_nid[notification.identifier] = notification

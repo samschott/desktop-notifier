@@ -2,6 +2,8 @@
 """
 Desktop notifications for Windows, Linux, macOS, iOS and iPadOS.
 """
+from importlib.metadata import version
+
 from .main import (
     DesktopNotifier,
     Button,
@@ -16,12 +18,18 @@ from .main import (
     DEFAULT_ICON,
 )
 from .sync import DesktopNotifierSync
+from desktop_notifier.util.pkg_metadata_helper import (
+    __DESKTOP_NOTIFIER_PACKAGE_NAME__,
+    _get_primary_author_name,
+    _get_project_url,
+)
 
-__version__ = "5.0.0"
-__author__ = "Sam Schott"
-__url__ = "https://github.com/samschott/desktop-notifier"
+__version__ = version(__DESKTOP_NOTIFIER_PACKAGE_NAME__)
+__author__ = _get_primary_author_name()
+__url__ = _get_project_url()
 
 __all__ = [
+    "__DESKTOP_NOTIFIER_PACKAGE_NAME__",
     "__version__",
     "__author__",
     "__url__",
