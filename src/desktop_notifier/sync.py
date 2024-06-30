@@ -3,6 +3,7 @@
 Synchronous desktop notification API
 """
 
+import logging
 from __future__ import annotations
 
 # system imports
@@ -25,6 +26,7 @@ from .base import (
 
 __all__ = ["DesktopNotifierSync"]
 
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -141,9 +143,9 @@ class DesktopNotifierSync:
         if self._event_loop is None:
             try:
                 self._event_loop = asyncio.get_running_loop()
-                print("Found running event loop, using it.")
+                logger.debug("Found running event loop, using it.")
             except RuntimeError:
-                print("No running event loop found, creating a new one.")
+                logger.debug("No running event loop found, creating a new one.")
                 self._event_loop = asyncio.new_event_loop()
 
         return self._event_loop
