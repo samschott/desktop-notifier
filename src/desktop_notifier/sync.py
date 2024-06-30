@@ -4,10 +4,11 @@ Synchronous desktop notification API
 """
 
 from __future__ import annotations
+import logging
 
 # system imports
 import asyncio
-from typing import Callable, Coroutine, Any, Sequence, TypeVar, List
+from typing import Any, Callable, Coroutine, List, Optional, Sequence, TypeVar
 
 # local imports
 from .main import DesktopNotifier
@@ -25,6 +26,7 @@ from .base import (
 
 __all__ = ["DesktopNotifierSync"]
 
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -45,16 +47,16 @@ class DesktopNotifierSync:
         notification_limit: int | None = None,
     ) -> None:
         self._async_api = DesktopNotifier(app_name, app_icon, notification_limit)
-        self._loop = asyncio.new_event_loop()
+        self._event_loop: Optional[asyncio.AbstractEventLoop] = None
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
         # Make sure to always use the same loop because async queues, future, etc. are
         # always bound to a loop.
-        if self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        if self._get_event_loop().is_running():
+            future = asyncio.run_coroutine_threadsafe(coro, self._get_event_loop())
             res = future.result()
         else:
-            res = self._loop.run_until_complete(coro)
+            res = self._get_event_loop().run_until_complete(coro)
 
         return res
 
@@ -135,3 +137,15 @@ class DesktopNotifierSync:
         """See :meth:`desktop_notifier.main.DesktopNotifier.get_capabilities`"""
         coro = self._async_api.get_capabilities()
         return self._run_coro_sync(coro)
+
+    def _get_event_loop(self) -> asyncio.AbstractEventLoop:
+        """Return the event loop. Create a new one if none is running."""
+        if self._event_loop is None:
+            try:
+                self._event_loop = asyncio.get_running_loop()
+                logger.debug("Found running event loop, using it.")
+            except RuntimeError:
+                logger.debug("No running event loop found, creating a new one.")
+                self._event_loop = asyncio.new_event_loop()
+
+        return self._event_loop
