@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import logging
 import platform
 import ctypes
 
@@ -10,6 +10,7 @@ from rubicon.objc import ObjCClass
 from rubicon.objc.runtime import load_library
 
 
+logger = logging.getLogger(__name__)
 macos_version = Version(platform.mac_ver()[0])
 
 
@@ -42,6 +43,7 @@ def is_bundle() -> bool:
     :returns: Whether we are inside an app bundle.
     """
     main_bundle = NSBundle.mainBundle
+    logger.info(f"main_bundle.bundleURL: {main_bundle.bundleURL}")
     return main_bundle.bundleIdentifier is not None
 
 
@@ -54,15 +56,17 @@ def is_signed_bundle() -> bool:
     main_bundle = NSBundle.mainBundle
 
     if main_bundle.bundleIdentifier is None:
+        _log_unsigned_warning("bundleIdentifier is None")
         return False
 
-    # Check for valid signature.
+    # Check for valid code signature on bundle.
     static_code = ctypes.c_void_p(0)
     err = sec.SecStaticCodeCreateWithPath(
         main_bundle.bundleURL, kSecCSDefaultFlags, ctypes.byref(static_code)
     )
 
     if err != 0:
+        _log_unsigned_warning(f"SecStaticCodeCreateWithPath() error: {err}")
         return False
 
     signed_status = sec.SecStaticCodeCheckValidity(
@@ -71,4 +75,12 @@ def is_signed_bundle() -> bool:
         None,
     )
 
-    return cast(int, signed_status) == 0
+    if cast(int, signed_status) == 0:
+        return True
+    else:
+        _log_unsigned_warning(f"signed_status is {signed_status}")
+        return False
+
+
+def _log_unsigned_warning(msg: str)  -> None:
+    logger.warning(f"Unsigned bundle ({msg})")

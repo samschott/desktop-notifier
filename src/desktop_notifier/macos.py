@@ -186,8 +186,12 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         has_authorization, error = await asyncio.wrap_future(future)
 
         if error:
-            log_nserror(error, "Authorisation denied")
+            log_nserror(error, "Error requesting notification authorization")
             error.autorelease()  # type:ignore[attr-defined]
+        elif not has_authorization:
+            logger.info("Not authorized to send notifications.")
+        else:
+            logger.debug("Authorized to send notifications")
 
         return has_authorization
 
@@ -230,7 +234,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         # On macOS, we need to register a new notification category for every
         # unique set of buttons.
-        category_id = await self._create_category_for_notification(notification)
+        category_id = await self._find_or_create_notification_category(notification)
+
+        if category_id is not None:
+            logger.debug(f"Notification category_id: {category_id}")
 
         # Create the native notification and notification request.
         content = UNMutableNotificationContent.alloc().init()
@@ -292,7 +299,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         notification.identifier = platform_nid
 
-    async def _create_category_for_notification(
+    async def _find_or_create_notification_category(
         self, notification: Notification
     ) -> Optional[str]:
         """
@@ -320,6 +327,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         # Register new category if necessary.
         if category_id not in category_ids:
             # Create action for each button.
+            logger.debug(f"Creating new notification category '{category_id}'")
             actions = []
 
             if notification.reply_field:
