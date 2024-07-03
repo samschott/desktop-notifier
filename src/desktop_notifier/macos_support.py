@@ -82,5 +82,5 @@ def is_signed_bundle() -> bool:
         return False
 
 
-def _log_unsigned_warning(msg: str)  -> None:
+def _log_unsigned_warning(msg: str) -> None:
     logger.warning(f"Unsigned bundle ({msg})")
