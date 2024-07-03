@@ -309,12 +309,10 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
-        if not (notification.buttons or notification.reply_field):
-            return None
+        category_id = self._category_id(notification)
 
-        button_titles = tuple(notification.buttons)
-        ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
-        category_id = f"desktop-notifier: {ui_repr}"
+        if not category_id:
+            return None
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
@@ -394,6 +392,20 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         any notification requests that are scheduled, but have not yet been delivered.
         """
         self.nc.removeAllDeliveredNotifications()
+
+    def _category_id(self, notification: Notification) -> Optional[str]:
+        """
+        Build the category ID string for the given notification. Only notifications
+        with a button and/or a reply_field will have a category ID.
+        """
+        if not (notification.buttons or notification.reply_field):
+            return None
+
+        pkg_prefix = self.__module__.split(".")[0].replace('_', '-')
+        button_titles = tuple(notification.buttons)
+        ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
+        return f"{pkg_prefix}: {ui_repr}"
+
 
     async def get_capabilities(self) -> frozenset[Capability]:
         capabilities = {
