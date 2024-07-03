@@ -406,7 +406,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
         return f"{pkg_prefix}: {ui_repr}"
 
-
     async def get_capabilities(self) -> frozenset[Capability]:
         capabilities = {
             Capability.TITLE,
