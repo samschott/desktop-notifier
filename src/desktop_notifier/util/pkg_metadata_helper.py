@@ -17,7 +17,7 @@ def _get_project_url() -> str | None:
     # 'project_urls' should be a string that looks like this
     #    "Homepage, https://github.com/samschott/desktop-notifier"
     if isinstance(project_urls, str):
-        return project_urls.split(',', maxsplit=1)[1].strip()
+        return project_urls.split(",", maxsplit=1)[1].strip()
     else:
         print(f"WARNING: Could not parse project URL from {project_urls}")
 
@@ -30,7 +30,7 @@ def _get_primary_author_name() -> str:
     dummy_email = email_parser.parsestr(dummy_email_str)
 
     try:
-        return dummy_email['to'].addresses[0].display_name
+        return str(dummy_email["to"].addresses[0].display_name)
     except IndexError:
         print(f"WARNING: Could not parse author name from {dummy_email_str}")
         return "Sam Schott"
