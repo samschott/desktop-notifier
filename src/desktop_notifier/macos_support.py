@@ -43,7 +43,7 @@ def is_bundle() -> bool:
     :returns: Whether we are inside an app bundle.
     """
     main_bundle = NSBundle.mainBundle
-    logger.info(f"main_bundle.bundleURL: {main_bundle.bundleURL}")
+    logger.debug(f"main_bundle.bundleURL: {main_bundle.bundleURL}")
     return main_bundle.bundleIdentifier is not None
 
 
