@@ -168,6 +168,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :returns: Whether authorisation has been granted.
         """
+        logger.debug("Requesting notification authorisation")
         future: Future[tuple[bool, str]] = Future()
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
