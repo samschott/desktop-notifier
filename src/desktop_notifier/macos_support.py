@@ -73,14 +73,17 @@ def is_signed_bundle() -> bool:
         None,
     )
 
-    if cast(int, signed_status) == 0:
+    signed_status = cast(int, signed_status)
+
+    if signed_status == 0:
         return True
     else:
         _codesigning_warning("SecStaticCodeCheckValidity", signed_status)
         return False
 
 
-def _codesigning_warning(fxn_name: str, os_status: int) -> str:
+def _codesigning_warning(fxn_name: str, os_status: int) -> None:
+    """Log a warning about a failed code signing check."""
     logger.warning(
         f"Cannot verify app signature. {fxn_name}() failed with OSStatus: {os_status}"
     )
