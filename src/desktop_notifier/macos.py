@@ -328,7 +328,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         # Register new category if necessary.
         if category_id not in category_ids:
             # Create action for each button.
-            logger.debug(f"Creating new notification category '{category_id}'")
+            logger.debug("Creating new notification category: '%s'", category_id)
             actions = []
 
             if notification.reply_field:
