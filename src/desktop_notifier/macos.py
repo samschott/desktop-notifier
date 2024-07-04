@@ -218,7 +218,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         Count how many notifications have been delivered. Note that each installed version of
         the app will have its own count.
         """
-        # Actual functionality
         logger.debug("Counting delivered notifications...")
         future: Future[NSArray[UNNotification]] = Future()  # type:ignore[valid-type]
 
@@ -228,7 +227,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self.nc.getDeliveredNotificationsWithCompletionHandler(handler)
         notifications = await asyncio.wrap_future(future)
         logger.debug("Delivered %d notifications", len(notifications))
-        #notifications.autorelease()  # type:ignore[attr-defined]
         return len(notifications)
 
 
