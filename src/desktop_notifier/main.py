@@ -294,3 +294,14 @@ class DesktopNotifier:
         if not self._capabilities:
             self._capabilities = await self._impl.get_capabilities()
         return self._capabilities
+
+    async def count_delivered_notifications(self) -> int:
+        """
+        Returns the number of notifications currently displayed for this app.
+        """
+        from .macos import CocoaNotificationCenter
+
+        if not isinstance(self._impl, CocoaNotificationCenter):
+            raise NotImplementedError(f"This method is only implemented for macOS")
+
+        return await self._impl.count_delivered_notifications()

@@ -21,7 +21,7 @@ from typing import cast, Optional
 
 # external imports
 from packaging.version import Version
-from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
+from rubicon.objc import NSArray, NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_id, objc_block
 
 # local imports
@@ -51,6 +51,7 @@ UNNotificationCategory = ObjCClass("UNNotificationCategory")
 UNNotificationSound = ObjCClass("UNNotificationSound")
 UNNotificationAttachment = ObjCClass("UNNotificationAttachment")
 UNNotificationSettings = ObjCClass("UNNotificationSettings")
+UNNotification = ObjCClass("UNNotification")
 
 NSURL = ObjCClass("NSURL")
 NSSet = ObjCClass("NSSet")
@@ -211,6 +212,25 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         settings.autorelease()  # type:ignore[attr-defined]
 
         return authorized
+
+    async def count_delivered_notifications(self) -> int:
+        """
+        Count how many notifications have been delivered. Note that each installed version of
+        the app will have its own count.
+        """
+        # Actual functionality
+        logger.debug("Counting delivered notifications...")
+        future: Future[NSArray[UNNotification]] = Future()  # type:ignore[valid-type]
+
+        def handler(notifications: objc_id) -> None:
+            future.set_result(py_from_ns(notifications))
+
+        self.nc.getDeliveredNotificationsWithCompletionHandler(handler)
+        notifications = await asyncio.wrap_future(future)
+        logger.debug("Delivered %d notifications", len(notifications))
+        #notifications.autorelease()  # type:ignore[attr-defined]
+        return len(notifications)
+
 
     async def _send(
         self,

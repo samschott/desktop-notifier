@@ -1,3 +1,4 @@
+import platform
 import sys
 import pytest
 
@@ -39,6 +40,17 @@ async def test_send(notifier):
     )
     assert notification in notifier.current_notifications
     assert notification.identifier != ""
+
+
+@pytest.mark.asyncio
+async def test_count_delivered_notifications(notifier):
+    if platform.system() != "Darwin":
+        return
+
+    old_count = await notifier.count_delivered_notifications()
+    await notifier.send(title="Julius Caesar", message="Et tu, Brute?")
+    new_count = await notifier.count_delivered_notifications()
+    assert (new_count - old_count) == 1
 
 
 @pytest.mark.asyncio
