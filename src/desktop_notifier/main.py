@@ -297,7 +297,7 @@ class DesktopNotifier:
 
     async def count_delivered_notifications(self) -> int:
         """
-        Returns the number of notifications currently displayed for this app.
+        Returns the number of notifications ever sent for this app.
         """
         from .macos import CocoaNotificationCenter
 
