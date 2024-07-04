@@ -225,9 +225,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             future.set_result(py_from_ns(notifications))
 
         self.nc.getDeliveredNotificationsWithCompletionHandler(handler)
-        notifications = await asyncio.wrap_future(future)
-        logger.debug("Delivered %d notifications", len(notifications))
-        return len(notifications)
+        notification_count = len(await asyncio.wrap_future(future))
+        logger.debug("Delivered %d notifications", notification_count)
+        return notification_count
 
 
     async def _send(
