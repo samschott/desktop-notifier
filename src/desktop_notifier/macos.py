@@ -168,7 +168,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :returns: Whether authorisation has been granted.
         """
-        logger.debug("Requesting notification authorisation")
+        logger.debug("Requesting notification authorisation...")
         future: Future[tuple[bool, str]] = Future()
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
@@ -238,7 +238,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         category_id = await self._find_or_create_notification_category(notification)
 
         if category_id is not None:
-            logger.debug(f"Notification category_id: {category_id}")
+            logger.debug("Notification category_id: %s", category_id)
 
         # Create the native notification and notification request.
         content = UNMutableNotificationContent.alloc().init()

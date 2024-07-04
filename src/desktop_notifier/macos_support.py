@@ -43,7 +43,6 @@ def is_bundle() -> bool:
     :returns: Whether we are inside an app bundle.
     """
     main_bundle = NSBundle.mainBundle
-    logger.debug(f"main_bundle.bundleURL: {main_bundle.bundleURL}")
     return main_bundle.bundleIdentifier is not None
 
 
@@ -56,7 +55,6 @@ def is_signed_bundle() -> bool:
     main_bundle = NSBundle.mainBundle
 
     if main_bundle.bundleIdentifier is None:
-        _log_unsigned_warning("bundleIdentifier is None")
         return False
 
     # Check for valid code signature on bundle.
@@ -66,7 +64,7 @@ def is_signed_bundle() -> bool:
     )
 
     if err != 0:
-        _log_unsigned_warning(f"SecStaticCodeCreateWithPath() error: {err}")
+        _codesigning_warning("SecStaticCodeCreateWithPath", err)
         return False
 
     signed_status = sec.SecStaticCodeCheckValidity(
@@ -78,9 +76,11 @@ def is_signed_bundle() -> bool:
     if cast(int, signed_status) == 0:
         return True
     else:
-        _log_unsigned_warning(f"signed_status is {signed_status}")
+        _codesigning_warning("SecStaticCodeCheckValidity", signed_status)
         return False
 
 
-def _log_unsigned_warning(msg: str) -> None:
-    logger.warning(f"Unsigned bundle ({msg})")
+def _codesigning_warning(fxn_name: str, os_status: int) -> str:
+    logger.warning(
+        f"Cannot verify app signature. {fxn_name}() failed with OSStatus: {os_status}"
+    )
