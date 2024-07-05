@@ -302,6 +302,6 @@ class DesktopNotifier:
         from .macos import CocoaNotificationCenter
 
         if not isinstance(self._impl, CocoaNotificationCenter):
-            raise NotImplementedError(f"This method is only implemented for macOS")
+            raise NotImplementedError("This method is only implemented for macOS")
 
         return await self._impl.count_delivered_notifications()
