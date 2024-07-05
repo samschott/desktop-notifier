@@ -12,6 +12,7 @@ import asyncio
 import warnings
 from urllib import parse
 from pathlib import Path
+from sys import version_info
 from typing import (
     Type,
     Callable,
@@ -300,8 +301,11 @@ class DesktopNotifier:
         Returns the number of notifications ever sent for this app.
         """
         from .macos import CocoaNotificationCenter
+        from .macos_support import macos_version
 
         if not isinstance(self._impl, CocoaNotificationCenter):
             raise NotImplementedError("This method is only implemented for macOS")
+        elif macos_version < Version("13.0") and version_info.minor < 10:
+            raise NotImplementedError("Requires python 3.10+ on macOS 12 or lower")
 
         return await self._impl.count_delivered_notifications()
