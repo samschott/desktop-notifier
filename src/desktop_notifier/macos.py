@@ -229,7 +229,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         logger.debug("Delivered %d notifications", notification_count)
         return notification_count
 
-
     async def _send(
         self,
         notification: Notification,
