@@ -16,7 +16,8 @@ def notifier():
     dn = DesktopNotifier()
     # Skip requesting authorization to void blocking if not granted.
     dn._did_request_authorisation = True
-    return dn
+    yield dn
+    dn.clear_all()
 
 
 @pytest.fixture
@@ -24,4 +25,5 @@ def notifier_sync():
     dn = DesktopNotifierSync()
     # Skip requesting authorization to void blocking if not granted.
     dn._async_api._did_request_authorisation = True
-    return dn
+    yield dn
+    dn.clear_all()
