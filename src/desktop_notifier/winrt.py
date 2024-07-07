@@ -7,7 +7,6 @@ ctypes because the C winapi only supports basic notifications with a title and m
 This backend therefore requires interaction with the Windows Runtime and uses the winrt
 package with compiled components.
 """
-
 from __future__ import annotations
 
 # system imports

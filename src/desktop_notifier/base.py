@@ -3,7 +3,6 @@
 This module defines base classes for desktop notifications. All platform implementations
 must inherit from :class:`DesktopNotifierBase`.
 """
-
 from __future__ import annotations
 
 import logging

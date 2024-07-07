@@ -2,7 +2,6 @@
 """
 Asynchronous desktop notification API
 """
-
 from __future__ import annotations
 
 # system imports
