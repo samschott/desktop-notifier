@@ -1,3 +1,9 @@
+# v5.0.1
+
+## Fixed:
+
+* Fixed compatibility of type annotations with Python 3.8.
+
 # v5.0.0
 
 ## Added:
