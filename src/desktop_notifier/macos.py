@@ -8,6 +8,8 @@ UNUserNotificationCenter backend for macOS
   signed Python framework (for example from python.org).
 * Requires a running CFRunLoop to invoke callbacks.
 """
+from __future__ import annotations
+
 # system imports
 import shutil
 import tempfile
