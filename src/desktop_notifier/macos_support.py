@@ -44,7 +44,7 @@ def is_bundle() -> bool:
 
     :returns: Whether we are inside an app bundle.
     """
-    return _bundle_id() is not None
+    return NSBundle.mainBundle.bundleIdentifier is not None
 
 
 def is_signed_bundle() -> bool:
@@ -57,10 +57,9 @@ def is_signed_bundle() -> bool:
         return False
 
     # Check for valid code signature on bundle.
-    main_bundle = NSBundle.mainBundle
     static_code = ctypes.c_void_p(0)
     err = sec.SecStaticCodeCreateWithPath(
-        main_bundle.bundleURL, kSecCSDefaultFlags, ctypes.byref(static_code)
+        NSBundle.mainBundle.bundleURL, kSecCSDefaultFlags, ctypes.byref(static_code)
     )
 
     if err != 0:
@@ -82,19 +81,11 @@ def is_signed_bundle() -> bool:
         return False
 
 
-def _codesigning_warning(fxn_name: str, os_status: int) -> None:
+def _codesigning_warning(call: str, os_status: int) -> None:
     """Log a warning about a failed code signing check."""
     logger.warning(
-        f"Cannot verify signature of bundle {_bundle_id()}. "
-        f"{fxn_name}() failed with OSStatus: {os_status}"
+        "Cannot verify signature of bundle %s. %s call failed with OSStatus: %s",
+        NSBundle.mainBundle.bundleIdentifier,
+        call,
+        os_status,
     )
-
-
-def _bundle_id() -> str | None:
-    """
-    Get the bundle identifier of the current app bundle.
-
-    :returns: The bundle ID of the current app bundle.
-    """
-    main_bundle = NSBundle.mainBundle
-    return main_bundle.bundleIdentifier
