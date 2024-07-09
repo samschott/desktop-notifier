@@ -219,6 +219,8 @@ class DesktopNotifier:
         # trigger a system dialog to ask the user for permission.
         if not self._did_request_authorisation:
             await self.request_authorisation()
+        else:
+            logger.debug("Notification center authorisation was already requested")
 
         # We attempt to send the notification regardless of authorization.
         # The user may have changed settings in the meantime.
