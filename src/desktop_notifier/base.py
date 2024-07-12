@@ -175,6 +175,7 @@ class Urgency(Enum):
     """Low priority notification."""
 
 
+@dataclass
 class Button:
     """
     A button for interactive notifications
@@ -184,18 +185,11 @@ class Button:
         without any arguments.
     """
 
-    def __init__(
-        self,
-        title: str,
-        on_pressed: Callable[[], Any] | None = None,
-    ) -> None:
-        self.title = title
-        self.on_pressed = on_pressed
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(title='{self.title}', on_pressed={self.on_pressed})>"
+    title: str
+    on_pressed: Callable[[], Any] | None = None
 
 
+@dataclass
 class ReplyField:
     """
     A reply field for interactive notifications
@@ -207,18 +201,9 @@ class ReplyField:
         without any arguments.
     """
 
-    def __init__(
-        self,
-        title: str = "Reply",
-        button_title: str = "Send",
-        on_replied: Callable[[str], Any] | None = None,
-    ) -> None:
-        self.title = title
-        self.button_title = button_title
-        self.on_replied = on_replied
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(title='{self.title}', on_replied={self.on_replied})>"
+    title: str = "Reply"
+    button_title: str = "Send"
+    on_replied: Callable[[str], Any] | None = None
 
 
 class Notification:
