@@ -8,7 +8,7 @@ from desktop_notifier import (
     DesktopNotifier,
     DesktopNotifierSync,
     Notification,
-    ReplyField
+    ReplyField,
 )
 
 
