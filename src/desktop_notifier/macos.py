@@ -320,16 +320,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         """
         category_id = self._category_id(notification)
 
-        # id_list = ["desktop-notifier"]
-        # for button in notification.buttons:
-        #     id_list += [f"button-title-{button.title}"]
-
-        # if notification.reply_field:
-        #     id_list += [f"reply-title-{notification.reply_field.title}"]
-        #     id_list += [f"reply-button-title-{notification.reply_field.button_title}"]
-
-        # category_id = "_".join(id_list)
-
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
         categories = await self._get_notification_categories()
@@ -408,30 +398,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         any notification requests that are scheduled, but have not yet been delivered.
         """
         self.nc.removeAllDeliveredNotifications()
-
-    def _category_id(self, notification: Notification) -> Optional[str]:
-        """
-        Build the category ID string for the given notification. Only notifications
-        with a button and/or a reply_field will have a category ID.
-        """
-        # pkg_prefix = self.__module__.split(".")[0].replace('_', '-')
-        id_list = ["desktop-notifier"]
-
-        for button in notification.buttons:
-            id_list += [f"button-title-{button.title}"]
-
-        if notification.reply_field:
-            id_list += [f"reply-title-{notification.reply_field.title}"]
-            id_list += [f"reply-button-title-{notification.reply_field.button_title}"]
-
-        return '__'.join(id_list)
-
-        # if not (notification.buttons or notification.reply_field):
-        #     return None
-
-        # button_titles = tuple(notification.buttons)
-        # ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
-        # return f"{pkg_prefix}: {ui_repr}"
 
     async def get_capabilities(self) -> frozenset[Capability]:
         capabilities = {

@@ -41,6 +41,8 @@ def notification():
             )
         ],
         reply_field=ReplyField(
+            title="And Cassius, too?",
+            button_title="Send it",
             on_replied=lambda text: print("Brutus replied:", text),
         ),
         on_clicked=lambda: print("Notification clicked"),

@@ -320,6 +320,23 @@ class Notification:
     def identifier(self, nid: str) -> None:
         self._identifier = nid
 
+    def category_id(self) -> str:
+        """
+        Build the category ID string for the given notification.
+        """
+        # pkg_prefix = self.__module__.split(".")[0].replace('_', '-')
+        id_list = [self.__module__.split(".")[0].replace('_', '-')]
+        # id_list = ["desktop-notifier"]
+
+        for button in self.buttons:
+            id_list += [f"button-title-{button.title}"]
+
+        if self.reply_field:
+            id_list += [f"reply-title-{self.reply_field.title}"]
+            id_list += [f"reply-button-title-{self.reply_field.button_title}"]
+
+        return '__'.join(id_list)
+
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__}(identifier='{self.identifier}', "
