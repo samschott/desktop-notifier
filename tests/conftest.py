@@ -2,7 +2,14 @@ import platform
 import asyncio
 
 import pytest
-from desktop_notifier import Button, DesktopNotifier, DesktopNotifierSync, Notification, ReplyField
+
+from desktop_notifier import (
+    Button,
+    DesktopNotifier,
+    DesktopNotifierSync,
+    Notification,
+    ReplyField
+)
 
 
 if platform.system() == "Darwin":
