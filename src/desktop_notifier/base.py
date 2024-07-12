@@ -324,7 +324,7 @@ class Notification:
         """
         Build the macOs category ID string for the given notification.
         """
-        id_list = [self.__module__.split(".")[0].replace('_', '-')]
+        id_list = [self.__module__.split(".")[0].replace("_", "-")]
 
         for button in self.buttons:
             id_list += [f"button-title-{button.title}"]
@@ -333,7 +333,7 @@ class Notification:
             id_list += [f"reply-title-{self.reply_field.title}"]
             id_list += [f"reply-button-title-{self.reply_field.button_title}"]
 
-        return '__'.join(id_list)
+        return "__".join(id_list)
 
     def __repr__(self) -> str:
         return (
