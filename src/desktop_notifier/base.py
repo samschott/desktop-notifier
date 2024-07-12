@@ -322,11 +322,9 @@ class Notification:
 
     def category_id(self) -> str:
         """
-        Build the category ID string for the given notification.
+        Build the macOs category ID string for the given notification.
         """
-        # pkg_prefix = self.__module__.split(".")[0].replace('_', '-')
         id_list = [self.__module__.split(".")[0].replace('_', '-')]
-        # id_list = ["desktop-notifier"]
 
         for button in self.buttons:
             id_list += [f"button-title-{button.title}"]
