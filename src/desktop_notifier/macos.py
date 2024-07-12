@@ -66,7 +66,6 @@ UNNotificationDefaultActionIdentifier = (
 UNNotificationDismissActionIdentifier = (
     "com.apple.UNNotificationDismissActionIdentifier"
 )
-ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 UNAuthorizationOptionBadge = 1 << 0
 UNAuthorizationOptionSound = 1 << 1
@@ -89,6 +88,9 @@ class UNNotificationInterruptionLevel(enum.Enum):
     Active = 1
     TimeSensitive = 2
     Critical = 3
+
+
+ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 
 class NotificationCenterDelegate(NSObject):  # type:ignore
@@ -306,8 +308,12 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self, notification: Notification
     ) -> Optional[str]:
         """
-        Registers a new notification category with UNNotificationCenter for the given
-        notification or retrieves an existing one if it exists for our set of buttons.
+        Registers a new UNNotificationCategory for the given notification or retrieves
+        an existing one.
+
+        A new category is registered for each set of unique button titles, reply field
+        title and reply field button title since on Apple platforms all of these
+        elements are tied to a UNNotificationCategory.
 
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
@@ -315,9 +321,15 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         if not (notification.buttons or notification.reply_field):
             return None
 
-        button_titles = tuple(notification.buttons)
-        ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
-        category_id = f"desktop-notifier: {ui_repr}"
+        id_list = ["desktop-notifier"]
+        for button in notification.buttons:
+            id_list += [f"button-title-{button.title}"]
+
+        if notification.reply_field:
+            id_list += f"reply-title-{notification.reply_field.title}"
+            id_list += f"reply-button-title-{notification.reply_field.button_title}"
+
+        category_id = "_".join(id_list)
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
