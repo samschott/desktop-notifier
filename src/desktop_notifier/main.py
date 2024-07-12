@@ -2,7 +2,6 @@
 """
 Asynchronous desktop notification API
 """
-
 from __future__ import annotations
 
 # system imports
@@ -219,10 +218,9 @@ class DesktopNotifier:
         # Ask for authorisation if not already done. On some platforms, this will
         # trigger a system dialog to ask the user for permission.
         if not self._did_request_authorisation:
-            logger.debug(f"Requesting notification center authorisation for the first time")
             await self.request_authorisation()
         else:
-            logger.debug(f"Notification center authorisation was already requested")
+            logger.debug("Notification center authorisation was already requested")
 
         # We attempt to send the notification regardless of authorization.
         # The user may have changed settings in the meantime.

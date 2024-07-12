@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import logging
 import platform
 import ctypes
@@ -42,9 +44,7 @@ def is_bundle() -> bool:
 
     :returns: Whether we are inside an app bundle.
     """
-    main_bundle = NSBundle.mainBundle
-    logger.debug(f"main_bundle.bundleURL: {main_bundle.bundleURL}")
-    return main_bundle.bundleIdentifier is not None
+    return NSBundle.mainBundle.bundleIdentifier is not None
 
 
 def is_signed_bundle() -> bool:
@@ -53,20 +53,17 @@ def is_signed_bundle() -> bool:
 
     :returns: Whether we are inside a signed app bundle.
     """
-    main_bundle = NSBundle.mainBundle
-
-    if main_bundle.bundleIdentifier is None:
-        _log_unsigned_warning("bundleIdentifier is None")
+    if not is_bundle():
         return False
 
     # Check for valid code signature on bundle.
     static_code = ctypes.c_void_p(0)
     err = sec.SecStaticCodeCreateWithPath(
-        main_bundle.bundleURL, kSecCSDefaultFlags, ctypes.byref(static_code)
+        NSBundle.mainBundle.bundleURL, kSecCSDefaultFlags, ctypes.byref(static_code)
     )
 
     if err != 0:
-        _log_unsigned_warning(f"SecStaticCodeCreateWithPath() error: {err}")
+        _codesigning_warning("SecStaticCodeCreateWithPath", err)
         return False
 
     signed_status = sec.SecStaticCodeCheckValidity(
@@ -75,12 +72,20 @@ def is_signed_bundle() -> bool:
         None,
     )
 
-    if cast(int, signed_status) == 0:
+    signed_status = cast(int, signed_status)
+
+    if signed_status == 0:
         return True
     else:
-        _log_unsigned_warning(f"signed_status is {signed_status}")
+        _codesigning_warning("SecStaticCodeCheckValidity", signed_status)
         return False
 
 
-def _log_unsigned_warning(msg: str)  -> None:
-    logger.warning(f"Unsigned bundle ({msg})")
+def _codesigning_warning(call: str, os_status: int) -> None:
+    """Log a warning about a failed code signing check."""
+    logger.warning(
+        "Cannot verify signature of bundle %s. %s call failed with OSStatus: %s",
+        NSBundle.mainBundle.bundleIdentifier,
+        call,
+        os_status,
+    )

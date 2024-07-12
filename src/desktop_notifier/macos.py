@@ -8,6 +8,8 @@ UNUserNotificationCenter backend for macOS
   signed Python framework (for example from python.org).
 * Requires a running CFRunLoop to invoke callbacks.
 """
+from __future__ import annotations
+
 # system imports
 import shutil
 import tempfile
@@ -64,7 +66,6 @@ UNNotificationDefaultActionIdentifier = (
 UNNotificationDismissActionIdentifier = (
     "com.apple.UNNotificationDismissActionIdentifier"
 )
-ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 UNAuthorizationOptionBadge = 1 << 0
 UNAuthorizationOptionSound = 1 << 1
@@ -87,6 +88,9 @@ class UNNotificationInterruptionLevel(enum.Enum):
     Active = 1
     TimeSensitive = 2
     Critical = 3
+
+
+ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 
 class NotificationCenterDelegate(NSObject):  # type:ignore
@@ -168,6 +172,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         :returns: Whether authorisation has been granted.
         """
+        logger.debug("Requesting notification authorisation...")
         future: Future[tuple[bool, str]] = Future()
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
@@ -237,7 +242,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         category_id = await self._find_or_create_notification_category(notification)
 
         if category_id is not None:
-            logger.debug(f"Notification category_id: {category_id}")
+            logger.debug("Notification category_id: %s", category_id)
 
         # Create the native notification and notification request.
         content = UNMutableNotificationContent.alloc().init()
@@ -303,16 +308,27 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         self, notification: Notification
     ) -> Optional[str]:
         """
-        Registers a new notification category with UNNotificationCenter for the given
-        notification or retrieves an existing one if it exists for our set of buttons.
+        Registers a new UNNotificationCategory for the given notification or retrieves
+        an existing one.
+
+        A new category is registered for each set of unique button titles, reply field
+        title and reply field button title since on Apple platforms all of these
+        elements are tied to a UNNotificationCategory.
 
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
         category_id = self._category_id(notification)
 
-        if not category_id:
-            return None
+        # id_list = ["desktop-notifier"]
+        # for button in notification.buttons:
+        #     id_list += [f"button-title-{button.title}"]
+
+        # if notification.reply_field:
+        #     id_list += [f"reply-title-{notification.reply_field.title}"]
+        #     id_list += [f"reply-button-title-{notification.reply_field.button_title}"]
+
+        # category_id = "_".join(id_list)
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
@@ -325,7 +341,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         # Register new category if necessary.
         if category_id not in category_ids:
             # Create action for each button.
-            logger.debug(f"Creating new notification category '{category_id}'")
+            logger.debug("Creating new notification category: '%s'", category_id)
             actions = []
 
             if notification.reply_field:
@@ -398,13 +414,24 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         Build the category ID string for the given notification. Only notifications
         with a button and/or a reply_field will have a category ID.
         """
-        if not (notification.buttons or notification.reply_field):
-            return None
+        # pkg_prefix = self.__module__.split(".")[0].replace('_', '-')
+        id_list = ["desktop-notifier"]
 
-        pkg_prefix = self.__module__.split(".")[0].replace('_', '-')
-        button_titles = tuple(notification.buttons)
-        ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
-        return f"{pkg_prefix}: {ui_repr}"
+        for button in notification.buttons:
+            id_list += [f"button-title-{button.title}"]
+
+        if notification.reply_field:
+            id_list += [f"reply-title-{notification.reply_field.title}"]
+            id_list += [f"reply-button-title-{notification.reply_field.button_title}"]
+
+        return '__'.join(id_list)
+
+        # if not (notification.buttons or notification.reply_field):
+        #     return None
+
+        # button_titles = tuple(notification.buttons)
+        # ui_repr = f"buttons={button_titles}, reply_field={notification.reply_field}"
+        # return f"{pkg_prefix}: {ui_repr}"
 
     async def get_capabilities(self) -> frozenset[Capability]:
         capabilities = {

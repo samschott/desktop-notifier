@@ -2,7 +2,7 @@ import platform
 import asyncio
 
 import pytest
-from desktop_notifier import DesktopNotifier, DesktopNotifierSync
+from desktop_notifier import Button, DesktopNotifier, DesktopNotifierSync, Notification, ReplyField
 
 
 if platform.system() == "Darwin":
@@ -16,7 +16,8 @@ def notifier():
     dn = DesktopNotifier()
     # Skip requesting authorization to void blocking if not granted.
     dn._did_request_authorisation = True
-    return dn
+    yield dn
+    dn.clear_all()
 
 
 @pytest.fixture
@@ -24,4 +25,24 @@ def notifier_sync():
     dn = DesktopNotifierSync()
     # Skip requesting authorization to void blocking if not granted.
     dn._async_api._did_request_authorisation = True
-    return dn
+    yield dn
+    dn.clear_all()
+
+
+@pytest.fixture
+def notification():
+    return Notification(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        buttons=[
+            Button(
+                title="Mark as read",
+                on_pressed=lambda: print("Marked as read"),
+            )
+        ],
+        reply_field=ReplyField(
+            on_replied=lambda text: print("Brutus replied:", text),
+        ),
+        on_clicked=lambda: print("Notification clicked"),
+        on_dismissed=lambda: print("Notification dismissed"),
+    )

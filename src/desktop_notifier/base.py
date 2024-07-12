@@ -3,7 +3,6 @@
 This module defines base classes for desktop notifications. All platform implementations
 must inherit from :class:`DesktopNotifierBase`.
 """
-
 from __future__ import annotations
 
 import logging
@@ -444,7 +443,7 @@ class DesktopNotifierBase(ABC):
                 self._current_notifications.appendleft(notification_to_replace)
             logger.warning("Notification failed", exc_info=True)
         else:
-            logger.debug(f"Notification sent: {notification}")
+            logger.debug("Notification sent: %s", notification)
             self._current_notifications.append(notification)
             self._notification_for_nid[notification.identifier] = notification
 
