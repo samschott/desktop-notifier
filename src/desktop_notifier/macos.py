@@ -326,8 +326,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             id_list += [f"button-title-{button.title}"]
 
         if notification.reply_field:
-            id_list += f"reply-title-{notification.reply_field.title}"
-            id_list += f"reply-button-title-{notification.reply_field.button_title}"
+            id_list += [f"reply-title-{notification.reply_field.title}"]
+            id_list += [f"reply-button-title-{notification.reply_field.button_title}"]
 
         category_id = "_".join(id_list)
 
