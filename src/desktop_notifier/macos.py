@@ -318,7 +318,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
-        category_id = self._category_id(notification)
+        category_id = notification.category_id()
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
