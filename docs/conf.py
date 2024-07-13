@@ -42,9 +42,8 @@ autoapi_options = [
     "members",
     "show-inheritance",
     "show-module-summary",
-    "inherited-members",
 ]
-autoapi_member_order = "groupwise"
+autoapi_member_order = "bysource"
 
 # sphinx.ext.todo
 todo_include_todos = True
