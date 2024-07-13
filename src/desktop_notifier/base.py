@@ -148,10 +148,10 @@ class Sound(Resource):
     pass
 
 
-DEFAULT_ICON = Icon(path=python_icon_path)
+DEFAULT_ICON: Icon = Icon(path=python_icon_path)
 """Python icon"""
 
-DEFAULT_SOUND = Sound(name="default")
+DEFAULT_SOUND: Sound = Sound(name="default")
 """Default system notification sound"""
 
 
