@@ -2,6 +2,7 @@ import platform
 import asyncio
 
 import pytest
+import pytest_asyncio
 from desktop_notifier import DesktopNotifier, DesktopNotifierSync
 
 
@@ -11,13 +12,13 @@ if platform.system() == "Darwin":
     asyncio.set_event_loop_policy(EventLoopPolicy())
 
 
-@pytest.fixture
-def notifier():
+@pytest_asyncio.fixture
+async def notifier():
     dn = DesktopNotifier()
     # Skip requesting authorization to void blocking if not granted.
     dn._did_request_authorisation = True
     yield dn
-    dn.clear_all()
+    await dn.clear_all()
 
 
 @pytest.fixture
