@@ -110,6 +110,15 @@ class DesktopNotifier:
     the main thread* is required. Packages such as :mod:`rubicon.objc` can be used to
     integrate asyncio with a CFRunLoop.
 
+    Callbacks to handle user interactions with a notification can be specified either at
+    the class level, where they take the notification identifier as input, or directly
+    on the notification itself. The latter will take precedence if set.
+
+    Note that handlers that are directly set on the notification are tied to Python
+    notification instance and therefore the app's lifecycle. Handlers that are set on
+    the class level may run also for interactions with a notification while the app was
+    not running, if DesktopNotifier is instantiated at app startup.
+
     :param app_name: Name to identify the application in the notification center. On
         Linux, this should correspond to the application name in a desktop entry. On
         macOS, this argument is ignored and the app is identified by the bundle ID of
@@ -283,9 +292,12 @@ class DesktopNotifier:
     @property
     def on_clicked(self) -> Callable[[str], Any] | None:
         """
-        A method to call when any notification is clicked
+        A method to call when a notification is clicked
 
         The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_clicked handler, it will be
+        used instead of the class-level handler.
         """
         return self._impl.on_clicked
 
@@ -296,9 +308,12 @@ class DesktopNotifier:
     @property
     def on_dismissed(self) -> Callable[[str], Any] | None:
         """
-        A method to call when any notification is dismissed
+        A method to call when a notification is dismissed
 
         The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_dismissed handler, it will be
+        used instead of the class-level handler.
         """
         return self._impl.on_dismissed
 
@@ -309,10 +324,13 @@ class DesktopNotifier:
     @property
     def on_button_pressed(self) -> Callable[[str, str], Any] | None:
         """
-        A method to call when any notification is dismissed
+        A method to call when a notification is dismissed
 
         The method must take the notification identifier and the button number as
         arguments.
+
+        If the notification button itself already specifies an on_pressed handler, it
+        will be used instead of the class-level handler.
         """
         return self._impl.on_button_pressed
 
@@ -326,6 +344,9 @@ class DesktopNotifier:
         A method to call when a user responds through the reply field of a notification
 
         The method must take the notification identifier and input text as arguments.
+
+        If the notification's reply field itself already specifies an on_replied
+        handler, it will be used instead of the class-level handler.
         """
         return self._impl.on_replied
 
