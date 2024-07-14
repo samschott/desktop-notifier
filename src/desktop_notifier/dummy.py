@@ -13,12 +13,8 @@ from .base import Notification, DesktopNotifierBase
 class DummyNotificationCenter(DesktopNotifierBase):
     """A dummy backend for unsupported platforms"""
 
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: int | None = None,
-    ) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(self, app_name: str) -> None:
+        super().__init__(app_name)
 
     async def request_authorisation(self) -> bool:
         """
@@ -34,12 +30,8 @@ class DummyNotificationCenter(DesktopNotifierBase):
         """
         return True
 
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Notification | None,
-    ) -> None:
-        notification.identifier = str(uuid.uuid4())
+    async def _send(self, notification: Notification) -> None:
+        pass
 
     async def _clear(self, notification: Notification) -> None:
         pass

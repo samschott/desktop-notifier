@@ -138,10 +138,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
     will be ignored. The notification center automatically uses the values provided
     by the app bundle.
 
-    :param app_name: The name of the app. Does not have any effect because the app
-        name is automatically determined from the bundle or framework.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
+    :param app_name: The name of the app.
     """
 
     _to_native_urgency = {
@@ -150,12 +147,8 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         Urgency.Critical: UNNotificationInterruptionLevel.TimeSensitive,
     }
 
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: Optional[int] = None,
-    ) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(self, app_name: str) -> None:
+        super().__init__(app_name)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
         self.nc_delegate.interface = self
@@ -221,22 +214,12 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return authorized
 
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Optional[Notification],
-    ) -> None:
+    async def _send(self, notification: Notification) -> None:
         """
         Uses UNUserNotificationCenter to schedule a notification.
 
         :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
         """
-        if notification_to_replace:
-            platform_nid = notification_to_replace.identifier
-        else:
-            platform_nid = str(uuid.uuid4())
-
         # On macOS, we need to register a new notification category for every
         # unique set of buttons.
         category_id = await self._find_or_create_notification_category(notification)
@@ -279,7 +262,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 content.attachments = [attachment]
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
-            platform_nid, content=content, trigger=None
+            notification.identifier, content=content, trigger=None
         )
 
         future: Future[NSError] = Future()  # type:ignore[valid-type]
@@ -301,8 +284,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         if error:
             log_nserror(error, "Error when scheduling notification")
             error.autorelease()  # type:ignore[attr-defined]
-
-        notification.identifier = platform_nid
 
     async def _find_or_create_notification_category(
         self, notification: Notification
