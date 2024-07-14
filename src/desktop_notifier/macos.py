@@ -101,11 +101,9 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         self, center, response, completion_handler: objc_block
     ) -> None:
         # Get the notification which was clicked from the platform ID.
-        platform_nid = py_from_ns(response.notification.request.identifier)
-        py_notification = self.interface._notification_for_nid[platform_nid]
+        identifier = py_from_ns(response.notification.request.identifier)
+        py_notification = self.implementation._notification_cache.pop(identifier)
         py_notification = cast(Notification, py_notification)
-
-        self.interface._clear_notification_from_cache(py_notification)
 
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
@@ -376,13 +374,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         empty_set = NSSet.alloc().init()
         self.nc.setNotificationCategories(empty_set)
 
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         """
         Removes a notifications from the notification center
 
-        :param notification: Notification to clear.
+        :param identifier: Notification identifier.
         """
-        self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
+        self.nc.removeDeliveredNotificationsWithIdentifiers([identifier])
 
     async def _clear_all(self) -> None:
         """

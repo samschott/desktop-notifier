@@ -77,7 +77,7 @@ class DesktopNotifierSync:
         coro = self._async_api.has_authorisation()
         return self._run_coro_sync(coro)
 
-    def send_notification(self, notification: Notification) -> Notification:
+    def send_notification(self, notification: Notification) -> str:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send_notification`"""
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
@@ -96,7 +96,7 @@ class DesktopNotifierSync:
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,
-    ) -> Notification:
+    ) -> str:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send`"""
         notification = Notification(
             title,
@@ -120,9 +120,9 @@ class DesktopNotifierSync:
         """A list of all currently displayed notifications for this app"""
         return self._async_api.current_notifications
 
-    def clear(self, notification: Notification) -> None:
+    def clear(self, identifier: str) -> None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.notification`"""
-        coro = self._async_api.clear(notification)
+        coro = self._async_api.clear(identifier)
         return self._run_coro_sync(coro)
 
     def clear_all(self) -> None:

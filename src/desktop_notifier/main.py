@@ -193,7 +193,7 @@ class DesktopNotifier:
         """Returns whether we have authorisation to send notifications."""
         return await self._impl.has_authorisation()
 
-    async def send_notification(self, notification: Notification) -> Notification:
+    async def send_notification(self, notification: Notification) -> str:
         """
         Sends a desktop notification.
 
@@ -223,7 +223,7 @@ class DesktopNotifier:
         # The user may have changed settings in the meantime.
         await self._impl.send(notification)
 
-        return notification
+        return notification.identifier
 
     async def send(
         self,
@@ -239,7 +239,7 @@ class DesktopNotifier:
         sound: bool | Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,
-    ) -> Notification:
+    ) -> str:
         """
         Sends a desktop notification
 
@@ -270,13 +270,13 @@ class DesktopNotifier:
         """A list of all currently displayed notifications for this app"""
         return self._impl.current_notifications
 
-    async def clear(self, notification: Notification) -> None:
+    async def clear(self, identifier: str) -> None:
         """
         Removes the given notification from the notification center.
 
-        :param notification: Notification to clear.
+        :param identifier: Notification identifier.
         """
-        await self._impl.clear(notification)
+        await self._impl.clear(identifier)
 
     async def clear_all(self) -> None:
         """

@@ -257,7 +257,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             sender: ToastNotification | None,
             dismissed_args: ToastDismissedEventArgs | None,
         ) -> None:
-            self._clear_notification_from_cache(notification)
+            self._clear_notification_from_cache(notification.identifier)
 
             if (
                 dismissed_args
@@ -282,12 +282,12 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
         self.notifier.show(native)
 
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         """
         Asynchronously removes a notification from the notification center.
         """
         if self.manager.history:
-            self.manager.history.remove(notification.identifier)
+            self.manager.history.remove(identifier)
 
     async def _clear_all(self) -> None:
         """
