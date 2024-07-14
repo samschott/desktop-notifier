@@ -166,8 +166,8 @@ class DesktopNotifier:
 
         self._on_clicked: Callable[[str], Any] | None = None
         self._on_dismissed: Callable[[str], Any] | None = None
-        self._on_button: Callable[[str, str], Any] | None = None
-        self._on_reply: Callable[[str, str], Any] | None = None
+        self._on_button_clicked: Callable[[str, str], Any] | None = None
+        self._on_replied: Callable[[str, str], Any] | None = None
 
     @property
     def app_name(self) -> str:
@@ -325,28 +325,28 @@ class DesktopNotifier:
         self._on_dismissed = handler
 
     @property
-    def on_button(self) -> Callable[[str, str], Any] | None:
+    def on_button_clicked(self) -> Callable[[str, str], Any] | None:
         """
         A method to call when any notification is dismissed
 
         The method must take the notification identifier and the button number as
         arguments.
         """
-        return self._on_button
+        return self._on_button_clicked
 
-    @on_button.setter
-    def on_button(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._on_button = handler
+    @on_button_clicked.setter
+    def on_button_clicked(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._on_button_clicked = handler
 
     @property
-    def on_reply(self) -> Callable[[str, str], Any] | None:
+    def on_replied(self) -> Callable[[str, str], Any] | None:
         """
         A method to call when a user responds through the reply field of a notification
 
         The method must take the notification identifier and input text as arguments.
         """
-        return self._on_reply
+        return self._on_replied
 
-    @on_reply.setter
-    def on_reply(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._on_reply = handler
+    @on_replied.setter
+    def on_replied(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._on_replied = handler
