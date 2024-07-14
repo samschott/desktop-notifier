@@ -12,6 +12,7 @@ import logging
 from typing import TypeVar
 
 # external imports
+from bidict import bidict
 from dbus_next.signature import Variant
 from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
@@ -32,28 +33,13 @@ NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
 
-def identifier_from_dbus(nid: int) -> str:
-    if nid == 0:
-        return ""
-    return str(nid)
-
-
-def identifier_to_dbus(nid: str) -> int:
-    if nid == "":
-        return 0
-    return int(nid)
-
-
 class DBusDesktopNotifier(DesktopNotifierBase):
     """DBus notification backend for Linux
 
     This implements the org.freedesktop.Notifications standard. The DBUS connection is
     created in a thread with a running asyncio loop to handle clicked notifications.
 
-    :param app_name: The name of the app. If it matches the application name in an
-        existing desktop entry, the icon from that entry will be used by default.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
+    :param app_name: The name of the app.
     """
 
     to_native_urgency = {
@@ -64,13 +50,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     supported_hint_signatures = {"a{sv}", "a{ss}"}
 
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: int | None = None,
-    ) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(self, app_name: str) -> None:
+        super().__init__(app_name)
         self.interface: ProxyInterface | None = None
+        self._platform_nid_to_identifier: bidict[int, str] = bidict()
 
     async def request_authorisation(self) -> bool:
         """
@@ -109,24 +92,14 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         return self.interface
 
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Notification | None,
-    ) -> None:
+    async def _send(self, notification: Notification) -> None:
         """
         Asynchronously sends a notification via the Dbus interface.
 
         :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
         """
         if not self.interface:
             self.interface = await self._init_dbus()
-
-        if notification_to_replace:
-            replaces_nid = identifier_to_dbus(notification_to_replace.identifier)
-        else:
-            replaces_nid = 0
 
         actions: list[str] = []
 
@@ -187,7 +160,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         # raise an AttributeError if required.
         platform_nid = await self.interface.call_notify(  # type:ignore[attr-defined]
             self.app_name,
-            replaces_nid,
+            0,
             icon,
             notification.title,
             notification.message,
@@ -195,8 +168,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             hints,
             timeout,
         )
-
-        notification.identifier = identifier_from_dbus(platform_nid)
+        self._platform_nid_to_identifier[platform_nid] = notification.identifier
 
     async def _clear(self, notification: Notification) -> None:
         """
@@ -207,8 +179,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
+        platform_nid = self._platform_nid_to_identifier.inverse[notification.identifier]
         await self.interface.call_close_notification(  # type:ignore[attr-defined]
-            identifier_to_dbus(notification.identifier)
+            platform_nid
         )
 
     async def _clear_all(self) -> None:
@@ -218,11 +191,11 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        for notification in self.current_notifications:
+        for platform_nid in self._platform_nid_to_identifier.inverse.values():
             # dbus_next proxy APIs are generated at runtime. Silence the type checker
             # but raise an AttributeError if required.
             await self.interface.call_close_notification(  # type:ignore[attr-defined]
-                identifier_to_dbus(notification.identifier)
+                platform_nid
             )
 
     # Note that _on_action and _on_closed might be called for the same notification
@@ -239,7 +212,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param action_key: A string identifying the action to take. We choose those keys
             ourselves when scheduling the notification.
         """
-        notification = self._notification_for_nid.get(identifier_from_dbus(nid))
+        identifier = self._platform_nid_to_identifier.pop(nid)
+        notification = self._notification_cache.pop(identifier)
 
         if notification:
             self._clear_notification_from_cache(notification)
@@ -268,13 +242,11 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param nid: The platform's notification ID as an integer.
         :param reason: An integer describing the reason why the notification was closed.
         """
-        notification = self._notification_for_nid.get(identifier_from_dbus(nid))
+        identifier = self._platform_nid_to_identifier.pop(nid)
+        notification = self._notification_cache.pop(identifier)
 
-        if notification:
-            self._clear_notification_from_cache(notification)
-
-            if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
-                notification.on_dismissed()
+        if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
+            notification.on_dismissed()
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
@@ -295,6 +267,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             capabilities.add(Capability.ON_DISMISSED)
 
         cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
+
         if "actions" in cps:
             capabilities.add(Capability.BUTTONS)
         if "body" in cps:

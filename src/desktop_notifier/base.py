@@ -6,20 +6,18 @@ must inherit from :class:`DesktopNotifierBase`.
 from __future__ import annotations
 
 import logging
-from urllib.parse import urlparse, unquote
+import uuid
 import urllib.parse
 import warnings
 import dataclasses
+from urllib.parse import urlparse, unquote
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from collections import deque
 from pathlib import Path
 from typing import (
-    Dict,
     Callable,
     Any,
-    Deque,
     List,
     Sequence,
     ContextManager,
@@ -57,6 +55,10 @@ logger = logging.getLogger(__name__)
 python_icon_path = resource_path(
     package="desktop_notifier.resources", resource="python.png"
 ).__enter__()
+
+
+def uuid_str() -> str:
+    return str(uuid.uuid4())
 
 
 @dataclass(frozen=True)
@@ -185,6 +187,9 @@ class Button:
     on_pressed: Callable[[], Any] | None = None
     """Method to call when the button is pressed"""
 
+    identifier: str = dataclasses.field(default_factory=uuid_str)
+    """A unique identifier to use in callbacks to specify with button was clicked"""
+
 
 @dataclass
 class ReplyField:
@@ -240,11 +245,15 @@ class Notification:
     sound: Sound | None
     """A sound to play on notification"""
 
-    thread: str | None = None
+    thread: str | None
     """An identifier to group related notifications together, e.g., from a chat space"""
 
     timeout: int = -1
     """Duration in seconds for which the notification is shown"""
+
+    identifier: str
+    """A unique identifier for this notification. Generated automatically if not
+    passed by the client."""
 
     def __init__(
         self,
@@ -260,6 +269,7 @@ class Notification:
         sound: bool | Sound | None = False,
         thread: str | None = None,
         timeout: int = -1,
+        identifier: str | None = None,
     ) -> None:
         if sound is True:
             warnings.warn(
@@ -293,10 +303,7 @@ class Notification:
             )
             attachment = Attachment(uri=attachment)
 
-        self._identifier = ""
-        self._winrt_identifier = ""
-        self._macos_identifier = ""
-        self._dbus_identifier = 0
+        self.identifier = identifier or uuid_str()
 
         self.title = title
         self.message = message
@@ -310,18 +317,6 @@ class Notification:
         self.attachment = attachment
         self.thread = thread
         self.timeout = timeout
-
-    @property
-    def identifier(self) -> str:
-        """Unique identifier for this notification
-
-        Populated by the platform after scheduling the notification.
-        """
-        return self._identifier
-
-    @identifier.setter
-    def identifier(self, nid: str) -> None:
-        self._identifier = nid
 
     def __repr__(self) -> str:
         return (
@@ -389,19 +384,11 @@ class DesktopNotifierBase(ABC):
     """Base class for desktop notifier implementations
 
     :param app_name: Name to identify the application in the notification center.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
     """
 
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: int | None = None,
-    ) -> None:
+    def __init__(self, app_name: str) -> None:
         self.app_name = app_name
-        self.notification_limit = notification_limit
-        self._current_notifications: Deque[Notification] = deque([], notification_limit)
-        self._notification_for_nid: Dict[str, Notification] = {}
+        self._notification_cache: dict[str, Notification] = dict()
 
     @abstractmethod
     async def request_authorisation(self) -> bool:
@@ -421,56 +408,31 @@ class DesktopNotifierBase(ABC):
 
     async def send(self, notification: Notification) -> None:
         """
-        Sends a desktop notification. Some arguments may be ignored, depending on the
-        implementation. This is a wrapper method which mostly performs housekeeping of
-        notifications ID and calls :meth:`_send` to actually schedule the notification.
-        Platform implementations must implement :meth:`_send`.
+        Sends a desktop notification.
 
         :param notification: Notification to send.
         """
-        notification_to_replace: Notification | None
-
-        if len(self._current_notifications) == self.notification_limit:
-            notification_to_replace = self._current_notifications.popleft()
-        else:
-            notification_to_replace = None
-
         try:
-            await self._send(notification, notification_to_replace)
+            await self._send(notification)
         except Exception:
             # Notifications can fail for many reasons:
             # The dbus service may not be available, we might be in a headless session,
             # etc. Since notifications are not critical to an application, we only emit
             # a warning.
-            if notification_to_replace:
-                self._current_notifications.appendleft(notification_to_replace)
             logger.warning("Notification failed", exc_info=True)
         else:
             logger.debug("Notification sent: %s", notification)
-            self._current_notifications.append(notification)
-            self._notification_for_nid[notification.identifier] = notification
+            self._notification_cache[notification.identifier] = notification
 
     def _clear_notification_from_cache(self, notification: Notification) -> None:
         """
         Removes the notification from our cache. Should be called by backends when the
         notification is closed.
         """
-        try:
-            self._current_notifications.remove(notification)
-        except ValueError:
-            pass
-
-        try:
-            self._notification_for_nid.pop(notification.identifier)
-        except KeyError:
-            pass
+        self._notification_cache.pop(notification.identifier, None)
 
     @abstractmethod
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Notification | None,
-    ) -> None:
+    async def _send(self, notification: Notification) -> None:
         """
         Method to send a notification via the platform. This should be implemented by
         subclasses.
@@ -481,8 +443,6 @@ class DesktopNotifierBase(ABC):
         emit a log message of level warning.
 
         :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
-        :returns: The platform's ID for the scheduled notification.
         """
         ...
 
@@ -491,7 +451,7 @@ class DesktopNotifierBase(ABC):
         """
         A list of all notifications which currently displayed in the notification center
         """
-        return list(self._current_notifications)
+        return list(self._notification_cache.values())
 
     async def clear(self, notification: Notification) -> None:
         """
@@ -526,8 +486,7 @@ class DesktopNotifierBase(ABC):
         """
 
         await self._clear_all()
-        self._current_notifications.clear()
-        self._notification_for_nid.clear()
+        self._notification_cache.clear()
 
     @abstractmethod
     async def _clear_all(self) -> None:

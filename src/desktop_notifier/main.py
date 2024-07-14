@@ -128,8 +128,6 @@ class DesktopNotifier:
         :class:`desktop_notifier.base.Icon` instance referencing either a file or a
         named system icon. :class:`str` or :class:`pathlib.Path` are also accepted but
         deprecated.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center. This may be ignored by some implementations.
     """
 
     app_icon: Icon | None
@@ -138,7 +136,6 @@ class DesktopNotifier:
         self,
         app_name: str = "Python",
         app_icon: Icon | Path | str | None = DEFAULT_ICON,
-        notification_limit: int | None = None,
     ) -> None:
         if isinstance(app_icon, str):
             warnings.warn(
@@ -162,7 +159,7 @@ class DesktopNotifier:
         self.app_icon = app_icon
 
         impl_cls = get_implementation_class()
-        self._impl = impl_cls(app_name, notification_limit)
+        self._impl = impl_cls(app_name)
         self._did_request_authorisation = False
 
         self._capabilities: frozenset[Capability] | None = None

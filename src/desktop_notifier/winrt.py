@@ -11,7 +11,6 @@ from __future__ import annotations
 
 # system imports
 import sys
-import uuid
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
 from typing import TypeVar
@@ -58,10 +57,7 @@ def register_hkey(app_id: str, app_name: str) -> None:
 class WinRTDesktopNotifier(DesktopNotifierBase):
     """Notification backend for the Windows Runtime
 
-    :param app_name: The name of the app. This has no effect since the app name will be
-        automatically determined.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
+    :param app_name: The name of the app.
     """
 
     _to_native_urgency = {
@@ -77,10 +73,9 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
 
     def __init__(
         self,
-        app_name: str = "Python",
-        notification_limit: int | None = None,
+        app_name: str,
     ) -> None:
-        super().__init__(app_name, notification_limit)
+        super().__init__(app_name)
 
         manager = ToastNotificationManager.get_default()
 
@@ -122,23 +117,12 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
             # See https://github.com/samschott/desktop-notifier/issues/95.
             return True
 
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Notification | None,
-    ) -> None:
+    async def _send(self, notification: Notification) -> None:
         """
         Asynchronously sends a notification.
 
         :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
         """
-        if notification_to_replace:
-            platform_nid = notification_to_replace.identifier
-        else:
-            platform_nid = str(uuid.uuid4())
-
-        # Create notification XML.
         toast_xml = Element("toast", {"launch": WinRTDesktopNotifier.DEFAULT_ACTION})
         visual_xml = SubElement(toast_xml, "visual")
         actions_xml = SubElement(toast_xml, "actions")
@@ -230,7 +214,7 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         xml_document.load_xml(tostring(toast_xml, encoding="unicode"))
 
         native = ToastNotification(xml_document)
-        native.tag = platform_nid
+        native.tag = notification.identifier
         native.priority = self._to_native_urgency[notification.urgency]
 
         def on_activated(
@@ -297,8 +281,6 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         native.add_failed(on_failed)
 
         self.notifier.show(native)
-
-        notification.identifier = platform_nid
 
     async def _clear(self, notification: Notification) -> None:
         """
