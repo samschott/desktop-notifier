@@ -254,7 +254,7 @@ class DesktopNotifier:
         return await self.send_notification(notification)
 
     async def get_current_notifications(self) -> list[str]:
-        """Returns identifiers of all currently displayed notifications for this app"""
+        """Returns identifiers of all currently displayed notifications for this app."""
         return await self._impl.get_current_notifications()
 
     async def clear(self, identifier: str) -> None:
