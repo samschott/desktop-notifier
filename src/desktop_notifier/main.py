@@ -113,7 +113,7 @@ class DesktopNotifier:
     Uses different backends depending on the platform version and available services.
     All implementations will dispatch notifications without an event loop but will
     require a running event loop to execute callbacks when the end user interacts with a
-    notification. On Linux, a asyncio event loop is required. On macOS, a CFRunLoop *in
+    notification. On Linux, an asyncio event loop is required. On macOS, a CFRunLoop *in
     the main thread* is required. Packages such as :mod:`rubicon.objc` can be used to
     integrate asyncio with a CFRunLoop.
 
