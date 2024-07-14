@@ -32,7 +32,7 @@ from .base import (
     Capability,
     DEFAULT_SOUND,
 )
-from .implementation_base import DesktopNotifierImplementation
+from .implementation_base import DesktopNotifierImplementation, get_button
 from .macos_support import macos_version
 
 
@@ -96,37 +96,50 @@ ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 class NotificationCenterDelegate(NSObject):  # type:ignore
     """Delegate to handle user interactions with notifications"""
 
+    implementation: CocoaNotificationCenter
+
     @objc_method  # type:ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
         self, center, response, completion_handler: objc_block
     ) -> None:
         # Get the notification which was clicked from the platform ID.
         identifier = py_from_ns(response.notification.request.identifier)
-        notification = self.implementation._notification_cache.pop(identifier)
-        notification = cast(Notification, notification)
+        notification = self.implementation._notification_cache.pop(identifier, None)
 
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-            if notification.on_clicked:
+            if notification and notification.on_clicked:
                 notification.on_clicked()
+            elif self.implementation.on_clicked:
+                self.implementation.on_clicked(identifier)
 
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-            if notification.on_dismissed:
+            if notification and notification.on_dismissed:
                 notification.on_dismissed()
+            elif self.implementation.on_dismissed:
+                self.implementation.on_dismissed(identifier)
 
         elif response.actionIdentifier == ReplyActionIdentifier:
-            if notification.reply_field.on_replied:
-                reply_text = py_from_ns(response.userText)
+            reply_text = py_from_ns(response.userText)
+
+            if (
+                notification
+                and notification.reply_field
+                and notification.reply_field.on_replied
+            ):
                 notification.reply_field.on_replied(reply_text)
+            elif self.implementation.on_replied:
+                self.implementation.on_replied(identifier, reply_text)
 
         else:
             button_id = py_from_ns(response.actionIdentifier)
-            button = next(
-                b for b in notification.buttons if b.identifier == button_id
-            )
 
-            if button.on_pressed:
-                button.on_pressed()
+            if notification and get_button(notification, button_id).on_pressed:
+                button = get_button(notification, button_id)
+                if button.on_pressed:
+                    button.on_pressed()
+            elif self.implementation.on_button_clicked:
+                self.implementation.on_button_clicked(identifier, button_id)
 
         completion_handler()
 

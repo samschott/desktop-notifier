@@ -19,7 +19,7 @@ from dbus_next.aio.proxy_object import ProxyInterface
 
 # local imports
 from .base import Notification, Urgency, Capability
-from .implementation_base import DesktopNotifierImplementation
+from .implementation_base import DesktopNotifierImplementation, get_button
 
 
 __all__ = ["DBusDesktopNotifier"]
@@ -218,14 +218,19 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if not notification:
             return
 
-        if action_key == "default" and notification.on_clicked:
-            notification.on_clicked()
-            return
+        if action_key == "default":
+            if notification.on_clicked:
+                notification.on_clicked()
+                return
+            elif self.on_clicked:
+                self.on_clicked(identifier)
 
-        button = next(b for b in notification.buttons if b.identifier == action_key)
+        button = get_button(notification, action_key)
 
         if button.on_pressed:
             button.on_pressed()
+        elif self.on_button_clicked:
+            self.on_button_clicked(identifier, action_key)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
@@ -241,8 +246,11 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if not notification:
             return
 
-        if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
-            notification.on_dismissed()
+        if reason == NOTIFICATION_CLOSED_DISMISSED:
+            if notification.on_dismissed:
+                notification.on_dismissed()
+            elif self.on_dismissed:
+                self.on_dismissed(identifier)
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
