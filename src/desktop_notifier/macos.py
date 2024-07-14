@@ -28,11 +28,11 @@ from rubicon.objc.runtime import load_library, objc_id, objc_block
 # local imports
 from .base import (
     Notification,
-    DesktopNotifierBase,
     Urgency,
     Capability,
     DEFAULT_SOUND,
 )
+from .implementation_base import DesktopNotifierImplementation
 from .macos_support import macos_version
 
 
@@ -131,7 +131,7 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         completion_handler()
 
 
-class CocoaNotificationCenter(DesktopNotifierBase):
+class CocoaNotificationCenter(DesktopNotifierImplementation):
     """UNUserNotificationCenter backend for macOS
 
     Can be used with macOS Catalina and newer. Both app name and bundle identifier

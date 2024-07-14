@@ -33,10 +33,10 @@ from .base import (
     Sound,
     Attachment,
     Notification,
-    DesktopNotifierBase,
     DEFAULT_SOUND,
     DEFAULT_ICON,
 )
+from .implementation_base import DesktopNotifierImplementation
 
 __all__ = [
     "Notification",
@@ -60,7 +60,7 @@ T = TypeVar("T")
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
-def get_implementation_class() -> Type[DesktopNotifierBase]:
+def get_implementation_class() -> Type[DesktopNotifierImplementation]:
     """
     Return the backend class depending on the platform and version.
 
