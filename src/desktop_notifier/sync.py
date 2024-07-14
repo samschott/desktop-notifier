@@ -101,7 +101,7 @@ class DesktopNotifierSync:
             message,
             urgency=urgency,
             icon=icon,
-            buttons=buttons,
+            buttons=tuple(buttons),
             reply_field=reply_field,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
