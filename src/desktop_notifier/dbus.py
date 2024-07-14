@@ -99,16 +99,13 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if not self.interface:
             self.interface = await self._init_dbus()
 
-        actions: list[str] = []
-
-        if notification.on_clicked:
-            # The "default" action is typically invoked when clicking on the
-            # notification body itself, see
-            # https://specifications.freedesktop.org/notification-spec. There are some
-            # exceptions though, such as XFCE, where this will result in a separate
-            # button. If no label name is provided in XFCE, it will result in a default
-            # symbol being used. We therefore don't specify a label name.
-            actions = ["default", ""]
+        # The "default" action is typically invoked when clicking on the
+        # notification body itself, see
+        # https://specifications.freedesktop.org/notification-spec. There are some
+        # exceptions though, such as XFCE, where this will result in a separate
+        # button. If no label name is provided in XFCE, it will result in a default
+        # symbol being used. We therefore don't specify a label name.
+        actions = ["default", ""]
 
         for button in notification.buttons:
             actions += [button.identifier, button.title]
@@ -218,9 +215,9 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if action_key == "default":
             if notification.on_clicked:
                 notification.on_clicked()
-                return
             elif self.on_clicked:
                 self.on_clicked(identifier)
+            return
 
         button = get_button(notification, action_key)
 
