@@ -190,9 +190,9 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
             return
 
         while len(self._platform_nid_to_identifier) > 0:
-            nid = self._platform_nid_to_identifier.popitem()
+            platform_nid, _ = self._platform_nid_to_identifier.popitem()
             await self.interface.call_close_notification(  # type:ignore[attr-defined]
-                nid
+                platform_nid
             )
 
     # Note that _on_action and _on_closed might be called for the same notification
