@@ -263,6 +263,8 @@ class WinRTDesktopNotifier(DesktopNotifierImplementation):
             ):
                 if notification.on_dismissed:
                     notification.on_dismissed()
+                elif self.on_dismissed:
+                    self.on_dismissed(notification.identifier)
 
         def on_failed(
             sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
