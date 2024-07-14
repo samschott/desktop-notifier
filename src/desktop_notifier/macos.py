@@ -102,27 +102,27 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
     ) -> None:
         # Get the notification which was clicked from the platform ID.
         identifier = py_from_ns(response.notification.request.identifier)
-        py_notification = self.implementation._notification_cache.pop(identifier)
-        py_notification = cast(Notification, py_notification)
+        notification = self.implementation._notification_cache.pop(identifier)
+        notification = cast(Notification, notification)
 
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-            if py_notification.on_clicked:
-                py_notification.on_clicked()
+            if notification.on_clicked:
+                notification.on_clicked()
 
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-            if py_notification.on_dismissed:
-                py_notification.on_dismissed()
+            if notification.on_dismissed:
+                notification.on_dismissed()
 
         elif response.actionIdentifier == ReplyActionIdentifier:
-            if py_notification.reply_field.on_replied:
+            if notification.reply_field.on_replied:
                 reply_text = py_from_ns(response.userText)
-                py_notification.reply_field.on_replied(reply_text)
+                notification.reply_field.on_replied(reply_text)
 
         else:
             button_id = py_from_ns(response.actionIdentifier)
             button = next(
-                b for b in py_notification.buttons if b.identifier == button_id
+                b for b in notification.buttons if b.identifier == button_id
             )
 
             if button.on_pressed:
