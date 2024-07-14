@@ -76,6 +76,7 @@ UNNotificationActionOptionForeground = 1 << 2
 UNNotificationActionOptionNone = 0
 
 UNNotificationCategoryOptionNone = 0
+UNNotificationCategoryOptionCustomDismissAction = 1
 
 UNAuthorizationStatusAuthorized = 2
 UNAuthorizationStatusProvisional = 3
@@ -222,9 +223,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         # On macOS, we need to register a new notification category for every
         # unique set of buttons.
         category_id = await self._find_or_create_notification_category(notification)
-
-        if category_id is not None:
-            logger.debug("Notification category_id: %s", category_id)
+        logger.debug("Notification category_id: %s", category_id)
 
         # Create the native notification and notification request.
         content = UNMutableNotificationContent.alloc().init()
@@ -286,7 +285,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
     async def _find_or_create_notification_category(
         self, notification: Notification
-    ) -> Optional[str]:
+    ) -> str:
         """
         Registers a new UNNotificationCategory for the given notification or retrieves
         an existing one.
@@ -298,9 +297,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
-        if not (notification.buttons or notification.reply_field):
-            return None
-
         id_list = ["desktop-notifier"]
         for button in notification.buttons:
             id_list += [f"button-title-{button.title}"]
@@ -349,7 +345,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                     category_id,
                     actions=actions,
                     intentIdentifiers=[],
-                    options=UNNotificationCategoryOptionNone,
+                    options=UNNotificationCategoryOptionCustomDismissAction,
                 )
             )
             self.nc.setNotificationCategories(new_categories)
