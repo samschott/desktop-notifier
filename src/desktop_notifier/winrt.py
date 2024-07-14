@@ -180,21 +180,22 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                 },
             )
 
-            # If there are no other buttons, show the
-            # reply buttons next to the text field.
+            # If there are no other buttons, show the reply button next to the text
+            # field. Otherwise, show it above other buttons.
             if not notification.buttons:
                 reply_button_xml.set(
                     "hint-inputId", WinRTDesktopNotifier.REPLY_TEXTBOX_NAME
                 )
 
-        for n, button in enumerate(notification.buttons):
+        for button in notification.buttons:
             SubElement(
                 actions_xml,
                 "action",
                 {
                     "content": button.title,
                     "activationType": "background",
-                    "arguments": WinRTDesktopNotifier.BUTTON_ACTION_PREFIX + str(n),
+                    "arguments": WinRTDesktopNotifier.BUTTON_ACTION_PREFIX
+                    + button.identifier,
                 },
             )
 
@@ -245,13 +246,14 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
                     text = unbox(boxed_text)
                     notification.reply_field.on_replied(text)
             elif action_id.startswith(WinRTDesktopNotifier.BUTTON_ACTION_PREFIX):
-                action_number_str = action_id.replace(
+                button_id = action_id.replace(
                     WinRTDesktopNotifier.BUTTON_ACTION_PREFIX, ""
                 )
-                action_number = int(action_number_str)
-                callback = notification.buttons[action_number].on_pressed
-                if callback:
-                    callback()
+                button = next(
+                    b for b in notification.buttons if b.identifier == button_id
+                )
+                if button.on_pressed:
+                    button.on_pressed()
 
         def on_dismissed(
             sender: ToastNotification | None,
@@ -271,10 +273,11 @@ class WinRTDesktopNotifier(DesktopNotifierBase):
         ) -> None:
             if failed_args:
                 logger.warning(
-                    f"Notification failed (error code {failed_args.error_code.value})"
+                    f"Notification failed with error code %s",
+                    failed_args.error_code.value,
                 )
             else:
-                logger.warning("Notification failed (unknown error code)")
+                logger.warning("Notification failed with unknown error")
 
         native.add_activated(on_activated)
         native.add_dismissed(on_dismissed)

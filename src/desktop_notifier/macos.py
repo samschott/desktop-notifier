@@ -13,7 +13,6 @@ from __future__ import annotations
 # system imports
 import shutil
 import tempfile
-import uuid
 import logging
 import enum
 import asyncio
@@ -120,11 +119,13 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
                 py_notification.reply_field.on_replied(reply_text)
 
         else:
-            button_number = int(py_from_ns(response.actionIdentifier))
-            callback = py_notification.buttons[button_number].on_pressed
+            button_id = py_from_ns(response.actionIdentifier)
+            button = next(
+                b for b in py_notification.buttons if b.identifier == button_id
+            )
 
-            if callback:
-                callback()
+            if button.on_pressed:
+                button.on_pressed()
 
         completion_handler()
 
@@ -149,7 +150,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         super().__init__(app_name)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
-        self.nc_delegate.interface = self
+        self.nc_delegate.implementation = self
         self.nc.delegate = self.nc_delegate
 
         self._clear_notification_categories()
@@ -334,9 +335,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 )
                 actions.append(action)
 
-            for n, button in enumerate(notification.buttons):
+            for button in notification.buttons:
                 action = UNNotificationAction.actionWithIdentifier(
-                    str(n), title=button.title, options=UNNotificationActionOptionNone
+                    button.identifier,
+                    title=button.title,
+                    options=UNNotificationActionOptionNone,
                 )
                 actions.append(action)
 

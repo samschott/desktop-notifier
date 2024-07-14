@@ -112,8 +112,8 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             # symbol being used. We therefore don't specify a label name.
             actions = ["default", ""]
 
-        for n, button in enumerate(notification.buttons):
-            actions += [str(n), button.title]
+        for button in notification.buttons:
+            actions += [button.identifier, button.title]
 
         hints_v: dict[str, Variant] = dict()
         hints_v["urgency"] = self.to_native_urgency[notification.urgency]
@@ -212,27 +212,20 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param action_key: A string identifying the action to take. We choose those keys
             ourselves when scheduling the notification.
         """
-        identifier = self._platform_nid_to_identifier.pop(nid)
-        notification = self._notification_cache.pop(identifier)
+        identifier = self._platform_nid_to_identifier.pop(nid, "")
+        notification = self._notification_cache.pop(identifier, None)
 
-        if notification:
-            self._clear_notification_from_cache(notification.identifier)
+        if not notification:
+            return
 
-            button_number: int | None
+        if action_key == "default" and notification.on_clicked:
+            notification.on_clicked()
+            return
 
-            try:
-                button_number = int(action_key)
-            except ValueError:
-                button_number = None
+        button = next(b for b in notification.buttons if b.identifier == action_key)
 
-            if action_key == "default" and notification.on_clicked:
-                notification.on_clicked()
-
-            elif button_number is not None:
-                button = notification.buttons[button_number]
-
-                if button.on_pressed:
-                    button.on_pressed()
+        if button.on_pressed:
+            button.on_pressed()
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
@@ -242,8 +235,11 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param nid: The platform's notification ID as an integer.
         :param reason: An integer describing the reason why the notification was closed.
         """
-        identifier = self._platform_nid_to_identifier.pop(nid)
-        notification = self._notification_cache.pop(identifier)
+        identifier = self._platform_nid_to_identifier.pop(nid, "")
+        notification = self._notification_cache.pop(identifier, None)
+
+        if not notification:
+            return
 
         if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
             notification.on_dismissed()
