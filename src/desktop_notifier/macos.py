@@ -10,7 +10,6 @@ UNUserNotificationCenter backend for macOS
 """
 from __future__ import annotations
 
-# system imports
 import shutil
 import tempfile
 import logging
@@ -18,14 +17,11 @@ import enum
 import asyncio
 from pathlib import Path
 from concurrent.futures import Future
-from typing import cast, Optional
 
-# external imports
 from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_id, objc_block
 
-# local imports
 from .base import (
     Notification,
     Urgency,

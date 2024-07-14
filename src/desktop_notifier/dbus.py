@@ -7,17 +7,14 @@ interaction with a notification requires a running asyncio event loop.
 """
 from __future__ import annotations
 
-# system imports
 import logging
 from typing import TypeVar
 
-# external imports
 from bidict import bidict
 from dbus_next.signature import Variant
 from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
 
-# local imports
 from .base import Notification, Urgency, Capability
 from .implementation_base import DesktopNotifierImplementation, get_button
 

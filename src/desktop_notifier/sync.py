@@ -4,11 +4,9 @@ Synchronous desktop notification API
 """
 from __future__ import annotations
 
-# system imports
 import asyncio
-from typing import Callable, Coroutine, Any, Sequence, TypeVar, List
+from typing import Callable, Coroutine, Any, Sequence, TypeVar
 
-# local imports
 from .main import DesktopNotifier
 from .base import (
     Capability,
@@ -116,7 +114,7 @@ class DesktopNotifierSync:
         return self._run_coro_sync(coro)
 
     @property
-    def current_notifications(self) -> List[Notification]:
+    def current_notifications(self) -> list[Notification]:
         """A list of all currently displayed notifications for this app"""
         return self._async_api.current_notifications
 
