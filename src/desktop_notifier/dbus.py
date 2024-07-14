@@ -18,7 +18,8 @@ from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
 
 # local imports
-from .base import Notification, DesktopNotifierBase, Urgency, Capability
+from .base import Notification, Urgency, Capability
+from .implementation_base import DesktopNotifierImplementation
 
 
 __all__ = ["DBusDesktopNotifier"]
@@ -33,7 +34,7 @@ NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
 
-class DBusDesktopNotifier(DesktopNotifierBase):
+class DBusDesktopNotifier(DesktopNotifierImplementation):
     """DBus notification backend for Linux
 
     This implements the org.freedesktop.Notifications standard. The DBUS connection is

@@ -7,10 +7,11 @@ from __future__ import annotations
 import uuid
 
 from . import Capability
-from .base import Notification, DesktopNotifierBase
+from .base import Notification
+from .implementation_base import DesktopNotifierImplementation
 
 
-class DummyNotificationCenter(DesktopNotifierBase):
+class DummyNotificationCenter(DesktopNotifierImplementation):
     """A dummy backend for unsupported platforms"""
 
     def __init__(self, app_name: str) -> None:

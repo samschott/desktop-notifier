@@ -33,7 +33,8 @@ from winrt.windows.applicationmodel.core import CoreApplication
 from winrt.system import Object as WinRTObject
 
 # local imports
-from .base import Notification, DesktopNotifierBase, Urgency, Capability, DEFAULT_SOUND
+from .base import Notification, Urgency, Capability, DEFAULT_SOUND
+from .implementation_base import DesktopNotifierImplementation
 
 
 __all__ = ["WinRTDesktopNotifier"]
@@ -54,7 +55,7 @@ def register_hkey(app_id: str, app_name: str) -> None:
         winreg.SetValueEx(master_key, "DisplayName", 0, winreg.REG_SZ, app_name)
 
 
-class WinRTDesktopNotifier(DesktopNotifierBase):
+class WinRTDesktopNotifier(DesktopNotifierImplementation):
     """Notification backend for the Windows Runtime
 
     :param app_name: The name of the app.
