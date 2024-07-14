@@ -1,15 +1,16 @@
 import sys
+from pathlib import Path
+
 import pytest
 
-from pathlib import Path
 from desktop_notifier import (
-    Urgency,
+    DEFAULT_SOUND,
+    Attachment,
     Button,
     Icon,
-    Sound,
-    Attachment,
     ReplyField,
-    DEFAULT_SOUND,
+    Sound,
+    Urgency,
 )
 
 

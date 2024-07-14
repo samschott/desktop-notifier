@@ -11,13 +11,12 @@ import logging
 from typing import TypeVar
 
 from bidict import bidict
-from dbus_next.signature import Variant
 from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
+from dbus_next.signature import Variant
 
-from .base import Notification, Urgency, Capability
+from .base import Capability, Notification, Urgency
 from .implementation_base import DesktopNotifierImplementation, get_button
-
 
 __all__ = ["DBusDesktopNotifier"]
 

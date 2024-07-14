@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  black:
+  format:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -22,7 +22,10 @@ jobs:
         black --check --diff src tests
     - name: flake8
       run: |
-        flake8 src tests
+        flake8 src tests examples
+    - name: isort
+      run: |
+        isort src tests examples
 
   mypy:
     runs-on: ${{ matrix.os }}
@@ -42,4 +45,4 @@ jobs:
         python -m pip install -U .[dev]
     - name: mypy
       run: |
-        mypy src
+        mypy src examples

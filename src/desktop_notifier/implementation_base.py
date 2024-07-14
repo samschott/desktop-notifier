@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Any
+from typing import Any, Callable
 
-from .base import Notification, Capability, Button
+from .base import Button, Capability, Notification
 
 __all__ = [
     "DesktopNotifierImplementation",

@@ -5,20 +5,20 @@ Synchronous desktop notification API
 from __future__ import annotations
 
 import asyncio
-from typing import Callable, Coroutine, Any, Sequence, TypeVar
+from typing import Any, Callable, Coroutine, Sequence, TypeVar
 
-from .main import DesktopNotifier
 from .base import (
-    Capability,
-    Urgency,
-    Button,
-    ReplyField,
-    Icon,
-    Sound,
-    Attachment,
-    Notification,
     DEFAULT_ICON,
+    Attachment,
+    Button,
+    Capability,
+    Icon,
+    Notification,
+    ReplyField,
+    Sound,
+    Urgency,
 )
+from .main import DesktopNotifier
 
 __all__ = ["DesktopNotifierSync"]
 

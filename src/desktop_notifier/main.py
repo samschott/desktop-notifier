@@ -4,27 +4,27 @@ Asynchronous desktop notification API
 """
 from __future__ import annotations
 
-import platform
-import logging
 import asyncio
+import logging
+import platform
 import warnings
-from urllib import parse
 from pathlib import Path
-from typing import Type, Callable, Any, TypeVar, Sequence
+from typing import Any, Callable, Sequence, Type, TypeVar
+from urllib import parse
 
 from packaging.version import Version
 
 from .base import (
-    Capability,
-    Urgency,
-    Button,
-    ReplyField,
-    Icon,
-    Sound,
-    Attachment,
-    Notification,
-    DEFAULT_SOUND,
     DEFAULT_ICON,
+    DEFAULT_SOUND,
+    Attachment,
+    Button,
+    Capability,
+    Icon,
+    Notification,
+    ReplyField,
+    Sound,
+    Urgency,
 )
 from .implementation_base import DesktopNotifierImplementation
 

@@ -1,7 +1,8 @@
 import sys
+
 import pytest
 
-from desktop_notifier import Urgency, Button, ReplyField, DEFAULT_SOUND
+from desktop_notifier import DEFAULT_SOUND, Button, ReplyField, Urgency
 
 
 def test_send(notifier_sync):
