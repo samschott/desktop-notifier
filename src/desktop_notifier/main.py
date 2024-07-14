@@ -164,6 +164,11 @@ class DesktopNotifier:
 
         self._capabilities: frozenset[Capability] | None = None
 
+        self._on_clicked: Callable[[str], Any] | None = None
+        self._on_dismissed: Callable[[str], Any] | None = None
+        self._on_button: Callable[[str, str], Any] | None = None
+        self._on_reply: Callable[[str, str], Any] | None = None
+
     @property
     def app_name(self) -> str:
         """The application name"""
@@ -292,3 +297,56 @@ class DesktopNotifier:
         if not self._capabilities:
             self._capabilities = await self._impl.get_capabilities()
         return self._capabilities
+
+    @property
+    def on_clicked(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when any notification is clicked
+
+        The method must take the notification identifier as a single argument.
+        """
+        return self._on_clicked
+
+    @on_clicked.setter
+    def on_clicked(self, handler: Callable[[str], Any] | None) -> None:
+        self._on_clicked = handler
+
+    @property
+    def on_dismissed(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when any notification is dismissed
+
+        The method must take the notification identifier as a single argument.
+        """
+        return self._on_dismissed
+
+    @on_dismissed.setter
+    def on_dismissed(self, handler: Callable[[str], Any] | None) -> None:
+        self._on_dismissed = handler
+
+    @property
+    def on_button(self) -> Callable[[str, str], Any] | None:
+        """
+        A method to call when any notification is dismissed
+
+        The method must take the notification identifier and the button number as
+        arguments.
+        """
+        return self._on_button
+
+    @on_button.setter
+    def on_button(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._on_button = handler
+
+    @property
+    def on_reply(self) -> Callable[[str, str], Any] | None:
+        """
+        A method to call when a user responds through the reply field of a notification
+
+        The method must take the notification identifier and input text as arguments.
+        """
+        return self._on_reply
+
+    @on_reply.setter
+    def on_reply(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._on_reply = handler

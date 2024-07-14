@@ -216,7 +216,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         notification = self._notification_cache.pop(identifier)
 
         if notification:
-            self._clear_notification_from_cache(notification)
+            self._clear_notification_from_cache(notification.identifier)
 
             button_number: int | None
 
