@@ -269,7 +269,7 @@ class WinRTDesktopNotifier(DesktopNotifierImplementation):
         ) -> None:
             if failed_args:
                 logger.warning(
-                    f"Notification failed with error code %s",
+                    "Notification failed with error code %s",
                     failed_args.error_code.value,
                 )
             else:

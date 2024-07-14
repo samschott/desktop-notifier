@@ -4,7 +4,6 @@ Asynchronous desktop notification API
 """
 from __future__ import annotations
 
-# system imports
 import platform
 import logging
 import asyncio
@@ -20,10 +19,8 @@ from typing import (
     Sequence,
 )
 
-# external imports
 from packaging.version import Version
 
-# local imports
 from .base import (
     Capability,
     Urgency,
