@@ -91,7 +91,7 @@ class DesktopNotifierImplementation(ABC):
         ...
 
     async def get_current_notifications(self) -> list[str]:
-        """Returns identifiers of all currently displayed notifications for this app"""
+        """Returns identifiers of all currently displayed notifications for this app."""
         return list(self._notification_cache.keys())
 
     async def clear(self, identifier: str) -> None:
