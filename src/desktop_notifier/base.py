@@ -1,6 +1,7 @@
 """
 This module defines base classes for desktop notifications.
 """
+
 from __future__ import annotations
 
 import logging
