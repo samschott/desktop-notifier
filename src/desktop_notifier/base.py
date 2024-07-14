@@ -6,14 +6,12 @@ from __future__ import annotations
 
 import logging
 import uuid
-import urllib.parse
-import warnings
 import dataclasses
 from urllib.parse import urlparse, unquote
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Callable, Any, Sequence, ContextManager
+from typing import Callable, Any, ContextManager
 
 __all__ = [
     "Capability",
