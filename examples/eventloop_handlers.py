@@ -13,15 +13,15 @@ if platform.system() == "Darwin":
 
 
 def on_clicked(identifier: str) -> None:
-    print(f"Notification {identifier} was clicked")
+    print(f"Notification '{identifier}' was clicked")
 
 
 def on_dismissed(identifier: str) -> None:
-    print(f"Notification {identifier} was dismissed")
+    print(f"Notification '{identifier}' was dismissed")
 
 
 def on_button_clicked(identifier: str, button_identifier: str) -> None:
-    print(f"Button {button_identifier} on notification {identifier} was clicked")
+    print(f"Button '{button_identifier}' on notification '{identifier}' was clicked")
 
 
 def on_replied(identifier: str, reply: str) -> None:
@@ -29,10 +29,7 @@ def on_replied(identifier: str, reply: str) -> None:
 
 
 async def main() -> None:
-    notifier = DesktopNotifier(
-        app_name="Sample App",
-        notification_limit=10,
-    )
+    notifier = DesktopNotifier(app_name="Sample App")
     notifier.on_clicked = on_clicked
     notifier.on_dismissed = on_dismissed
     notifier.on_button_clicked = on_button_clicked
@@ -42,7 +39,7 @@ async def main() -> None:
         title="Julius Caesar",
         message="Et tu, Brute?",
         urgency=Urgency.Critical,
-        buttons=[Button(title="Mark as read")],
+        buttons=[Button(title="Mark as read", identifier="MARK_AS_READ")],
         reply_field=ReplyField(
             title="Reply",
             button_title="Send",

@@ -13,10 +13,7 @@ if platform.system() == "Darwin":
 
 
 async def main() -> None:
-    notifier = DesktopNotifier(
-        app_name="Sample App",
-        notification_limit=10,
-    )
+    notifier = DesktopNotifier(app_name="Sample App")
 
     await notifier.send(
         title="Julius Caesar",
