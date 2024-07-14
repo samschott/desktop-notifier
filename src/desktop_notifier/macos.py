@@ -134,8 +134,8 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
                 button = get_button(notification, button_id)
                 if button.on_pressed:
                     button.on_pressed()
-            elif self.implementation.on_button_clicked:
-                self.implementation.on_button_clicked(identifier, button_id)
+            elif self.implementation.on_button_pressed:
+                self.implementation.on_button_pressed(identifier, button_id)
 
         completion_handler()
 

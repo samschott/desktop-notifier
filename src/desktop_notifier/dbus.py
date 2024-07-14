@@ -226,8 +226,8 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
 
         if button.on_pressed:
             button.on_pressed()
-        elif self.on_button_clicked:
-            self.on_button_clicked(identifier, action_key)
+        elif self.on_button_pressed:
+            self.on_button_pressed(identifier, action_key)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
