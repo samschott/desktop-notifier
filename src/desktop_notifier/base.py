@@ -197,6 +197,7 @@ class ReplyField:
     """Method to call when the 'reply' button is pressed"""
 
 
+@dataclass
 class Notification:
     """A desktop notification
 
@@ -210,104 +211,41 @@ class Notification:
     message: str
     """Notification message"""
 
-    urgency: Urgency
+    urgency: Urgency = Urgency.Normal
     """Notification urgency. Can determine stickiness, notification appearance and
     break through silencing."""
 
-    icon: Icon | None
+    icon: Icon | None = None
     """Icon to use for the notification"""
 
-    buttons: tuple[Button, ...]
+    buttons: tuple[Button, ...] = tuple()
     """Buttons shown on an interactive notification"""
 
-    reply_field: ReplyField | None
+    reply_field: ReplyField | None = None
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
 
-    on_clicked: Callable[[], Any] | None
+    on_clicked: Callable[[], Any] | None = None
     """Method to call when the notification is clicked"""
 
-    on_dismissed: Callable[[], Any] | None
+    on_dismissed: Callable[[], Any] | None = None
     """Method to call when the notification is dismissed"""
 
-    attachment: Attachment | None
+    attachment: Attachment | None = None
     """A file attached to the notification which may be displayed as a preview"""
 
-    sound: Sound | None
+    sound: Sound | None = None
     """A sound to play on notification"""
 
-    thread: str | None
+    thread: str | None = None
     """An identifier to group related notifications together, e.g., from a chat space"""
 
     timeout: int = -1
     """Duration in seconds for which the notification is shown"""
 
-    identifier: str
+    identifier: str = dataclasses.field(default_factory=uuid_str)
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
-
-    def __init__(
-        self,
-        title: str,
-        message: str,
-        urgency: Urgency = Urgency.Normal,
-        icon: str | Icon | None = None,
-        buttons: Sequence[Button] = (),
-        reply_field: ReplyField | None = None,
-        on_clicked: Callable[[], Any] | None = None,
-        on_dismissed: Callable[[], Any] | None = None,
-        attachment: str | Attachment | None = None,
-        sound: bool | Sound | None = False,
-        thread: str | None = None,
-        timeout: int = -1,
-        identifier: str | None = None,
-    ) -> None:
-        if sound is True:
-            warnings.warn(
-                message="Use sound=DEFAULT_SOUND instead of sound=True. "
-                "Support for boolean input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            sound = DEFAULT_SOUND
-        if sound is False:
-            warnings.warn(
-                message="Use sound=None instead of sound=False. "
-                "Support for boolean input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            sound = None
-        if isinstance(icon, str):
-            warnings.warn(
-                message="Pass an Icon instance instead of a string. "
-                "Support for string input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            if urllib.parse.urlparse(icon).hostname != "":
-                icon = Icon(uri=icon)
-            else:
-                icon = Icon(name=icon)
-        if isinstance(attachment, str):
-            warnings.warn(
-                message="Pass an Attachment instance instead of a string. "
-                "Support for string input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            attachment = Attachment(uri=attachment)
-
-        self.identifier = identifier or uuid_str()
-
-        self.title = title
-        self.message = message
-        self.urgency = urgency
-        self.icon = icon
-        self.buttons = tuple(buttons)
-        self.reply_field = reply_field
-        self.sound = sound
-        self.on_clicked = on_clicked
-        self.on_dismissed = on_dismissed
-        self.attachment = attachment
-        self.thread = thread
-        self.timeout = timeout
 
     def __repr__(self) -> str:
         return (
