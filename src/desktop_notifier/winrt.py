@@ -9,33 +9,30 @@ package with compiled components.
 """
 from __future__ import annotations
 
-# system imports
-import sys
 import logging
-from xml.etree.ElementTree import Element, SubElement, tostring
-from typing import TypeVar
-
-# external imports
+import sys
 import winreg
+from typing import TypeVar
+from xml.etree.ElementTree import Element, SubElement, tostring
+
+from winrt.system import Object as WinRTObject
+from winrt.windows.applicationmodel.core import CoreApplication
+from winrt.windows.data.xml.dom import XmlDocument
 from winrt.windows.foundation.interop import unbox
 from winrt.windows.ui.notifications import (
-    ToastNotificationManager,
-    ToastNotificationPriority,
     NotificationSetting,
-    ToastNotification,
     ToastActivatedEventArgs,
     ToastDismissalReason,
     ToastDismissedEventArgs,
     ToastFailedEventArgs,
+    ToastNotification,
+    ToastNotificationManager,
+    ToastNotificationPriority,
 )
-from winrt.windows.data.xml.dom import XmlDocument
-from winrt.windows.applicationmodel.core import CoreApplication
-from winrt.system import Object as WinRTObject
 
 # local imports
-from .base import Notification, Urgency, Capability, DEFAULT_SOUND
+from .base import DEFAULT_SOUND, Capability, Notification, Urgency
 from .implementation_base import DesktopNotifierImplementation, get_button
-
 
 __all__ = ["WinRTDesktopNotifier"]
 

@@ -4,14 +4,14 @@ This module defines base classes for desktop notifications.
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 import uuid
-import dataclasses
-from urllib.parse import urlparse, unquote
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Callable, Any, ContextManager
+from typing import Any, Callable, ContextManager
+from urllib.parse import unquote, urlparse
 
 __all__ = [
     "Capability",

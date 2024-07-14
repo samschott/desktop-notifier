@@ -2,8 +2,7 @@ import asyncio
 import platform
 import signal
 
-from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAULT_SOUND
-
+from desktop_notifier import DEFAULT_SOUND, Button, DesktopNotifier, ReplyField, Urgency
 
 # Integrate with Core Foundation event loop on macOS to allow receiving callbacks.
 if platform.system() == "Darwin":

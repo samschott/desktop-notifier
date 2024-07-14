@@ -1,11 +1,10 @@
 from desktop_notifier import (
-    DesktopNotifierSync,
-    Urgency,
-    Button,
-    ReplyField,
     DEFAULT_SOUND,
+    Button,
+    DesktopNotifierSync,
+    ReplyField,
+    Urgency,
 )
-
 
 notifier = DesktopNotifierSync(app_name="Sample App")
 

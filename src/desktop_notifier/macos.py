@@ -10,27 +10,21 @@ UNUserNotificationCenter backend for macOS
 """
 from __future__ import annotations
 
+import asyncio
+import enum
+import logging
 import shutil
 import tempfile
-import logging
-import enum
-import asyncio
-from pathlib import Path
 from concurrent.futures import Future
+from pathlib import Path
 
 from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
-from rubicon.objc.runtime import load_library, objc_id, objc_block
+from rubicon.objc.runtime import load_library, objc_block, objc_id
 
-from .base import (
-    Notification,
-    Urgency,
-    Capability,
-    DEFAULT_SOUND,
-)
+from .base import DEFAULT_SOUND, Capability, Notification, Urgency
 from .implementation_base import DesktopNotifierImplementation, get_button
 from .macos_support import macos_version
-
 
 __all__ = ["CocoaNotificationCenter"]
 

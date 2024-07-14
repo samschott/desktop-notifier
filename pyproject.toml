@@ -64,6 +64,7 @@ dev = [
     "bump2version",
     "flake8",
     "flake8-pyproject",
+    "isort",
     "mypy",
     "pytest",
     "pytest-asyncio",
@@ -96,3 +97,6 @@ files = ["src"]
 [tool.black]
 line-length = 88
 target-version = ["py37", "py38", "py39", "py310", "py311"]
+
+[tool.isort]
+profile = "black"
