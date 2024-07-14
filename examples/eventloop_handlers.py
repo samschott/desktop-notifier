@@ -20,7 +20,7 @@ def on_dismissed(identifier: str) -> None:
     print(f"Notification '{identifier}' was dismissed")
 
 
-def on_button_clicked(identifier: str, button_identifier: str) -> None:
+def on_button_pressed(identifier: str, button_identifier: str) -> None:
     print(f"Button '{button_identifier}' on notification '{identifier}' was clicked")
 
 
@@ -32,7 +32,7 @@ async def main() -> None:
     notifier = DesktopNotifier(app_name="Sample App")
     notifier.on_clicked = on_clicked
     notifier.on_dismissed = on_dismissed
-    notifier.on_button_clicked = on_button_clicked
+    notifier.on_button_pressed = on_button_pressed
     notifier.on_replied = on_replied
 
     await notifier.send(

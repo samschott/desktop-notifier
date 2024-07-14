@@ -31,7 +31,7 @@ class DesktopNotifierImplementation(ABC):
 
         self.on_clicked: Callable[[str], Any] | None = None
         self.on_dismissed: Callable[[str], Any] | None = None
-        self.on_button_clicked: Callable[[str, str], Any] | None = None
+        self.on_button_pressed: Callable[[str, str], Any] | None = None
         self.on_replied: Callable[[str, str], Any] | None = None
 
     @abstractmethod

@@ -248,8 +248,8 @@ class WinRTDesktopNotifier(DesktopNotifierImplementation):
                 pressed_button = get_button(notification, button_id)
                 if pressed_button.on_pressed:
                     pressed_button.on_pressed()
-                elif self.on_button_clicked:
-                    self.on_button_clicked(notification.identifier, button_id)
+                elif self.on_button_pressed:
+                    self.on_button_pressed(notification.identifier, button_id)
 
         def on_dismissed(
             sender: ToastNotification | None,

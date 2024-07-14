@@ -317,18 +317,18 @@ class DesktopNotifier:
         self._impl.on_dismissed = handler
 
     @property
-    def on_button_clicked(self) -> Callable[[str, str], Any] | None:
+    def on_button_pressed(self) -> Callable[[str, str], Any] | None:
         """
         A method to call when any notification is dismissed
 
         The method must take the notification identifier and the button number as
         arguments.
         """
-        return self._impl.on_button_clicked
+        return self._impl.on_button_pressed
 
-    @on_button_clicked.setter
-    def on_button_clicked(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._impl.on_button_clicked = handler
+    @on_button_pressed.setter
+    def on_button_pressed(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._impl.on_button_pressed = handler
 
     @property
     def on_replied(self) -> Callable[[str, str], Any] | None:
