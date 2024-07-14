@@ -33,7 +33,7 @@ class DummyNotificationCenter(DesktopNotifierBase):
     async def _send(self, notification: Notification) -> None:
         pass
 
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         pass
 
     async def _clear_all(self) -> None:

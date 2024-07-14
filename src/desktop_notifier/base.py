@@ -424,12 +424,12 @@ class DesktopNotifierBase(ABC):
             logger.debug("Notification sent: %s", notification)
             self._notification_cache[notification.identifier] = notification
 
-    def _clear_notification_from_cache(self, notification: Notification) -> None:
+    def _clear_notification_from_cache(self, identifier: str) -> None:
         """
         Removes the notification from our cache. Should be called by backends when the
         notification is closed.
         """
-        self._notification_cache.pop(notification.identifier, None)
+        self._notification_cache.pop(identifier, None)
 
     @abstractmethod
     async def _send(self, notification: Notification) -> None:
@@ -453,27 +453,25 @@ class DesktopNotifierBase(ABC):
         """
         return list(self._notification_cache.values())
 
-    async def clear(self, notification: Notification) -> None:
+    async def clear(self, identifier: str) -> None:
         """
         Removes the given notification from the notification center. This is a wrapper
         method which mostly performs housekeeping of notifications ID and calls
         :meth:`_clear` to actually clear the notification. Platform implementations
         must implement :meth:`_clear`.
 
-        :param notification: Notification to clear.
+        :param identifier: Notification identifier.
         """
-        if notification.identifier:
-            await self._clear(notification)
-
-        self._clear_notification_from_cache(notification)
+        await self._clear(identifier)
+        self._clear_notification_from_cache(identifier)
 
     @abstractmethod
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         """
         Removes the given notification from the notification center. Should be
         implemented by subclasses.
 
-        :param notification: Notification to clear.
+        :param identifier: Notification identifier.
         """
         ...
 

@@ -170,7 +170,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         )
         self._platform_nid_to_identifier[platform_nid] = notification.identifier
 
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         """
         Asynchronously removes a notification from the notification center
         """
@@ -179,7 +179,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
-        platform_nid = self._platform_nid_to_identifier.inverse[notification.identifier]
+        platform_nid = self._platform_nid_to_identifier.inverse[identifier]
         await self.interface.call_close_notification(  # type:ignore[attr-defined]
             platform_nid
         )
