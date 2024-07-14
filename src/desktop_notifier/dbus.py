@@ -177,9 +177,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
+        platform_nid = self._platform_nid_to_identifier.inverse.pop(identifier)
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
-        platform_nid = self._platform_nid_to_identifier.inverse[identifier]
         await self.interface.call_close_notification(  # type:ignore[attr-defined]
             platform_nid
         )
@@ -191,11 +191,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        for platform_nid in self._platform_nid_to_identifier.inverse.values():
-            # dbus_next proxy APIs are generated at runtime. Silence the type checker
-            # but raise an AttributeError if required.
+        while len(self._platform_nid_to_identifier) > 0:
+            nid = self._platform_nid_to_identifier.popitem()
             await self.interface.call_close_notification(  # type:ignore[attr-defined]
-                platform_nid
+                nid
             )
 
     # Note that _on_action and _on_closed might be called for the same notification
