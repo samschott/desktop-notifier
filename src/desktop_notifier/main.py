@@ -164,11 +164,6 @@ class DesktopNotifier:
 
         self._capabilities: frozenset[Capability] | None = None
 
-        self._on_clicked: Callable[[str], Any] | None = None
-        self._on_dismissed: Callable[[str], Any] | None = None
-        self._on_button_clicked: Callable[[str, str], Any] | None = None
-        self._on_replied: Callable[[str, str], Any] | None = None
-
     @property
     def app_name(self) -> str:
         """The application name"""
@@ -305,11 +300,11 @@ class DesktopNotifier:
 
         The method must take the notification identifier as a single argument.
         """
-        return self._on_clicked
+        return self._impl.on_clicked
 
     @on_clicked.setter
     def on_clicked(self, handler: Callable[[str], Any] | None) -> None:
-        self._on_clicked = handler
+        self._impl.on_clicked = handler
 
     @property
     def on_dismissed(self) -> Callable[[str], Any] | None:
@@ -318,11 +313,11 @@ class DesktopNotifier:
 
         The method must take the notification identifier as a single argument.
         """
-        return self._on_dismissed
+        return self._impl.on_dismissed
 
     @on_dismissed.setter
     def on_dismissed(self, handler: Callable[[str], Any] | None) -> None:
-        self._on_dismissed = handler
+        self._impl.on_dismissed = handler
 
     @property
     def on_button_clicked(self) -> Callable[[str, str], Any] | None:
@@ -332,11 +327,11 @@ class DesktopNotifier:
         The method must take the notification identifier and the button number as
         arguments.
         """
-        return self._on_button_clicked
+        return self._impl.on_button_clicked
 
     @on_button_clicked.setter
     def on_button_clicked(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._on_button_clicked = handler
+        self._impl.on_button_clicked = handler
 
     @property
     def on_replied(self) -> Callable[[str, str], Any] | None:
@@ -345,8 +340,8 @@ class DesktopNotifier:
 
         The method must take the notification identifier and input text as arguments.
         """
-        return self._on_replied
+        return self._impl.on_replied
 
     @on_replied.setter
     def on_replied(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._on_replied = handler
+        self._impl.on_replied = handler

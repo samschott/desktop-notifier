@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from typing import Callable, Any
 
 from .base import Notification, Capability
 
@@ -26,6 +27,11 @@ class DesktopNotifierImplementation(ABC):
     def __init__(self, app_name: str) -> None:
         self.app_name = app_name
         self._notification_cache: dict[str, Notification] = dict()
+
+        self.on_clicked: Callable[[str], Any] | None = None
+        self.on_dismissed: Callable[[str], Any] | None = None
+        self.on_button_clicked: Callable[[str, str], Any] | None = None
+        self.on_replied: Callable[[str, str], Any] | None = None
 
     @abstractmethod
     async def request_authorisation(self) -> bool:
