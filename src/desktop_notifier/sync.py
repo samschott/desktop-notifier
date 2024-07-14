@@ -113,10 +113,10 @@ class DesktopNotifierSync:
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
 
-    @property
-    def current_notifications(self) -> list[Notification]:
-        """A list of all currently displayed notifications for this app"""
-        return self._async_api.current_notifications
+    def get_current_notifications(self) -> list[str]:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.get_current_notifications`"""
+        coro = self._async_api.get_current_notifications()
+        return self._run_coro_sync(coro)
 
     def clear(self, identifier: str) -> None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.notification`"""

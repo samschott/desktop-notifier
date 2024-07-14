@@ -90,12 +90,9 @@ class DesktopNotifierImplementation(ABC):
         """
         ...
 
-    @property
-    def current_notifications(self) -> list[Notification]:
-        """
-        A list of all notifications which currently displayed in the notification center
-        """
-        return list(self._notification_cache.values())
+    async def get_current_notifications(self) -> list[str]:
+        """Returns identifiers of all currently displayed notifications for this app"""
+        return list(self._notification_cache.keys())
 
     async def clear(self, identifier: str) -> None:
         """

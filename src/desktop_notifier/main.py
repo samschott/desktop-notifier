@@ -10,14 +10,7 @@ import asyncio
 import warnings
 from urllib import parse
 from pathlib import Path
-from typing import (
-    Type,
-    Callable,
-    List,
-    Any,
-    TypeVar,
-    Sequence,
-)
+from typing import Type, Callable, Any, TypeVar, Sequence
 
 from packaging.version import Version
 
@@ -195,16 +188,14 @@ class DesktopNotifier:
         Sends a desktop notification.
 
         This method does not raise an exception when scheduling the notification fails
-        but logs warnings instead. If the notification was scheduled successfully, its
-        ``identifier`` will be set to the platform's native notification identifier.
-        Otherwise, the ``identifier`` will be ``None``.
+        but logs warnings instead.
 
         Note that even a successfully scheduled notification may not be displayed to the
         user, depending on their notification center settings (for instance if "do not
         disturb" is enabled on macOS).
 
         :param notification: The notification to send.
-        :returns: The passed notification instance with a unique identifier populated.
+        :returns: An identifier for the scheduled notification.
         """
         if not notification.icon:
             notification.icon = self.app_icon
@@ -227,7 +218,7 @@ class DesktopNotifier:
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon:  Icon | None = None,
+        icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
         on_clicked: Callable[[], Any] | None = None,
@@ -244,7 +235,7 @@ class DesktopNotifier:
         :class:`desktop_notifier.base.Notification` with the provided arguments and then
         calls :meth:`send_notification`.
 
-        :returns: The scheduled notification instance.
+        :returns: An identifier for the scheduled notification.
         """
         notification = Notification(
             title,
@@ -262,10 +253,9 @@ class DesktopNotifier:
         )
         return await self.send_notification(notification)
 
-    @property
-    def current_notifications(self) -> List[Notification]:
-        """A list of all currently displayed notifications for this app"""
-        return self._impl.current_notifications
+    async def get_current_notifications(self) -> list[str]:
+        """Returns identifiers of all currently displayed notifications for this app"""
+        return await self._impl.get_current_notifications()
 
     async def clear(self, identifier: str) -> None:
         """
