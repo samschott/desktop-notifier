@@ -318,18 +318,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
-        if not (notification.buttons or notification.reply_field):
-            return None
-
-        id_list = ["desktop-notifier"]
-        for button in notification.buttons:
-            id_list += [f"button-title-{button.title}"]
-
-        if notification.reply_field:
-            id_list += [f"reply-title-{notification.reply_field.title}"]
-            id_list += [f"reply-button-title-{notification.reply_field.button_title}"]
-
-        category_id = "_".join(id_list)
+        category_id = notification.category_id()
 
         # Retrieve existing categories. We do not cache this value because it may be
         # modified by other Python processes using desktop-notifier.
