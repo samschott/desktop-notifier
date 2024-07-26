@@ -148,10 +148,10 @@ class Sound(Resource):
     pass
 
 
-DEFAULT_ICON = Icon(path=python_icon_path)
+DEFAULT_ICON: Icon = Icon(path=python_icon_path)
 """Python icon"""
 
-DEFAULT_SOUND = Sound(name="default")
+DEFAULT_SOUND: Sound = Sound(name="default")
 """Default system notification sound"""
 
 
@@ -162,7 +162,7 @@ class AuthorisationError(Exception):
 class Urgency(Enum):
     """Enumeration of notification levels
 
-    The interpretation and visuals will depend on the platform.
+    The interpretation and visuals depend on the platform.
     """
 
     Critical = "critical"
@@ -175,73 +175,76 @@ class Urgency(Enum):
     """Low priority notification."""
 
 
+@dataclass
 class Button:
-    """
-    A button for interactive notifications
+    """A button for interactive notifications"""
 
-    :param title: The button title.
-    :param on_pressed: Callback to invoke when the button is pressed. This is called
-        without any arguments.
-    """
+    title: str
+    """The localized button title"""
 
-    def __init__(
-        self,
-        title: str,
-        on_pressed: Callable[[], Any] | None = None,
-    ) -> None:
-        self.title = title
-        self.on_pressed = on_pressed
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(title='{self.title}', on_pressed={self.on_pressed})>"
+    on_pressed: Callable[[], Any] | None = None
+    """Method to call when the button is pressed"""
 
 
+@dataclass
 class ReplyField:
-    """
-    A reply field for interactive notifications
+    """A text field for interactive notifications"""
 
-    :param title: A title for the field itself. On macOS, this will be the title of a
-        button to show the field.
-    :param button_title: The title of the button to send the reply.
-    :param on_replied: Callback to invoke when the button is pressed. This is called
-        without any arguments.
-    """
+    title: str = "Reply"
+    """A title for the field itself. On macOS, this will be the title of a button to
+    show the field."""
 
-    def __init__(
-        self,
-        title: str = "Reply",
-        button_title: str = "Send",
-        on_replied: Callable[[str], Any] | None = None,
-    ) -> None:
-        self.title = title
-        self.button_title = button_title
-        self.on_replied = on_replied
+    button_title: str = "Send"
+    """The title of the button to send the reply"""
 
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(title='{self.title}', on_replied={self.on_replied})>"
+    on_replied: Callable[[str], Any] | None = None
+    """Method to call when the 'reply' button is pressed"""
 
 
 class Notification:
     """A desktop notification
 
-    Some arguments may be ignored, depending on the backend.
-
-    :param title: Notification title.
-    :param message: Notification message.
-    :param urgency: Notification level: low, normal or critical.
-    :param icon: Icon to use for the notification.
-    :param buttons: A list of buttons for the notification.
-    :param reply_field: An optional reply field/
-    :param on_clicked: Callback to call when the notification is clicked. The
-        callback will be called without any arguments.
-    :param on_dismissed: Callback to call when the notification is dismissed. The
-        callback will be called without any arguments.
-    :param attachment: URI for an attachment to the notification.
-    :param sound: Sound to use for the notification. Use DEFAULT_SOUND for the
-        platform's default notification sound.
-    :param thread: An identifier to group related notifications together.
-    :param timeout: Duration for which the notification in shown.
+    Some properties of a notification may be ignored or interpreted differently
+    depending on the platform.
     """
+
+    title: str
+    """Notification title"""
+
+    message: str
+    """Notification message"""
+
+    urgency: Urgency
+    """Notification urgency. Can determine stickiness, notification appearance and
+    break through silencing."""
+
+    icon: Icon | None
+    """Icon to use for the notification"""
+
+    buttons: tuple[Button, ...]
+    """Buttons shown on an interactive notification"""
+
+    reply_field: ReplyField | None
+    """Text field shown on an interactive notification. This can be used for example
+    for messaging apps to reply directly from the notification."""
+
+    on_clicked: Callable[[], Any] | None
+    """Method to call when the notification is clicked"""
+
+    on_dismissed: Callable[[], Any] | None
+    """Method to call when the notification is dismissed"""
+
+    attachment: Attachment | None
+    """A file attached to the notification which may be displayed as a preview"""
+
+    sound: Sound | None
+    """A sound to play on notification"""
+
+    thread: str | None = None
+    """An identifier to group related notifications together, e.g., from a chat space"""
+
+    timeout: int = -1
+    """Duration for which the notification is shown"""
 
     def __init__(
         self,
