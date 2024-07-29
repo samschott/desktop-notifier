@@ -95,6 +95,7 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         # Get the notification which was clicked from the platform ID.
         identifier = py_from_ns(response.notification.request.identifier)
         notification = self.implementation._notification_cache.pop(identifier, None)
+        logger.debug("Response for %s w/actionIdentifier %s", repr(notification), response.actionIdentifier)
 
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
