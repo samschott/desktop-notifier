@@ -248,7 +248,8 @@ class Notification:
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__}(identifier='{self.identifier}', "
-            f"title='{self.title}', message='{self.message}')>"
+            f"title='{self.title}', message='{self.message}', "
+            f"button_ids={[b.identifier for b in  self.buttons]})>"
         )
 
 

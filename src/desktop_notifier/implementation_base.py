@@ -150,4 +150,5 @@ def get_button(notification: Notification, button_id: str) -> Button:
     except StopIteration:
         raise ValueError(
             f"Notification f'{notification.identifier}' does not have button with id '{button_id}'"
+            f" (available buttons: {', '.join(b.identifier for b in notification.buttons)})"
         )
