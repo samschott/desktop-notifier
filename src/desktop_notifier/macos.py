@@ -20,6 +20,7 @@ from pathlib import Path
 
 from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
+from rubicon.objc.api import ObjCInstance
 from rubicon.objc.runtime import load_library, objc_block, objc_id
 
 from .base import DEFAULT_SOUND, Capability, Notification, Urgency
@@ -84,13 +85,16 @@ ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 
 class NotificationCenterDelegate(NSObject):  # type:ignore
-    """Delegate to handle user interactions with notifications"""
+    """Delegate to handle user interactions with notifications."""
 
     implementation: CocoaNotificationCenter
 
     @objc_method  # type:ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
-        self, center, response, completion_handler: objc_block
+        self,
+        _notification_center: ObjCInstance,  # type: UNUserNotificationCenter
+        response: ObjCInstance,  # type: UNNotificationResponse
+        completion_handler: objc_block
     ) -> None:
         # Get the notification which was clicked from the platform ID.
         identifier = py_from_ns(response.notification.request.identifier)
@@ -101,6 +105,8 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
             if notification and notification.on_clicked:
                 notification.on_clicked()
+            # TODO: on_clicked(), on_dismissed(), and on_replied() are not defined by
+            # CocoaNotificationCenter so these are sort of a pointless elif statements.
             elif self.implementation.on_clicked:
                 self.implementation.on_clicked(identifier)
 
@@ -112,6 +118,7 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
 
         elif response.actionIdentifier == ReplyActionIdentifier:
             reply_text = py_from_ns(response.userText)
+            logger.debug("Notification reply_text: %s", reply_text)
 
             if (
                 notification
@@ -125,8 +132,9 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         else:
             button_id = py_from_ns(response.actionIdentifier)
 
-            if notification and get_button(notification, button_id).on_pressed:
+            if notification:
                 button = get_button(notification, button_id)
+
                 if button.on_pressed:
                     button.on_pressed()
             elif self.implementation.on_button_pressed:
@@ -379,7 +387,7 @@ class CocoaNotificationCenter(DesktopNotifierImplementation):
 
     async def _clear(self, identifier: str) -> None:
         """
-        Removes a notifications from the notification center
+        Remove a notification from the notification center.
 
         :param identifier: Notification identifier.
         """
