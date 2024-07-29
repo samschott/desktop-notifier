@@ -101,44 +101,33 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         notification = self.implementation._notification_cache.pop(identifier, None)
         logger.debug("Response action for %s: %s", notification, response.actionIdentifier)
 
+        if not notification:
+            logger.warning("Got response for unknown notification: %s", identifier)
+            completion_handler()
+            return
+
         # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-            if notification and notification.on_clicked:
+            if notification.on_clicked:
                 notification.on_clicked()
-            # TODO: on_clicked(), on_dismissed(), and on_replied() are not defined by
-            # CocoaNotificationCenter so these are sort of a pointless elif statements.
-            elif self.implementation.on_clicked:
-                self.implementation.on_clicked(identifier)
 
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-            if notification and notification.on_dismissed:
+            if notification.on_dismissed:
                 notification.on_dismissed()
-            elif self.implementation.on_dismissed:
-                self.implementation.on_dismissed(identifier)
 
         elif response.actionIdentifier == ReplyActionIdentifier:
             reply_text = py_from_ns(response.userText)
-            logger.debug("Notification reply_text: %s", reply_text)
+            logger.debug("Received reply_text: '%s'", reply_text)
 
-            if (
-                notification
-                and notification.reply_field
-                and notification.reply_field.on_replied
-            ):
+            if notification.reply_field and notification.reply_field.on_replied:
                 notification.reply_field.on_replied(reply_text)
-            elif self.implementation.on_replied:
-                self.implementation.on_replied(identifier, reply_text)
 
         else:
             button_id = py_from_ns(response.actionIdentifier)
+            button = get_button(notification, button_id)
 
-            if notification:
-                button = get_button(notification, button_id)
-
-                if button.on_pressed:
-                    button.on_pressed()
-            elif self.implementation.on_button_pressed:
-                self.implementation.on_button_pressed(identifier, button_id)
+            if button.on_pressed:
+                button.on_pressed()
 
         completion_handler()
 
