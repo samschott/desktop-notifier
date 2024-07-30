@@ -50,7 +50,7 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
     def __init__(self, app_name: str) -> None:
         super().__init__(app_name)
         self.interface: ProxyInterface | None = None
-        self._platform_nid_to_identifier: bidict[int, str] = bidict()
+        self._platform_to_interface_notification_identifier: bidict[int, str] = bidict()
 
     async def request_authorisation(self) -> bool:
         """
@@ -152,7 +152,7 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
-        platform_nid = await self.interface.call_notify(  # type:ignore[attr-defined]
+        platform_id = await self.interface.call_notify(  # type:ignore[attr-defined]
             self.app_name,
             0,
             icon,
@@ -162,7 +162,9 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
             hints,
             timeout,
         )
-        self._platform_nid_to_identifier[platform_nid] = notification.identifier
+        self._platform_to_interface_notification_identifier[platform_id] = (
+            notification.identifier
+        )
 
     async def _clear(self, identifier: str) -> None:
         """
@@ -171,7 +173,9 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if not self.interface:
             return
 
-        platform_nid = self._platform_nid_to_identifier.inverse.pop(identifier)
+        platform_nid = self._platform_to_interface_notification_identifier.inverse.pop(
+            identifier
+        )
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
         await self.interface.call_close_notification(  # type:ignore[attr-defined]
@@ -185,8 +189,10 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if not self.interface:
             return
 
-        while len(self._platform_nid_to_identifier) > 0:
-            platform_nid, _ = self._platform_nid_to_identifier.popitem()
+        while len(self._platform_to_interface_notification_identifier) > 0:
+            platform_nid, _ = (
+                self._platform_to_interface_notification_identifier.popitem()
+            )
             await self.interface.call_close_notification(  # type:ignore[attr-defined]
                 platform_nid
             )
@@ -205,7 +211,7 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         :param action_key: A string identifying the action to take. We choose those keys
             ourselves when scheduling the notification.
         """
-        identifier = self._platform_nid_to_identifier.pop(nid, "")
+        identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
         notification = self._notification_cache.pop(identifier, None)
 
         if not notification:
@@ -233,7 +239,7 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         :param nid: The platform's notification ID as an integer.
         :param reason: An integer describing the reason why the notification was closed.
         """
-        identifier = self._platform_nid_to_identifier.pop(nid, "")
+        identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
         notification = self._notification_cache.pop(identifier, None)
 
         if not notification:
