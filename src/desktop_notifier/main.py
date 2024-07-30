@@ -4,39 +4,29 @@ Asynchronous desktop notification API
 """
 from __future__ import annotations
 
-# system imports
-import platform
-import logging
 import asyncio
+import logging
+import platform
 import warnings
-from urllib import parse
 from pathlib import Path
-from typing import (
-    Type,
-    Callable,
-    List,
-    Any,
-    TypeVar,
-    Sequence,
-)
+from typing import Any, Callable, Sequence, Type, TypeVar
+from urllib import parse
 
-# external imports
 from packaging.version import Version
 
-# local imports
 from .base import (
-    Capability,
-    Urgency,
-    Button,
-    ReplyField,
-    Icon,
-    Sound,
-    Attachment,
-    Notification,
-    DesktopNotifierBase,
-    DEFAULT_SOUND,
     DEFAULT_ICON,
+    DEFAULT_SOUND,
+    Attachment,
+    Button,
+    Capability,
+    Icon,
+    Notification,
+    ReplyField,
+    Sound,
+    Urgency,
 )
+from .implementation_base import DesktopNotifierImplementation
 
 __all__ = [
     "Notification",
@@ -60,7 +50,7 @@ T = TypeVar("T")
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
-def get_implementation_class() -> Type[DesktopNotifierBase]:
+def get_implementation_class() -> Type[DesktopNotifierImplementation]:
     """
     Return the backend class depending on the platform and version.
 
@@ -116,9 +106,18 @@ class DesktopNotifier:
     Uses different backends depending on the platform version and available services.
     All implementations will dispatch notifications without an event loop but will
     require a running event loop to execute callbacks when the end user interacts with a
-    notification. On Linux, a asyncio event loop is required. On macOS, a CFRunLoop *in
+    notification. On Linux, an asyncio event loop is required. On macOS, a CFRunLoop *in
     the main thread* is required. Packages such as :mod:`rubicon.objc` can be used to
     integrate asyncio with a CFRunLoop.
+
+    Callbacks to handle user interactions with a notification can be specified either at
+    the class level, where they take the notification identifier as input, or directly
+    on the notification itself. The latter will take precedence if set.
+
+    Note that handlers that are directly set on the notification are tied to Python
+    notification instance and therefore the app's lifecycle. Handlers that are set on
+    the class level may run also for interactions with a notification while the app was
+    not running, if DesktopNotifier is instantiated at app startup.
 
     :param app_name: Name to identify the application in the notification center. On
         Linux, this should correspond to the application name in a desktop entry. On
@@ -128,8 +127,6 @@ class DesktopNotifier:
         :class:`desktop_notifier.base.Icon` instance referencing either a file or a
         named system icon. :class:`str` or :class:`pathlib.Path` are also accepted but
         deprecated.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center. This may be ignored by some implementations.
     """
 
     app_icon: Icon | None
@@ -138,7 +135,6 @@ class DesktopNotifier:
         self,
         app_name: str = "Python",
         app_icon: Icon | Path | str | None = DEFAULT_ICON,
-        notification_limit: int | None = None,
     ) -> None:
         if isinstance(app_icon, str):
             warnings.warn(
@@ -162,7 +158,7 @@ class DesktopNotifier:
         self.app_icon = app_icon
 
         impl_cls = get_implementation_class()
-        self._impl = impl_cls(app_name, notification_limit)
+        self._impl = impl_cls(app_name)
         self._did_request_authorisation = False
 
         self._capabilities: frozenset[Capability] | None = None
@@ -196,21 +192,19 @@ class DesktopNotifier:
         """Returns whether we have authorisation to send notifications."""
         return await self._impl.has_authorisation()
 
-    async def send_notification(self, notification: Notification) -> Notification:
+    async def send_notification(self, notification: Notification) -> str:
         """
         Sends a desktop notification.
 
         This method does not raise an exception when scheduling the notification fails
-        but logs warnings instead. If the notification was scheduled successfully, its
-        ``identifier`` will be set to the platform's native notification identifier.
-        Otherwise, the ``identifier`` will be ``None``.
+        but logs warnings instead.
 
         Note that even a successfully scheduled notification may not be displayed to the
         user, depending on their notification center settings (for instance if "do not
         disturb" is enabled on macOS).
 
         :param notification: The notification to send.
-        :returns: The passed notification instance with a unique identifier populated.
+        :returns: An identifier for the scheduled notification.
         """
         if not notification.icon:
             notification.icon = self.app_icon
@@ -226,23 +220,23 @@ class DesktopNotifier:
         # The user may have changed settings in the meantime.
         await self._impl.send(notification)
 
-        return notification
+        return notification.identifier
 
     async def send(
         self,
         title: str,
         message: str,
         urgency: Urgency = Urgency.Normal,
-        icon: str | Icon | None = None,
+        icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
-        attachment: str | Attachment | None = None,
-        sound: bool | Sound | None = None,
+        attachment: Attachment | None = None,
+        sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,
-    ) -> Notification:
+    ) -> str:
         """
         Sends a desktop notification
 
@@ -250,14 +244,14 @@ class DesktopNotifier:
         :class:`desktop_notifier.base.Notification` with the provided arguments and then
         calls :meth:`send_notification`.
 
-        :returns: The scheduled notification instance.
+        :returns: An identifier for the scheduled notification.
         """
         notification = Notification(
             title,
             message,
             urgency=urgency,
             icon=icon,
-            buttons=buttons,
+            buttons=tuple(buttons),
             reply_field=reply_field,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
@@ -268,18 +262,17 @@ class DesktopNotifier:
         )
         return await self.send_notification(notification)
 
-    @property
-    def current_notifications(self) -> List[Notification]:
-        """A list of all currently displayed notifications for this app"""
-        return self._impl.current_notifications
+    async def get_current_notifications(self) -> list[str]:
+        """Returns identifiers of all currently displayed notifications for this app."""
+        return await self._impl.get_current_notifications()
 
-    async def clear(self, notification: Notification) -> None:
+    async def clear(self, identifier: str) -> None:
         """
         Removes the given notification from the notification center.
 
-        :param notification: Notification to clear.
+        :param identifier: Notification identifier.
         """
-        await self._impl.clear(notification)
+        await self._impl.clear(identifier)
 
     async def clear_all(self) -> None:
         """
@@ -295,3 +288,68 @@ class DesktopNotifier:
         if not self._capabilities:
             self._capabilities = await self._impl.get_capabilities()
         return self._capabilities
+
+    @property
+    def on_clicked(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is clicked
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_clicked handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._impl.on_clicked
+
+    @on_clicked.setter
+    def on_clicked(self, handler: Callable[[str], Any] | None) -> None:
+        self._impl.on_clicked = handler
+
+    @property
+    def on_dismissed(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is dismissed
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_dismissed handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._impl.on_dismissed
+
+    @on_dismissed.setter
+    def on_dismissed(self, handler: Callable[[str], Any] | None) -> None:
+        self._impl.on_dismissed = handler
+
+    @property
+    def on_button_pressed(self) -> Callable[[str, str], Any] | None:
+        """
+        A method to call when a notification is dismissed
+
+        The method must take the notification identifier and the button number as
+        arguments.
+
+        If the notification button itself already specifies an on_pressed handler, it
+        will be used instead of the class-level handler.
+        """
+        return self._impl.on_button_pressed
+
+    @on_button_pressed.setter
+    def on_button_pressed(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._impl.on_button_pressed = handler
+
+    @property
+    def on_replied(self) -> Callable[[str, str], Any] | None:
+        """
+        A method to call when a user responds through the reply field of a notification
+
+        The method must take the notification identifier and input text as arguments.
+
+        If the notification's reply field itself already specifies an on_replied
+        handler, it will be used instead of the class-level handler.
+        """
+        return self._impl.on_replied
+
+    @on_replied.setter
+    def on_replied(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._impl.on_replied = handler

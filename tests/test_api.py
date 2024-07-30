@@ -1,16 +1,16 @@
 import sys
+from pathlib import Path
+
 import pytest
 
-from pathlib import Path
 from desktop_notifier import (
-    Urgency,
+    DEFAULT_SOUND,
+    Attachment,
     Button,
     Icon,
-    Sound,
-    Attachment,
     ReplyField,
-    DEFAULT_SOUND,
-    DEFAULT_ICON,
+    Sound,
+    Urgency,
 )
 
 
@@ -37,17 +37,7 @@ async def test_send(notifier):
         thread="test_notifications",
         timeout=5,
     )
-    assert notification in notifier.current_notifications
-    assert notification.identifier != ""
-
-
-@pytest.mark.asyncio
-async def test_default_icon(notifier):
-    notification = await notifier.send(
-        title="Julius Caesar",
-        message="Et tu, Brute?",
-    )
-    assert notification.icon == DEFAULT_ICON
+    assert notification in await notifier.get_current_notifications()
 
 
 @pytest.mark.asyncio
@@ -124,11 +114,12 @@ async def test_clear(notifier):
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
-    assert n0 in notifier.current_notifications
-    assert n1 in notifier.current_notifications
+    current_notifications = await notifier.get_current_notifications()
+    assert n0 in current_notifications
+    assert n1 in current_notifications
 
     await notifier.clear(n0)
-    assert n0 not in notifier.current_notifications
+    assert n0 not in await notifier.get_current_notifications()
 
 
 @pytest.mark.asyncio
@@ -141,8 +132,10 @@ async def test_clear_all(notifier):
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
-    assert n0 in notifier.current_notifications
-    assert n1 in notifier.current_notifications
+
+    current_notifications = await notifier.get_current_notifications()
+    assert n0 in current_notifications
+    assert n1 in current_notifications
 
     await notifier.clear_all()
-    assert len(notifier.current_notifications) == 0
+    assert len(await notifier.get_current_notifications()) == 0

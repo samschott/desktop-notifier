@@ -1,10 +1,10 @@
-import platform
 import asyncio
+import platform
 
 import pytest
 import pytest_asyncio
-from desktop_notifier import DesktopNotifier, DesktopNotifierSync
 
+from desktop_notifier import DesktopNotifier, DesktopNotifierSync
 
 if platform.system() == "Darwin":
     from rubicon.objc.eventloop import EventLoopPolicy

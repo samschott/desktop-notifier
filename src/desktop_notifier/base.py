@@ -1,29 +1,17 @@
-# -*- coding: utf-8 -*-
 """
-This module defines base classes for desktop notifications. All platform implementations
-must inherit from :class:`DesktopNotifierBase`.
+This module defines base classes for desktop notifications.
 """
+
 from __future__ import annotations
 
-import logging
-from urllib.parse import urlparse, unquote
-import urllib.parse
-import warnings
 import dataclasses
+import logging
+import uuid
 from dataclasses import dataclass
-from abc import ABC, abstractmethod
 from enum import Enum, auto
-from collections import deque
 from pathlib import Path
-from typing import (
-    Dict,
-    Callable,
-    Any,
-    Deque,
-    List,
-    Sequence,
-    ContextManager,
-)
+from typing import Any, Callable, ContextManager
+from urllib.parse import unquote, urlparse
 
 __all__ = [
     "Capability",
@@ -37,7 +25,6 @@ __all__ = [
     "Urgency",
     "AuthorisationError",
     "Notification",
-    "DesktopNotifierBase",
     "DEFAULT_ICON",
     "DEFAULT_SOUND",
 ]
@@ -57,6 +44,10 @@ logger = logging.getLogger(__name__)
 python_icon_path = resource_path(
     package="desktop_notifier.resources", resource="python.png"
 ).__enter__()
+
+
+def uuid_str() -> str:
+    return str(uuid.uuid4())
 
 
 @dataclass(frozen=True)
@@ -185,6 +176,9 @@ class Button:
     on_pressed: Callable[[], Any] | None = None
     """Method to call when the button is pressed"""
 
+    identifier: str = dataclasses.field(default_factory=uuid_str)
+    """A unique identifier to use in callbacks to specify with button was clicked"""
+
 
 @dataclass
 class ReplyField:
@@ -201,6 +195,7 @@ class ReplyField:
     """Method to call when the 'reply' button is pressed"""
 
 
+@dataclass
 class Notification:
     """A desktop notification
 
@@ -214,114 +209,41 @@ class Notification:
     message: str
     """Notification message"""
 
-    urgency: Urgency
+    urgency: Urgency = Urgency.Normal
     """Notification urgency. Can determine stickiness, notification appearance and
     break through silencing."""
 
-    icon: Icon | None
+    icon: Icon | None = None
     """Icon to use for the notification"""
 
-    buttons: tuple[Button, ...]
+    buttons: tuple[Button, ...] = tuple()
     """Buttons shown on an interactive notification"""
 
-    reply_field: ReplyField | None
+    reply_field: ReplyField | None = None
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
 
-    on_clicked: Callable[[], Any] | None
+    on_clicked: Callable[[], Any] | None = None
     """Method to call when the notification is clicked"""
 
-    on_dismissed: Callable[[], Any] | None
+    on_dismissed: Callable[[], Any] | None = None
     """Method to call when the notification is dismissed"""
 
-    attachment: Attachment | None
+    attachment: Attachment | None = None
     """A file attached to the notification which may be displayed as a preview"""
 
-    sound: Sound | None
+    sound: Sound | None = None
     """A sound to play on notification"""
 
     thread: str | None = None
     """An identifier to group related notifications together, e.g., from a chat space"""
 
     timeout: int = -1
-    """Duration for which the notification is shown"""
+    """Duration in seconds for which the notification is shown"""
 
-    def __init__(
-        self,
-        title: str,
-        message: str,
-        urgency: Urgency = Urgency.Normal,
-        icon: str | Icon | None = None,
-        buttons: Sequence[Button] = (),
-        reply_field: ReplyField | None = None,
-        on_clicked: Callable[[], Any] | None = None,
-        on_dismissed: Callable[[], Any] | None = None,
-        attachment: str | Attachment | None = None,
-        sound: bool | Sound | None = False,
-        thread: str | None = None,
-        timeout: int = -1,
-    ) -> None:
-        if sound is True:
-            warnings.warn(
-                message="Use sound=DEFAULT_SOUND instead of sound=True. "
-                "Support for boolean input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            sound = DEFAULT_SOUND
-        if sound is False:
-            warnings.warn(
-                message="Use sound=None instead of sound=False. "
-                "Support for boolean input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            sound = None
-        if isinstance(icon, str):
-            warnings.warn(
-                message="Pass an Icon instance instead of a string. "
-                "Support for string input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            if urllib.parse.urlparse(icon).hostname != "":
-                icon = Icon(uri=icon)
-            else:
-                icon = Icon(name=icon)
-        if isinstance(attachment, str):
-            warnings.warn(
-                message="Pass an Attachment instance instead of a string. "
-                "Support for string input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            attachment = Attachment(uri=attachment)
-
-        self._identifier = ""
-        self._winrt_identifier = ""
-        self._macos_identifier = ""
-        self._dbus_identifier = 0
-
-        self.title = title
-        self.message = message
-        self.urgency = urgency
-        self.icon = icon
-        self.buttons = tuple(buttons)
-        self.reply_field = reply_field
-        self.sound = sound
-        self.on_clicked = on_clicked
-        self.on_dismissed = on_dismissed
-        self.attachment = attachment
-        self.thread = thread
-        self.timeout = timeout
-
-    @property
-    def identifier(self) -> str:
-        """Unique identifier for this notification
-
-        Populated by the platform after scheduling the notification.
-        """
-        return self._identifier
-
-    @identifier.setter
-    def identifier(self, nid: str) -> None:
-        self._identifier = nid
+    identifier: str = dataclasses.field(default_factory=uuid_str)
+    """A unique identifier for this notification. Generated automatically if not
+    passed by the client."""
 
     def __repr__(self) -> str:
         return (
@@ -383,164 +305,3 @@ class Capability(Enum):
 
     TIMEOUT = auto()
     """Supports notification timeouts"""
-
-
-class DesktopNotifierBase(ABC):
-    """Base class for desktop notifier implementations
-
-    :param app_name: Name to identify the application in the notification center.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
-    """
-
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: int | None = None,
-    ) -> None:
-        self.app_name = app_name
-        self.notification_limit = notification_limit
-        self._current_notifications: Deque[Notification] = deque([], notification_limit)
-        self._notification_for_nid: Dict[str, Notification] = {}
-
-    @abstractmethod
-    async def request_authorisation(self) -> bool:
-        """
-        Request authorisation to send notifications.
-
-        :returns: Whether authorisation has been granted.
-        """
-        ...
-
-    @abstractmethod
-    async def has_authorisation(self) -> bool:
-        """
-        Returns whether we have authorisation to send notifications.
-        """
-        ...
-
-    async def send(self, notification: Notification) -> None:
-        """
-        Sends a desktop notification. Some arguments may be ignored, depending on the
-        implementation. This is a wrapper method which mostly performs housekeeping of
-        notifications ID and calls :meth:`_send` to actually schedule the notification.
-        Platform implementations must implement :meth:`_send`.
-
-        :param notification: Notification to send.
-        """
-        notification_to_replace: Notification | None
-
-        if len(self._current_notifications) == self.notification_limit:
-            notification_to_replace = self._current_notifications.popleft()
-        else:
-            notification_to_replace = None
-
-        try:
-            await self._send(notification, notification_to_replace)
-        except Exception:
-            # Notifications can fail for many reasons:
-            # The dbus service may not be available, we might be in a headless session,
-            # etc. Since notifications are not critical to an application, we only emit
-            # a warning.
-            if notification_to_replace:
-                self._current_notifications.appendleft(notification_to_replace)
-            logger.warning("Notification failed", exc_info=True)
-        else:
-            logger.debug("Notification sent: %s", notification)
-            self._current_notifications.append(notification)
-            self._notification_for_nid[notification.identifier] = notification
-
-    def _clear_notification_from_cache(self, notification: Notification) -> None:
-        """
-        Removes the notification from our cache. Should be called by backends when the
-        notification is closed.
-        """
-        try:
-            self._current_notifications.remove(notification)
-        except ValueError:
-            pass
-
-        try:
-            self._notification_for_nid.pop(notification.identifier)
-        except KeyError:
-            pass
-
-    @abstractmethod
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Notification | None,
-    ) -> None:
-        """
-        Method to send a notification via the platform. This should be implemented by
-        subclasses.
-
-        Implementations must raise an exception when the notification could not be
-        delivered. If the notification could be delivered but not fully as intended,
-        e.g., because associated resources could not be loaded, implementations should
-        emit a log message of level warning.
-
-        :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
-        :returns: The platform's ID for the scheduled notification.
-        """
-        ...
-
-    @property
-    def current_notifications(self) -> List[Notification]:
-        """
-        A list of all notifications which currently displayed in the notification center
-        """
-        return list(self._current_notifications)
-
-    async def clear(self, notification: Notification) -> None:
-        """
-        Removes the given notification from the notification center. This is a wrapper
-        method which mostly performs housekeeping of notifications ID and calls
-        :meth:`_clear` to actually clear the notification. Platform implementations
-        must implement :meth:`_clear`.
-
-        :param notification: Notification to clear.
-        """
-        if notification.identifier:
-            await self._clear(notification)
-
-        self._clear_notification_from_cache(notification)
-
-    @abstractmethod
-    async def _clear(self, notification: Notification) -> None:
-        """
-        Removes the given notification from the notification center. Should be
-        implemented by subclasses.
-
-        :param notification: Notification to clear.
-        """
-        ...
-
-    async def clear_all(self) -> None:
-        """
-        Clears all notifications from the notification center. This is a wrapper method
-        which mostly performs housekeeping of notifications ID and calls
-        :meth:`_clear_all` to actually clear the notifications. Platform implementations
-        must implement :meth:`_clear_all`.
-        """
-
-        await self._clear_all()
-        self._current_notifications.clear()
-        self._notification_for_nid.clear()
-
-    @abstractmethod
-    async def _clear_all(self) -> None:
-        """
-        Clears all notifications from the notification center. Should be implemented by
-        subclasses.
-        """
-        ...
-
-    @abstractmethod
-    async def get_capabilities(self) -> frozenset[Capability]:
-        """
-        Returns the functionality supported by the implementation and, for Linux / dbus,
-        the notification server.
-        """
-        ...

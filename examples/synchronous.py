@@ -1,11 +1,12 @@
-from desktop_notifier import DesktopNotifierSync, Urgency, Button, ReplyField, DEFAULT_SOUND
-
-
-notifier = DesktopNotifierSync(
-    app_name="Sample App",
-    notification_limit=10,
+from desktop_notifier import (
+    DEFAULT_SOUND,
+    Button,
+    DesktopNotifierSync,
+    ReplyField,
+    Urgency,
 )
 
+notifier = DesktopNotifierSync(app_name="Sample App")
 
 notifier.send(
     title="Julius Caesar",

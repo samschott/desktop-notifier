@@ -3,17 +3,17 @@
 Desktop notifications for Windows, Linux, macOS, iOS and iPadOS.
 """
 from .main import (
-    DesktopNotifier,
-    Button,
-    ReplyField,
-    Notification,
-    Urgency,
-    Capability,
-    Icon,
-    Sound,
-    Attachment,
-    DEFAULT_SOUND,
     DEFAULT_ICON,
+    DEFAULT_SOUND,
+    Attachment,
+    Button,
+    Capability,
+    DesktopNotifier,
+    Icon,
+    Notification,
+    ReplyField,
+    Sound,
+    Urgency,
 )
 from .sync import DesktopNotifierSync
 

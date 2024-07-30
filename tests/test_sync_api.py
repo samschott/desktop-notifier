@@ -1,7 +1,8 @@
 import sys
+
 import pytest
 
-from desktop_notifier import Urgency, Button, ReplyField, DEFAULT_SOUND
+from desktop_notifier import DEFAULT_SOUND, Button, ReplyField, Urgency
 
 
 def test_send(notifier_sync):
@@ -26,8 +27,7 @@ def test_send(notifier_sync):
         thread="test_notifications",
         timeout=5,
     )
-    assert notification in notifier_sync.current_notifications
-    assert notification.identifier != ""
+    assert notification in notifier_sync.get_current_notifications()
 
 
 @pytest.mark.skipif(
@@ -43,11 +43,12 @@ def test_clear(notifier_sync):
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
-    assert n0 in notifier_sync.current_notifications
-    assert n1 in notifier_sync.current_notifications
+    current_notifications = notifier_sync.get_current_notifications()
+    assert n0 in current_notifications
+    assert n1 in current_notifications
 
     notifier_sync.clear(n0)
-    assert n0 not in notifier_sync.current_notifications
+    assert n0 not in notifier_sync.get_current_notifications()
 
 
 def test_clear_all(notifier_sync):
@@ -59,8 +60,10 @@ def test_clear_all(notifier_sync):
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
-    assert n0 in notifier_sync.current_notifications
-    assert n1 in notifier_sync.current_notifications
+
+    current_notifications = notifier_sync.get_current_notifications()
+    assert n0 in current_notifications
+    assert n1 in current_notifications
 
     notifier_sync.clear_all()
-    assert len(notifier_sync.current_notifications) == 0
+    assert len(notifier_sync.get_current_notifications()) == 0

@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import ctypes
 import logging
 import platform
-import ctypes
-
 from typing import cast
 
 from packaging.version import Version
 from rubicon.objc import ObjCClass
 from rubicon.objc.runtime import load_library
-
 
 logger = logging.getLogger(__name__)
 macos_version = Version(platform.mac_ver()[0])
