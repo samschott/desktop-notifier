@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
-from .base import Button, Capability, Notification
+from .base import Capability, Notification
 
 __all__ = [
     "DesktopNotifierImplementation",
