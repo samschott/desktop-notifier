@@ -241,7 +241,7 @@ class Notification:
     timeout: int = -1
     """Duration in seconds for which the notification is shown"""
 
-    identifier: str = dataclasses.field(default_factory=uuid_str)
+    identifier: str = field(default_factory=uuid_str)
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
 
