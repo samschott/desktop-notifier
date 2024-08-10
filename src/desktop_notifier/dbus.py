@@ -16,7 +16,7 @@ from dbus_next.aio.proxy_object import ProxyInterface
 from dbus_next.signature import Variant
 
 from .base import Capability, Notification, Urgency
-from .implementation_base import DesktopNotifierImplementation, get_button
+from .implementation_base import DesktopNotifierImplementation
 
 __all__ = ["DBusDesktopNotifier"]
 
@@ -224,7 +224,7 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
                 self.on_clicked(identifier)
             return
 
-        button = get_button(notification, action_key)
+        button = notification._buttons_dict[action_key]
 
         if button.on_pressed:
             button.on_pressed()

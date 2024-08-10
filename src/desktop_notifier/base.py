@@ -247,7 +247,7 @@ class Notification:
 
     _buttons_dict: dict[str, Button] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         for button in self.buttons:
             self._buttons_dict[button.identifier] = button
 
