@@ -207,7 +207,7 @@ class DesktopNotifier:
         :returns: An identifier for the scheduled notification.
         """
         if not notification.icon:
-            notification.icon = self.app_icon
+            object.__setattr__(notification, "icon", self.app_icon)
 
         # Ask for authorisation if not already done. On some platforms, this will
         # trigger a system dialog to ask the user for permission.

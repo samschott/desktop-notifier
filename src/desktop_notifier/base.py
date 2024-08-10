@@ -7,7 +7,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Callable, ContextManager
@@ -166,7 +166,7 @@ class Urgency(Enum):
     """Low priority notification."""
 
 
-@dataclass
+@dataclass(frozen=True)
 class Button:
     """A button for interactive notifications"""
 
@@ -180,7 +180,7 @@ class Button:
     """A unique identifier to use in callbacks to specify with button was clicked"""
 
 
-@dataclass
+@dataclass(frozen=True)
 class ReplyField:
     """A text field for interactive notifications"""
 
@@ -195,7 +195,7 @@ class ReplyField:
     """Method to call when the 'reply' button is pressed"""
 
 
-@dataclass
+@dataclass(frozen=True)
 class Notification:
     """A desktop notification
 
