@@ -189,7 +189,11 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             # See https://specifications.freedesktop.org/notification-spec/latest/protocol.html#command-close-notification
             pass
 
-        del self._platform_to_interface_notification_identifier.inverse[identifier]
+        try:
+            del self._platform_to_interface_notification_identifier.inverse[identifier]
+        except KeyError:
+            # Popping may have been handled already by _on_close callback.
+            pass
 
     async def _clear_all(self) -> None:
         """
