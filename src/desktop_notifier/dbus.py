@@ -14,6 +14,7 @@ from bidict import bidict
 from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
 from dbus_next.signature import Variant
+from dbus_next.errors import DBusError
 
 from .base import Capability, Notification, Urgency
 from .implementation_base import DesktopNotifierImplementation
@@ -173,14 +174,22 @@ class DBusDesktopNotifier(DesktopNotifierImplementation):
         if not self.interface:
             return
 
-        platform_nid = self._platform_to_interface_notification_identifier.inverse.pop(
+        platform_nid = self._platform_to_interface_notification_identifier.inverse[
             identifier
-        )
-        # dbus_next proxy APIs are generated at runtime. Silence the type checker but
-        # raise an AttributeError if required.
-        await self.interface.call_close_notification(  # type:ignore[attr-defined]
-            platform_nid
-        )
+        ]
+
+        try:
+            # dbus_next proxy APIs are generated at runtime. Silence the type checker
+            # but raise an AttributeError if required.
+            await self.interface.call_close_notification(  # type:ignore[attr-defined]
+                platform_nid
+            )
+        except DBusError:
+            # Notification was already closed. See
+            # https://specifications.freedesktop.org/notification-spec/latest/protocol.html#command-close-notification
+            pass
+
+        del self._platform_to_interface_notification_identifier[platform_nid]
 
     async def _clear_all(self) -> None:
         """
