@@ -174,7 +174,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not self.interface:
             return
 
-        platform_nid = self._platform_to_interface_notification_identifier.inverse[
+        platform_id = self._platform_to_interface_notification_identifier.inverse[
             identifier
         ]
 
@@ -182,14 +182,14 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             # dbus_next proxy APIs are generated at runtime. Silence the type checker
             # but raise an AttributeError if required.
             await self.interface.call_close_notification(  # type:ignore[attr-defined]
-                platform_nid
+                platform_id
             )
         except DBusError:
-            # Notification was already closed. See
-            # https://specifications.freedesktop.org/notification-spec/latest/protocol.html#command-close-notification
+            # Notification was already closed.
+            # See https://specifications.freedesktop.org/notification-spec/latest/protocol.html#command-close-notification
             pass
 
-        del self._platform_to_interface_notification_identifier[platform_nid]
+        del self._platform_to_interface_notification_identifier.inverse[identifier]
 
     async def _clear_all(self) -> None:
         """
@@ -198,13 +198,10 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not self.interface:
             return
 
-        while len(self._platform_to_interface_notification_identifier) > 0:
-            platform_nid, _ = (
-                self._platform_to_interface_notification_identifier.popitem()
-            )
-            await self.interface.call_close_notification(  # type:ignore[attr-defined]
-                platform_nid
-            )
+        for identifier in list(
+            self._platform_to_interface_notification_identifier.values()
+        ):
+            await self._clear(identifier)
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action
