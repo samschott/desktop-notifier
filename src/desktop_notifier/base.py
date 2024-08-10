@@ -216,7 +216,7 @@ class Notification:
     icon: Icon | None = None
     """Icon to use for the notification"""
 
-    buttons: tuple[Button, ...] = tuple()
+    buttons: tuple[Button, ...] = field(default_factory=tuple)
     """Buttons shown on an interactive notification"""
 
     reply_field: ReplyField | None = None
