@@ -245,6 +245,12 @@ class Notification:
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
 
+    _buttons_dict: dict[str, Button] = field(default_factory=dict)
+
+    def __post_init__(self):
+        for button in self.buttons:
+            self._buttons_dict[button.identifier] = button
+
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__}(identifier='{self.identifier}', "
