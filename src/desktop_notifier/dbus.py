@@ -17,7 +17,7 @@ from dbus_next.errors import DBusError
 from dbus_next.signature import Variant
 
 from .base import Capability, Notification, Urgency
-from .implementation_base import DesktopNotifierImplementation
+from .implementation_base import DesktopNotifierBackend
 
 __all__ = ["DBusDesktopNotifier"]
 
@@ -31,7 +31,7 @@ NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
 
-class DBusDesktopNotifier(DesktopNotifierImplementation):
+class DBusDesktopNotifier(DesktopNotifierBackend):
     """DBus notification backend for Linux
 
     This implements the org.freedesktop.Notifications standard. The DBUS connection is

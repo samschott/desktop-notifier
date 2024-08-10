@@ -11,14 +11,14 @@ from typing import Any, Callable
 from .base import Capability, Notification
 
 __all__ = [
-    "DesktopNotifierImplementation",
+    "DesktopNotifierBackend",
 ]
 
 
 logger = logging.getLogger(__name__)
 
 
-class DesktopNotifierImplementation(ABC):
+class DesktopNotifierBackend(ABC):
     """Base class for desktop notifier implementations
 
     :param app_name: Name to identify the application in the notification center.
