@@ -32,7 +32,7 @@ from winrt.windows.ui.notifications import (
 
 # local imports
 from .base import DEFAULT_SOUND, Capability, Notification, Urgency
-from .implementation_base import DesktopNotifierImplementation, get_button
+from .implementation_base import DesktopNotifierBackend
 
 __all__ = ["WinRTDesktopNotifier"]
 
@@ -57,7 +57,7 @@ def register_hkey(app_id: str, app_name: str) -> None:
         winreg.SetValueEx(master_key, "DisplayName", 0, winreg.REG_SZ, app_name)
 
 
-class WinRTDesktopNotifier(DesktopNotifierImplementation):
+class WinRTDesktopNotifier(DesktopNotifierBackend):
     """Notification backend for the Windows Runtime
 
     :param app_name: The name of the app.
@@ -242,7 +242,7 @@ class WinRTDesktopNotifier(DesktopNotifierImplementation):
 
             elif action_id.startswith(BUTTON_ACTION_PREFIX):
                 button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
-                pressed_button = get_button(notification, button_id)
+                pressed_button = notification._buttons_dict[button_id]
                 if pressed_button.on_pressed:
                     pressed_button.on_pressed()
                 elif self.on_button_pressed:

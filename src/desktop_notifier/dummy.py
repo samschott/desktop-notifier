@@ -6,10 +6,10 @@ from __future__ import annotations
 
 from . import Capability
 from .base import Notification
-from .implementation_base import DesktopNotifierImplementation
+from .implementation_base import DesktopNotifierBackend
 
 
-class DummyNotificationCenter(DesktopNotifierImplementation):
+class DummyNotificationCenter(DesktopNotifierBackend):
     """A dummy backend for unsupported platforms"""
 
     def __init__(self, app_name: str) -> None:
