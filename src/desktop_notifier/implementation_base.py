@@ -8,18 +8,17 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
-from .base import Button, Capability, Notification
+from .base import Capability, Notification
 
 __all__ = [
-    "DesktopNotifierImplementation",
-    "get_button",
+    "DesktopNotifierBackend",
 ]
 
 
 logger = logging.getLogger(__name__)
 
 
-class DesktopNotifierImplementation(ABC):
+class DesktopNotifierBackend(ABC):
     """Base class for desktop notifier implementations
 
     :param app_name: Name to identify the application in the notification center.
@@ -142,13 +141,3 @@ class DesktopNotifierImplementation(ABC):
         the notification server.
         """
         ...
-
-
-def get_button(notification: Notification, button_id: str) -> Button:
-    try:
-        return next(b for b in notification.buttons if b.identifier == button_id)
-    except StopIteration:
-        raise ValueError(
-            f"Notification f'{notification.identifier}' does not have button with id '{button_id}'"
-            f" (available buttons: {', '.join(b.identifier for b in notification.buttons)})"
-        )

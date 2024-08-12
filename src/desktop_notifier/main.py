@@ -26,7 +26,7 @@ from .base import (
     Sound,
     Urgency,
 )
-from .implementation_base import DesktopNotifierImplementation
+from .implementation_base import DesktopNotifierBackend
 
 __all__ = [
     "Notification",
@@ -50,7 +50,7 @@ T = TypeVar("T")
 default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
-def get_implementation_class() -> Type[DesktopNotifierImplementation]:
+def get_backend_class() -> Type[DesktopNotifierBackend]:
     """
     Return the backend class depending on the platform and version.
 
@@ -157,8 +157,8 @@ class DesktopNotifier:
 
         self.app_icon = app_icon
 
-        impl_cls = get_implementation_class()
-        self._impl = impl_cls(app_name)
+        backend = get_backend_class()
+        self._backend = backend(app_name)
         self._did_request_authorisation = False
 
         self._capabilities: frozenset[Capability] | None = None
@@ -166,12 +166,12 @@ class DesktopNotifier:
     @property
     def app_name(self) -> str:
         """The application name"""
-        return self._impl.app_name
+        return self._backend.app_name
 
     @app_name.setter
     def app_name(self, value: str) -> None:
         """Setter: app_name"""
-        self._impl.app_name = value
+        self._backend.app_name = value
 
     async def request_authorisation(self) -> bool:
         """
@@ -186,11 +186,11 @@ class DesktopNotifier:
         :returns: Whether authorisation has been granted.
         """
         self._did_request_authorisation = True
-        return await self._impl.request_authorisation()
+        return await self._backend.request_authorisation()
 
     async def has_authorisation(self) -> bool:
         """Returns whether we have authorisation to send notifications."""
-        return await self._impl.has_authorisation()
+        return await self._backend.has_authorisation()
 
     async def send_notification(self, notification: Notification) -> str:
         """
@@ -207,7 +207,7 @@ class DesktopNotifier:
         :returns: An identifier for the scheduled notification.
         """
         if not notification.icon:
-            notification.icon = self.app_icon
+            object.__setattr__(notification, "icon", self.app_icon)
 
         # Ask for authorisation if not already done. On some platforms, this will
         # trigger a system dialog to ask the user for permission.
@@ -218,7 +218,7 @@ class DesktopNotifier:
 
         # We attempt to send the notification regardless of authorization.
         # The user may have changed settings in the meantime.
-        await self._impl.send(notification)
+        await self._backend.send(notification)
 
         return notification.identifier
 
@@ -264,7 +264,7 @@ class DesktopNotifier:
 
     async def get_current_notifications(self) -> list[str]:
         """Returns identifiers of all currently displayed notifications for this app."""
-        return await self._impl.get_current_notifications()
+        return await self._backend.get_current_notifications()
 
     async def clear(self, identifier: str) -> None:
         """
@@ -272,21 +272,21 @@ class DesktopNotifier:
 
         :param identifier: Notification identifier.
         """
-        await self._impl.clear(identifier)
+        await self._backend.clear(identifier)
 
     async def clear_all(self) -> None:
         """
         Removes all currently displayed notifications for this app from the notification
         center.
         """
-        await self._impl.clear_all()
+        await self._backend.clear_all()
 
     async def get_capabilities(self) -> frozenset[Capability]:
         """
         Returns which functionality is supported by the implementation.
         """
         if not self._capabilities:
-            self._capabilities = await self._impl.get_capabilities()
+            self._capabilities = await self._backend.get_capabilities()
         return self._capabilities
 
     @property
@@ -299,11 +299,11 @@ class DesktopNotifier:
         If the notification itself already specifies an on_clicked handler, it will be
         used instead of the class-level handler.
         """
-        return self._impl.on_clicked
+        return self._backend.on_clicked
 
     @on_clicked.setter
     def on_clicked(self, handler: Callable[[str], Any] | None) -> None:
-        self._impl.on_clicked = handler
+        self._backend.on_clicked = handler
 
     @property
     def on_dismissed(self) -> Callable[[str], Any] | None:
@@ -315,11 +315,11 @@ class DesktopNotifier:
         If the notification itself already specifies an on_dismissed handler, it will be
         used instead of the class-level handler.
         """
-        return self._impl.on_dismissed
+        return self._backend.on_dismissed
 
     @on_dismissed.setter
     def on_dismissed(self, handler: Callable[[str], Any] | None) -> None:
-        self._impl.on_dismissed = handler
+        self._backend.on_dismissed = handler
 
     @property
     def on_button_pressed(self) -> Callable[[str, str], Any] | None:
@@ -332,11 +332,11 @@ class DesktopNotifier:
         If the notification button itself already specifies an on_pressed handler, it
         will be used instead of the class-level handler.
         """
-        return self._impl.on_button_pressed
+        return self._backend.on_button_pressed
 
     @on_button_pressed.setter
     def on_button_pressed(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._impl.on_button_pressed = handler
+        self._backend.on_button_pressed = handler
 
     @property
     def on_replied(self) -> Callable[[str, str], Any] | None:
@@ -348,8 +348,8 @@ class DesktopNotifier:
         If the notification's reply field itself already specifies an on_replied
         handler, it will be used instead of the class-level handler.
         """
-        return self._impl.on_replied
+        return self._backend.on_replied
 
     @on_replied.setter
     def on_replied(self, handler: Callable[[str, str], Any] | None) -> None:
-        self._impl.on_replied = handler
+        self._backend.on_replied = handler

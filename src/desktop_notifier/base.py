@@ -7,7 +7,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Callable, ContextManager
@@ -166,7 +166,7 @@ class Urgency(Enum):
     """Low priority notification."""
 
 
-@dataclass
+@dataclass(frozen=True)
 class Button:
     """A button for interactive notifications"""
 
@@ -180,7 +180,7 @@ class Button:
     """A unique identifier to use in callbacks to specify with button was clicked"""
 
 
-@dataclass
+@dataclass(frozen=True)
 class ReplyField:
     """A text field for interactive notifications"""
 
@@ -195,7 +195,7 @@ class ReplyField:
     """Method to call when the 'reply' button is pressed"""
 
 
-@dataclass
+@dataclass(frozen=True)
 class Notification:
     """A desktop notification
 
@@ -216,7 +216,7 @@ class Notification:
     icon: Icon | None = None
     """Icon to use for the notification"""
 
-    buttons: tuple[Button, ...] = tuple()
+    buttons: tuple[Button, ...] = field(default_factory=tuple)
     """Buttons shown on an interactive notification"""
 
     reply_field: ReplyField | None = None
@@ -241,9 +241,15 @@ class Notification:
     timeout: int = -1
     """Duration in seconds for which the notification is shown"""
 
-    identifier: str = dataclasses.field(default_factory=uuid_str)
+    identifier: str = field(default_factory=uuid_str)
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
+
+    _buttons_dict: dict[str, Button] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        for button in self.buttons:
+            self._buttons_dict[button.identifier] = button
 
     def __repr__(self) -> str:
         return (
