@@ -241,7 +241,7 @@ class DesktopNotifier:
         attachment: str | Attachment | None = None,
         sound: bool | Sound | None = None,
         thread: str | None = None,
-        timeout: int = -1,
+        timeout: int = -1,  # in seconds
     ) -> Notification:
         """
         Sends a desktop notification
