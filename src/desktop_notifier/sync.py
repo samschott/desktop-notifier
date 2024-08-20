@@ -95,7 +95,7 @@ class DesktopNotifierSync:
         attachment: Attachment | None = None,
         sound: Sound | None = None,
         thread: str | None = None,
-        timeout: int = -1,
+        timeout: int = -1,  # in seconds
     ) -> Notification:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send`"""
         notification = Notification(

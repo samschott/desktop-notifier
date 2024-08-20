@@ -244,7 +244,7 @@ class Notification:
     """An identifier to group related notifications together, e.g., from a chat space"""
 
     timeout: int = -1
-    """Duration for which the notification is shown"""
+    """Duration in seconds for which the notification is shown"""
 
     def __init__(
         self,
