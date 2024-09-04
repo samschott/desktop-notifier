@@ -243,7 +243,7 @@ class DesktopNotifier:
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,  # in seconds
-    ) -> Notification:
+    ) -> str:
         """
         Sends a desktop notification
 
