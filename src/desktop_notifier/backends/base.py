@@ -4,6 +4,7 @@ This module defines the abstract implementation class that backends must inherit
 """
 from __future__ import annotations
 
+from enum import Enum, auto
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable
@@ -141,3 +142,47 @@ class DesktopNotifierBackend(ABC):
         the notification server.
         """
         ...
+
+    def handle_clicked(
+        self, identifier: str, notification: Notification | None = None
+    ) -> None:
+        if notification and notification.on_clicked:
+            notification.on_clicked()
+        elif self.on_clicked:
+            self.on_clicked(identifier)
+
+    def handle_dismissed(
+        self, identifier: str, notification: Notification | None = None
+    ) -> None:
+        if notification and notification.on_dismissed:
+            notification.on_dismissed()
+        elif self.on_dismissed:
+            self.on_dismissed(identifier)
+
+    def handle_replied(
+        self, identifier: str, reply_text: str, notification: Notification | None = None
+    ) -> None:
+        if (
+            notification
+            and notification.reply_field
+            and notification.reply_field.on_replied
+        ):
+            notification.reply_field.on_replied(reply_text)
+        elif self.on_replied:
+            self.on_replied(identifier, reply_text)
+
+    def handle_button(
+        self,
+        identifier: str,
+        button_identifier: str,
+        notification: Notification | None = None,
+    ) -> None:
+        if notification and button_identifier in notification._buttons_dict:
+            button = notification._buttons_dict[button_identifier]
+        else:
+            button = None
+
+        if button and button.on_pressed:
+            button.on_pressed()
+        elif self.on_button_pressed:
+            self.on_button_pressed(identifier, button_identifier)

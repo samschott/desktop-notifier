@@ -228,18 +228,10 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             return
 
         if action_key == "default":
-            if notification.on_clicked:
-                notification.on_clicked()
-            elif self.on_clicked:
-                self.on_clicked(identifier)
+            self.handle_clicked(identifier, notification)
             return
 
-        button = notification._buttons_dict[action_key]
-
-        if button.on_pressed:
-            button.on_pressed()
-        elif self.on_button_pressed:
-            self.on_button_pressed(identifier, action_key)
+        self.handle_button(identifier, action_key, notification)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
@@ -252,14 +244,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
         notification = self._notification_cache.pop(identifier, None)
 
-        if not notification:
-            return
-
         if reason == NOTIFICATION_CLOSED_DISMISSED:
-            if notification.on_dismissed:
-                notification.on_dismissed()
-            elif self.on_dismissed:
-                self.on_dismissed(identifier)
+            self.handle_dismissed(identifier, notification)
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:

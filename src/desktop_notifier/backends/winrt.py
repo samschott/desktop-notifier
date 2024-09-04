@@ -227,26 +227,16 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             action_id = activated_args.arguments
 
             if action_id == DEFAULT_ACTION:
-                if notification.on_clicked:
-                    notification.on_clicked()
-                elif self.on_clicked:
-                    self.on_clicked(notification.identifier)
+                self.handle_clicked(notification.identifier, notification)
 
             elif action_id == REPLY_ACTION and activated_args.user_input:
-                boxed_text = activated_args.user_input[REPLY_TEXTBOX_NAME]
-                text = unbox(boxed_text)
-                if notification.reply_field and notification.reply_field.on_replied:
-                    notification.reply_field.on_replied(text)
-                elif self.on_replied:
-                    self.on_replied(notification.identifier, text)
+                boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
+                reply = unbox(boxed_reply)
+                self.handle_replied(notification.identifier, reply, notification)
 
             elif action_id.startswith(BUTTON_ACTION_PREFIX):
                 button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
-                pressed_button = notification._buttons_dict[button_id]
-                if pressed_button.on_pressed:
-                    pressed_button.on_pressed()
-                elif self.on_button_pressed:
-                    self.on_button_pressed(notification.identifier, button_id)
+                self.handle_button(notification.identifier, button_id, notification)
 
         def on_dismissed(
             sender: ToastNotification | None,
@@ -258,10 +248,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
                 dismissed_args
                 and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
             ):
-                if notification.on_dismissed:
-                    notification.on_dismissed()
-                elif self.on_dismissed:
-                    self.on_dismissed(notification.identifier)
+                self.handle_dismissed(notification.identifier, notification)
 
         def on_failed(
             sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None

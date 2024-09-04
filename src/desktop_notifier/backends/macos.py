@@ -92,48 +92,22 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
         self, center, response, completion_handler: objc_block
     ) -> None:
-        # Get the notification which was clicked from the platform ID.
         identifier = py_from_ns(response.notification.request.identifier)
         notification = self.implementation._notification_cache.pop(identifier, None)
 
-        # Invoke the callback which corresponds to the user interaction. Prefer
-        # callbacks registered with the notification if present.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-            if notification and notification.on_clicked:
-                notification.on_clicked()
-            elif self.implementation.on_clicked:
-                self.implementation.on_clicked(identifier)
+            self.implementation.handle_clicked(identifier, notification)
 
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-            if notification and notification.on_dismissed:
-                notification.on_dismissed()
-            elif self.implementation.on_dismissed:
-                self.implementation.on_dismissed(identifier)
+            self.implementation.handle_dismissed(identifier, notification)
 
         elif response.actionIdentifier == ReplyActionIdentifier:
             reply_text = py_from_ns(response.userText)
-
-            if (
-                notification
-                and notification.reply_field
-                and notification.reply_field.on_replied
-            ):
-                notification.reply_field.on_replied(reply_text)
-            elif self.implementation.on_replied:
-                self.implementation.on_replied(identifier, reply_text)
+            self.implementation.handle_replied(identifier, reply_text, notification)
 
         else:
             action_id = py_from_ns(response.actionIdentifier)
-
-            if notification and action_id in notification._buttons_dict:
-                button = notification._buttons_dict[action_id]
-            else:
-                button = None
-
-            if button and button.on_pressed:
-                button.on_pressed()
-            elif self.implementation.on_button_pressed:
-                self.implementation.on_button_pressed(identifier, action_id)
+            self.implementation.handle_replied(identifier, action_id, notification)
 
         completion_handler()
 
