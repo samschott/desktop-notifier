@@ -24,7 +24,7 @@ def on_button_pressed(identifier: str, button_identifier: str) -> None:
 
 
 def on_replied(identifier: str, reply: str) -> None:
-    print(f"Received reply '{reply}' from notification {identifier}")
+    print(f"Received reply '{reply}' from notification '{identifier}'")
 
 
 async def main() -> None:
