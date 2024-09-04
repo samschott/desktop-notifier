@@ -10,32 +10,21 @@ UNUserNotificationCenter backend for macOS
 """
 from __future__ import annotations
 
-# system imports
+import asyncio
+import enum
+import logging
 import shutil
 import tempfile
-import uuid
-import logging
-import enum
-import asyncio
-from pathlib import Path
 from concurrent.futures import Future
-from typing import cast, Optional
+from pathlib import Path
 
-# external imports
 from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
-from rubicon.objc.runtime import load_library, objc_id, objc_block
+from rubicon.objc.runtime import load_library, objc_block, objc_id
 
-# local imports
-from .base import (
-    Notification,
-    DesktopNotifierBase,
-    Urgency,
-    Capability,
-    DEFAULT_SOUND,
-)
+from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from .base import DesktopNotifierBackend
 from .macos_support import macos_version
-
 
 __all__ = ["CocoaNotificationCenter"]
 
@@ -77,6 +66,7 @@ UNNotificationActionOptionForeground = 1 << 2
 UNNotificationActionOptionNone = 0
 
 UNNotificationCategoryOptionNone = 0
+UNNotificationCategoryOptionCustomDismissAction = 1
 
 UNAuthorizationStatusAuthorized = 2
 UNAuthorizationStatusProvisional = 3
@@ -96,52 +86,40 @@ ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 class NotificationCenterDelegate(NSObject):  # type:ignore
     """Delegate to handle user interactions with notifications"""
 
+    implementation: CocoaNotificationCenter
+
     @objc_method  # type:ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
         self, center, response, completion_handler: objc_block
     ) -> None:
-        # Get the notification which was clicked from the platform ID.
-        platform_nid = py_from_ns(response.notification.request.identifier)
-        py_notification = self.interface._notification_for_nid[platform_nid]
-        py_notification = cast(Notification, py_notification)
+        identifier = py_from_ns(response.notification.request.identifier)
+        notification = self.implementation._notification_cache.pop(identifier, None)
 
-        self.interface._clear_notification_from_cache(py_notification)
-
-        # Invoke the callback which corresponds to the user interaction.
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-            if py_notification.on_clicked:
-                py_notification.on_clicked()
+            self.implementation.handle_clicked(identifier, notification)
 
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-            if py_notification.on_dismissed:
-                py_notification.on_dismissed()
+            self.implementation.handle_dismissed(identifier, notification)
 
         elif response.actionIdentifier == ReplyActionIdentifier:
-            if py_notification.reply_field.on_replied:
-                reply_text = py_from_ns(response.userText)
-                py_notification.reply_field.on_replied(reply_text)
+            reply_text = py_from_ns(response.userText)
+            self.implementation.handle_replied(identifier, reply_text, notification)
 
         else:
-            button_number = int(py_from_ns(response.actionIdentifier))
-            callback = py_notification.buttons[button_number].on_pressed
-
-            if callback:
-                callback()
+            action_id = py_from_ns(response.actionIdentifier)
+            self.implementation.handle_replied(identifier, action_id, notification)
 
         completion_handler()
 
 
-class CocoaNotificationCenter(DesktopNotifierBase):
+class CocoaNotificationCenter(DesktopNotifierBackend):
     """UNUserNotificationCenter backend for macOS
 
     Can be used with macOS Catalina and newer. Both app name and bundle identifier
     will be ignored. The notification center automatically uses the values provided
     by the app bundle.
 
-    :param app_name: The name of the app. Does not have any effect because the app
-        name is automatically determined from the bundle or framework.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
+    :param app_name: The name of the app.
     """
 
     _to_native_urgency = {
@@ -150,15 +128,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         Urgency.Critical: UNNotificationInterruptionLevel.TimeSensitive,
     }
 
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: Optional[int] = None,
-    ) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(self, app_name: str) -> None:
+        super().__init__(app_name)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
-        self.nc_delegate.interface = self
+        self.nc_delegate.implementation = self
         self.nc.delegate = self.nc_delegate
 
         self._clear_notification_categories()
@@ -221,28 +195,16 @@ class CocoaNotificationCenter(DesktopNotifierBase):
 
         return authorized
 
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Optional[Notification],
-    ) -> None:
+    async def _send(self, notification: Notification) -> None:
         """
         Uses UNUserNotificationCenter to schedule a notification.
 
         :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
         """
-        if notification_to_replace:
-            platform_nid = notification_to_replace.identifier
-        else:
-            platform_nid = str(uuid.uuid4())
-
         # On macOS, we need to register a new notification category for every
         # unique set of buttons.
         category_id = await self._find_or_create_notification_category(notification)
-
-        if category_id is not None:
-            logger.debug("Notification category_id: %s", category_id)
+        logger.debug("Notification category_id: %s", category_id)
 
         # Create the native notification and notification request.
         content = UNMutableNotificationContent.alloc().init()
@@ -279,7 +241,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 content.attachments = [attachment]
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
-            platform_nid, content=content, trigger=None
+            notification.identifier, content=content, trigger=None
         )
 
         future: Future[NSError] = Future()  # type:ignore[valid-type]
@@ -302,11 +264,9 @@ class CocoaNotificationCenter(DesktopNotifierBase):
             log_nserror(error, "Error when scheduling notification")
             error.autorelease()  # type:ignore[attr-defined]
 
-        notification.identifier = platform_nid
-
     async def _find_or_create_notification_category(
         self, notification: Notification
-    ) -> Optional[str]:
+    ) -> str:
         """
         Registers a new UNNotificationCategory for the given notification or retrieves
         an existing one.
@@ -318,9 +278,6 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         :param notification: Notification instance.
         :returns: The identifier of the existing or created notification category.
         """
-        if not (notification.buttons or notification.reply_field):
-            return None
-
         id_list = ["desktop-notifier"]
         for button in notification.buttons:
             id_list += [f"button-title-{button.title}"]
@@ -355,9 +312,11 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                 )
                 actions.append(action)
 
-            for n, button in enumerate(notification.buttons):
+            for button in notification.buttons:
                 action = UNNotificationAction.actionWithIdentifier(
-                    str(n), title=button.title, options=UNNotificationActionOptionNone
+                    button.identifier,
+                    title=button.title,
+                    options=UNNotificationActionOptionNone,
                 )
                 actions.append(action)
 
@@ -367,7 +326,7 @@ class CocoaNotificationCenter(DesktopNotifierBase):
                     category_id,
                     actions=actions,
                     intentIdentifiers=[],
-                    options=UNNotificationCategoryOptionNone,
+                    options=UNNotificationCategoryOptionCustomDismissAction,
                 )
             )
             self.nc.setNotificationCategories(new_categories)
@@ -395,13 +354,13 @@ class CocoaNotificationCenter(DesktopNotifierBase):
         empty_set = NSSet.alloc().init()
         self.nc.setNotificationCategories(empty_set)
 
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         """
         Removes a notifications from the notification center
 
-        :param notification: Notification to clear.
+        :param identifier: Notification identifier.
         """
-        self.nc.removeDeliveredNotificationsWithIdentifiers([notification.identifier])
+        self.nc.removeDeliveredNotificationsWithIdentifiers([identifier])
 
     async def _clear_all(self) -> None:
         """

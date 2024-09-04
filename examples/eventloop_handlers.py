@@ -11,26 +11,38 @@ if platform.system() == "Darwin":
     asyncio.set_event_loop_policy(EventLoopPolicy())
 
 
+def on_clicked(identifier: str) -> None:
+    print(f"Notification '{identifier}' was clicked")
+
+
+def on_dismissed(identifier: str) -> None:
+    print(f"Notification '{identifier}' was dismissed")
+
+
+def on_button_pressed(identifier: str, button_identifier: str) -> None:
+    print(f"Button '{button_identifier}' on notification '{identifier}' was clicked")
+
+
+def on_replied(identifier: str, reply: str) -> None:
+    print(f"Received reply '{reply}' from notification '{identifier}'")
+
+
 async def main() -> None:
     notifier = DesktopNotifier(app_name="Sample App")
+    notifier.on_clicked = on_clicked
+    notifier.on_dismissed = on_dismissed
+    notifier.on_button_pressed = on_button_pressed
+    notifier.on_replied = on_replied
 
     await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
         urgency=Urgency.Critical,
-        buttons=[
-            Button(
-                title="Mark as read",
-                on_pressed=lambda: print("Marked as read"),
-            )
-        ],
+        buttons=[Button(title="Mark as read", identifier="MARK_AS_READ")],
         reply_field=ReplyField(
             title="Reply",
             button_title="Send",
-            on_replied=lambda text: print("Brutus replied:", text),
         ),
-        on_clicked=lambda: print("Notification clicked"),
-        on_dismissed=lambda: print("Notification dismissed"),
         sound=DEFAULT_SOUND,
     )
 

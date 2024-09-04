@@ -7,18 +7,17 @@ interaction with a notification requires a running asyncio event loop.
 """
 from __future__ import annotations
 
-# system imports
 import logging
 from typing import TypeVar
 
-# external imports
-from dbus_next.signature import Variant
+from bidict import bidict
 from dbus_next.aio.message_bus import MessageBus
 from dbus_next.aio.proxy_object import ProxyInterface
+from dbus_next.errors import DBusError
+from dbus_next.signature import Variant
 
-# local imports
-from .base import Notification, DesktopNotifierBase, Urgency, Capability
-
+from ..common import Capability, Notification, Urgency
+from .base import DesktopNotifierBackend
 
 __all__ = ["DBusDesktopNotifier"]
 
@@ -32,28 +31,13 @@ NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
 
-def identifier_from_dbus(nid: int) -> str:
-    if nid == 0:
-        return ""
-    return str(nid)
-
-
-def identifier_to_dbus(nid: str) -> int:
-    if nid == "":
-        return 0
-    return int(nid)
-
-
-class DBusDesktopNotifier(DesktopNotifierBase):
+class DBusDesktopNotifier(DesktopNotifierBackend):
     """DBus notification backend for Linux
 
     This implements the org.freedesktop.Notifications standard. The DBUS connection is
     created in a thread with a running asyncio loop to handle clicked notifications.
 
-    :param app_name: The name of the app. If it matches the application name in an
-        existing desktop entry, the icon from that entry will be used by default.
-    :param notification_limit: Maximum number of notifications to keep in the system's
-        notification center.
+    :param app_name: The name of the app.
     """
 
     to_native_urgency = {
@@ -64,13 +48,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
     supported_hint_signatures = {"a{sv}", "a{ss}"}
 
-    def __init__(
-        self,
-        app_name: str = "Python",
-        notification_limit: int | None = None,
-    ) -> None:
-        super().__init__(app_name, notification_limit)
+    def __init__(self, app_name: str) -> None:
+        super().__init__(app_name)
         self.interface: ProxyInterface | None = None
+        self._platform_to_interface_notification_identifier: bidict[int, str] = bidict()
 
     async def request_authorisation(self) -> bool:
         """
@@ -109,38 +90,25 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         return self.interface
 
-    async def _send(
-        self,
-        notification: Notification,
-        notification_to_replace: Notification | None,
-    ) -> None:
+    async def _send(self, notification: Notification) -> None:
         """
         Asynchronously sends a notification via the Dbus interface.
 
         :param notification: Notification to send.
-        :param notification_to_replace: Notification to replace, if any.
         """
         if not self.interface:
             self.interface = await self._init_dbus()
 
-        if notification_to_replace:
-            replaces_nid = identifier_to_dbus(notification_to_replace.identifier)
-        else:
-            replaces_nid = 0
+        # The "default" action is typically invoked when clicking on the
+        # notification body itself, see
+        # https://specifications.freedesktop.org/notification-spec. There are some
+        # exceptions though, such as XFCE, where this will result in a separate
+        # button. If no label name is provided in XFCE, it will result in a default
+        # symbol being used. We therefore don't specify a label name.
+        actions = ["default", ""]
 
-        actions: list[str] = []
-
-        if notification.on_clicked:
-            # The "default" action is typically invoked when clicking on the
-            # notification body itself, see
-            # https://specifications.freedesktop.org/notification-spec. There are some
-            # exceptions though, such as XFCE, where this will result in a separate
-            # button. If no label name is provided in XFCE, it will result in a default
-            # symbol being used. We therefore don't specify a label name.
-            actions = ["default", ""]
-
-        for n, button in enumerate(notification.buttons):
-            actions += [str(n), button.title]
+        for button in notification.buttons:
+            actions += [button.identifier, button.title]
 
         hints_v: dict[str, Variant] = dict()
         hints_v["urgency"] = self.to_native_urgency[notification.urgency]
@@ -185,9 +153,9 @@ class DBusDesktopNotifier(DesktopNotifierBase):
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.
-        platform_nid = await self.interface.call_notify(  # type:ignore[attr-defined]
+        platform_id = await self.interface.call_notify(  # type:ignore[attr-defined]
             self.app_name,
-            replaces_nid,
+            0,
             icon,
             notification.title,
             notification.message,
@@ -195,21 +163,37 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             hints,
             timeout,
         )
+        self._platform_to_interface_notification_identifier[platform_id] = (
+            notification.identifier
+        )
 
-        notification.identifier = identifier_from_dbus(platform_nid)
-
-    async def _clear(self, notification: Notification) -> None:
+    async def _clear(self, identifier: str) -> None:
         """
         Asynchronously removes a notification from the notification center
         """
         if not self.interface:
             return
 
-        # dbus_next proxy APIs are generated at runtime. Silence the type checker but
-        # raise an AttributeError if required.
-        await self.interface.call_close_notification(  # type:ignore[attr-defined]
-            identifier_to_dbus(notification.identifier)
-        )
+        platform_id = self._platform_to_interface_notification_identifier.inverse[
+            identifier
+        ]
+
+        try:
+            # dbus_next proxy APIs are generated at runtime. Silence the type checker
+            # but raise an AttributeError if required.
+            await self.interface.call_close_notification(  # type:ignore[attr-defined]
+                platform_id
+            )
+        except DBusError:
+            # Notification was already closed.
+            # See https://specifications.freedesktop.org/notification-spec/latest/protocol.html#command-close-notification
+            pass
+
+        try:
+            del self._platform_to_interface_notification_identifier.inverse[identifier]
+        except KeyError:
+            # Popping may have been handled already by _on_close callback.
+            pass
 
     async def _clear_all(self) -> None:
         """
@@ -218,12 +202,10 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         if not self.interface:
             return
 
-        for notification in self.current_notifications:
-            # dbus_next proxy APIs are generated at runtime. Silence the type checker
-            # but raise an AttributeError if required.
-            await self.interface.call_close_notification(  # type:ignore[attr-defined]
-                identifier_to_dbus(notification.identifier)
-            )
+        for identifier in list(
+            self._platform_to_interface_notification_identifier.values()
+        ):
+            await self._clear(identifier)
 
     # Note that _on_action and _on_closed might be called for the same notification
     # with some notification servers. This is not a problem because the _on_action
@@ -239,26 +221,17 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param action_key: A string identifying the action to take. We choose those keys
             ourselves when scheduling the notification.
         """
-        notification = self._notification_for_nid.get(identifier_from_dbus(nid))
+        identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
+        notification = self._notification_cache.pop(identifier, None)
 
-        if notification:
-            self._clear_notification_from_cache(notification)
+        if not notification:
+            return
 
-            button_number: int | None
+        if action_key == "default":
+            self.handle_clicked(identifier, notification)
+            return
 
-            try:
-                button_number = int(action_key)
-            except ValueError:
-                button_number = None
-
-            if action_key == "default" and notification.on_clicked:
-                notification.on_clicked()
-
-            elif button_number is not None:
-                button = notification.buttons[button_number]
-
-                if button.on_pressed:
-                    button.on_pressed()
+        self.handle_button(identifier, action_key, notification)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
@@ -268,13 +241,11 @@ class DBusDesktopNotifier(DesktopNotifierBase):
         :param nid: The platform's notification ID as an integer.
         :param reason: An integer describing the reason why the notification was closed.
         """
-        notification = self._notification_for_nid.get(identifier_from_dbus(nid))
+        identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
+        notification = self._notification_cache.pop(identifier, None)
 
-        if notification:
-            self._clear_notification_from_cache(notification)
-
-            if reason == NOTIFICATION_CLOSED_DISMISSED and notification.on_dismissed:
-                notification.on_dismissed()
+        if reason == NOTIFICATION_CLOSED_DISMISSED:
+            self.handle_dismissed(identifier, notification)
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
@@ -295,6 +266,7 @@ class DBusDesktopNotifier(DesktopNotifierBase):
             capabilities.add(Capability.ON_DISMISSED)
 
         cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
+
         if "actions" in cps:
             capabilities.add(Capability.BUTTONS)
         if "body" in cps:
