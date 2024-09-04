@@ -14,6 +14,7 @@ from urllib import parse
 
 from packaging.version import Version
 
+from .backends.base import DesktopNotifierBackend
 from .common import (
     DEFAULT_ICON,
     DEFAULT_SOUND,
@@ -26,7 +27,6 @@ from .common import (
     Sound,
     Urgency,
 )
-from .backends.base import DesktopNotifierBackend
 
 __all__ = [
     "Notification",
