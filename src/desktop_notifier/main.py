@@ -14,7 +14,7 @@ from urllib import parse
 
 from packaging.version import Version
 
-from .base import (
+from .common import (
     DEFAULT_ICON,
     DEFAULT_SOUND,
     Attachment,
@@ -26,7 +26,7 @@ from .base import (
     Sound,
     Urgency,
 )
-from .implementation_base import DesktopNotifierBackend
+from .backends.base import DesktopNotifierBackend
 
 __all__ = [
     "Notification",
@@ -58,12 +58,12 @@ def get_backend_class() -> Type[DesktopNotifierBackend]:
     :raises RuntimeError: when passing ``macos_legacy = True`` on macOS 12.0 and later.
     """
     if platform.system() == "Darwin":
-        from .macos_support import is_bundle, is_signed_bundle, macos_version
+        from .backends.macos_support import is_bundle, is_signed_bundle, macos_version
 
         has_unusernotificationcenter = macos_version >= Version("10.14")
 
         if has_unusernotificationcenter and is_bundle():
-            from .macos import CocoaNotificationCenter
+            from .backends.macos import CocoaNotificationCenter
 
             if not is_signed_bundle():
                 logger.warning(
@@ -78,24 +78,24 @@ def get_backend_class() -> Type[DesktopNotifierBackend]:
             else:
                 logger.warning("Only macOS 10.14 and later are supported")
 
-            from .dummy import DummyNotificationCenter
+            from .backends.dummy import DummyNotificationCenter
 
             return DummyNotificationCenter
 
     elif platform.system() == "Linux":
-        from .dbus import DBusDesktopNotifier
+        from .backends.dbus import DBusDesktopNotifier
 
         return DBusDesktopNotifier
 
     elif platform.system() == "Windows" and Version(platform.version()) >= Version(
         "10.0.10240"
     ):
-        from .winrt import WinRTDesktopNotifier
+        from .backends.winrt import WinRTDesktopNotifier
 
         return WinRTDesktopNotifier
 
     else:
-        from .dummy import DummyNotificationCenter
+        from .backends.dummy import DummyNotificationCenter
 
         return DummyNotificationCenter
 

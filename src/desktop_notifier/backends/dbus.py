@@ -16,8 +16,8 @@ from dbus_next.aio.proxy_object import ProxyInterface
 from dbus_next.errors import DBusError
 from dbus_next.signature import Variant
 
-from .base import Capability, Notification, Urgency
-from .implementation_base import DesktopNotifierBackend
+from ..common import Capability, Notification, Urgency
+from .base import DesktopNotifierBackend
 
 __all__ = ["DBusDesktopNotifier"]
 

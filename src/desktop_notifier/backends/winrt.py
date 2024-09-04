@@ -31,8 +31,8 @@ from winrt.windows.ui.notifications import (
 )
 
 # local imports
-from .base import DEFAULT_SOUND, Capability, Notification, Urgency
-from .implementation_base import DesktopNotifierBackend
+from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from .base import DesktopNotifierBackend
 
 __all__ = ["WinRTDesktopNotifier"]
 

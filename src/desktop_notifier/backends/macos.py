@@ -22,8 +22,8 @@ from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_block, objc_id
 
-from .base import DEFAULT_SOUND, Capability, Notification, Urgency
-from .implementation_base import DesktopNotifierBackend
+from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from .base import DesktopNotifierBackend
 from .macos_support import macos_version
 
 __all__ = ["CocoaNotificationCenter"]

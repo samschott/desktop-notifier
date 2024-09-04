@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Callable, Coroutine, Sequence, TypeVar
 
-from .base import (
+from .common import (
     DEFAULT_ICON,
     Attachment,
     Button,

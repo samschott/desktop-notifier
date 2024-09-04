@@ -4,9 +4,8 @@ Dummy backend for unsupported platforms
 """
 from __future__ import annotations
 
-from . import Capability
-from .base import Notification
-from .implementation_base import DesktopNotifierBackend
+from ..common import Notification, Capability
+from .base import DesktopNotifierBackend
 
 
 class DummyNotificationCenter(DesktopNotifierBackend):
