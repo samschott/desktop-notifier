@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from enum import Enum, auto
 from typing import Any, Callable
 
 from ..common import Capability, Notification
