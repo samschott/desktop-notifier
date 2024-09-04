@@ -135,6 +135,7 @@ class DesktopNotifier:
         self,
         app_name: str = "Python",
         app_icon: Icon | Path | str | None = DEFAULT_ICON,
+        notification_limit: int | None = None,
     ) -> None:
         if isinstance(app_icon, str):
             warnings.warn(
@@ -154,6 +155,12 @@ class DesktopNotifier:
                 category=DeprecationWarning,
             )
             app_icon = Icon(path=app_icon)
+
+        if notification_limit is not None:
+            warnings.warn(
+                message="Notification limits have been deprecated and no longer have an effect",
+                category=DeprecationWarning,
+            )
 
         self.app_icon = app_icon
 
