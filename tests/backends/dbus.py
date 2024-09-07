@@ -10,6 +10,9 @@ def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
     ]
     notifier._backend._on_action(nid, "default")
 
+    # Any closing of the notification also triggers a dismissed event.
+    notifier._backend._on_closed(nid, NOTIFICATION_CLOSED_DISMISSED)
+
 
 def simulate_dismissed(notifier: DesktopNotifier, identifier: str) -> None:
     nid = notifier._backend._platform_to_interface_notification_identifier.inverse[
@@ -25,6 +28,9 @@ def simulate_button_pressed(
         identifier
     ]
     notifier._backend._on_action(nid, button_identifier)
+
+    # Any closing of the notification also triggers a dismissed event.
+    notifier._backend._on_closed(nid, NOTIFICATION_CLOSED_DISMISSED)
 
 
 def simulate_replied(notifier: DesktopNotifier, identifier: str, reply: str) -> None:
