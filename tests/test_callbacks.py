@@ -18,8 +18,8 @@ from .backends import (
     simulate_replied,
 )
 
-if not platform.system() == "Darwin":
-    pytest.skip("Only macOS test infra provided", allow_module_level=True)
+if platform.system() == "Windows":
+    pytest.skip("Windows test infra missing", allow_module_level=True)
 
 
 async def check_supported(notifier: DesktopNotifier, capability: Capability) -> None:
