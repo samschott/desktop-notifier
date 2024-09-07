@@ -10,7 +10,7 @@ if platform.system() == "Darwin":
         simulate_replied,
     )
 elif platform.system() == "Linux":
-    from .macos import (
+    from .dbus import (
         simulate_button_pressed,
         simulate_clicked,
         simulate_dismissed,
