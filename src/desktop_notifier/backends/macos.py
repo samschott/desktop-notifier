@@ -107,7 +107,7 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
 
         else:
             action_id = py_from_ns(response.actionIdentifier)
-            self.implementation.handle_replied(identifier, action_id, notification)
+            self.implementation.handle_button(identifier, action_id, notification)
 
         completion_handler()
 
