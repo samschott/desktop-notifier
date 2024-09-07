@@ -15,6 +15,19 @@ from desktop_notifier import (
 
 
 @pytest.mark.asyncio
+async def test_request_authorisation(notifier):
+    """
+    Authorization should already be grated when setting up the test environment.
+    Check that calling request_authorisation returns true.
+    """
+    if not await notifier.has_authorisation():
+        pytest.skip("Not authorised and we cannot request authorisation in test")
+
+    has_authorisation = await notifier.request_authorisation()
+    assert has_authorisation
+
+
+@pytest.mark.asyncio
 async def test_send(notifier):
     notification = await notifier.send(
         title="Julius Caesar",

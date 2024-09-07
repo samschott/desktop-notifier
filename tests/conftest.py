@@ -16,7 +16,7 @@ if platform.system() == "Darwin":
 @pytest_asyncio.fixture
 async def notifier():
     dn = DesktopNotifier()
-    # Skip requesting authorization to void blocking if not granted.
+    # Skip requesting authorization to avoid blocking if not granted.
     dn._did_request_authorisation = True
     yield dn
     await asyncio.sleep(0.1)
@@ -26,7 +26,7 @@ async def notifier():
 @pytest.fixture
 def notifier_sync():
     dn = DesktopNotifierSync()
-    # Skip requesting authorization to void blocking if not granted.
+    # Skip requesting authorization to avoid blocking if not granted.
     dn._async_api._did_request_authorisation = True
     yield dn
     time.sleep(0.1)
