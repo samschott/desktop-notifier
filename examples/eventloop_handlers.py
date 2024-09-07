@@ -38,7 +38,10 @@ async def main() -> None:
         title="Julius Caesar",
         message="Et tu, Brute?",
         urgency=Urgency.Critical,
-        buttons=[Button(title="Mark as read", identifier="MARK_AS_READ")],
+        buttons=[
+            Button(title="Mark as read", identifier="MARK_AS_READ"),
+            Button(title="Click me!!", identifier="CLICK_ME"),
+        ],
         reply_field=ReplyField(
             title="Reply",
             button_title="Send",

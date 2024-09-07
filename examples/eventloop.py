@@ -19,10 +19,8 @@ async def main() -> None:
         message="Et tu, Brute?",
         urgency=Urgency.Critical,
         buttons=[
-            Button(
-                title="Mark as read",
-                on_pressed=lambda: print("Marked as read"),
-            )
+            Button(title="Mark as read", on_pressed=lambda: print("Marked as read")),
+            Button(title="Click me!!", on_pressed=lambda: print("Clicked")),
         ],
         reply_field=ReplyField(
             title="Reply",
