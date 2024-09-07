@@ -3,9 +3,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from desktop_notifier import Button, Notification, ReplyField
-from desktop_notifier.main import get_backend_class
-from desktop_notifier.backends.dummy import DummyNotificationCenter
+from desktop_notifier import (
+    Button,
+    Capability,
+    DesktopNotifier,
+    Notification,
+    ReplyField,
+)
 
 from .backends import (
     simulate_button_pressed,
@@ -17,12 +21,17 @@ from .backends import (
 if not platform.system() == "Darwin":
     pytest.skip("Only macOS test infra provided", allow_module_level=True)
 
-if get_backend_class() == DummyNotificationCenter:
-    pytest.skip("Dummy backend cannot handle callbacks", allow_module_level=True)
+
+async def check_supported(notifier: DesktopNotifier, capability: Capability) -> None:
+    capabilities = await notifier.get_capabilities()
+    if capability not in capabilities:
+        pytest.skip(f"{notifier} not supported by backend")
 
 
 @pytest.mark.asyncio
 async def test_clicked_callback_called(notifier):
+    await check_supported(notifier, Capability.ON_CLICKED)
+
     notifier.on_clicked = Mock()
     notification = Notification(
         title="Julius Caesar",
@@ -39,6 +48,8 @@ async def test_clicked_callback_called(notifier):
 
 @pytest.mark.asyncio
 async def test_dismissed_callback_called(notifier):
+    await check_supported(notifier, Capability.ON_DISMISSED)
+
     notifier.on_dismissed = Mock()
     notification = Notification(
         title="Julius Caesar",
@@ -55,6 +66,8 @@ async def test_dismissed_callback_called(notifier):
 
 @pytest.mark.asyncio
 async def test_button_pressed_callback_called(notifier):
+    await check_supported(notifier, Capability.BUTTONS)
+
     notifier.on_button_pressed = Mock()
     button1 = Button(title="Button 1", on_pressed=Mock())
     button2 = Button(title="Button 2", on_pressed=Mock())
@@ -73,6 +86,8 @@ async def test_button_pressed_callback_called(notifier):
 
 @pytest.mark.asyncio
 async def test_replied_callback_called(notifier):
+    await check_supported(notifier, Capability.REPLY_FIELD)
+
     notifier.on_replied = Mock()
     notification = Notification(
         title="Julius Caesar",
@@ -89,6 +104,8 @@ async def test_replied_callback_called(notifier):
 
 @pytest.mark.asyncio
 async def test_clicked_fallback_handler_called(notifier):
+    await check_supported(notifier, Capability.ON_CLICKED)
+
     notifier.on_clicked = Mock()
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
     identifier = await notifier.send_notification(notification)
@@ -100,6 +117,8 @@ async def test_clicked_fallback_handler_called(notifier):
 
 @pytest.mark.asyncio
 async def test_dismissed_fallback_handler_called(notifier):
+    await check_supported(notifier, Capability.ON_DISMISSED)
+
     notifier.on_dismissed = Mock()
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
     identifier = await notifier.send_notification(notification)
@@ -111,6 +130,8 @@ async def test_dismissed_fallback_handler_called(notifier):
 
 @pytest.mark.asyncio
 async def test_button_pressed_fallback_handler_called(notifier):
+    await check_supported(notifier, Capability.BUTTONS)
+
     notifier.on_button_pressed = Mock()
     button1 = Button(title="Button 1")
     button2 = Button(title="Button 2")
@@ -128,6 +149,8 @@ async def test_button_pressed_fallback_handler_called(notifier):
 
 @pytest.mark.asyncio
 async def test_replied_fallback_handler_called(notifier):
+    await check_supported(notifier, Capability.REPLY_FIELD)
+
     notifier.on_replied = Mock()
     notification = Notification(
         title="Julius Caesar",
