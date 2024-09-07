@@ -244,6 +244,9 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
         notification = self._notification_cache.pop(identifier, None)
 
+        if not notification:
+            return
+
         if reason == NOTIFICATION_CLOSED_DISMISSED:
             self.handle_dismissed(identifier, notification)
 
