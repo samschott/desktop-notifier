@@ -9,6 +9,13 @@ if platform.system() == "Darwin":
         simulate_dismissed,
         simulate_replied,
     )
+elif platform.system() == "Linux":
+    from .macos import (
+        simulate_button_pressed,
+        simulate_clicked,
+        simulate_dismissed,
+        simulate_replied,
+    )
 else:
 
     def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
