@@ -213,59 +213,70 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         native.tag = notification.identifier
         native.priority = self._to_native_urgency[notification.urgency]
 
-        def on_activated(
-            sender: ToastNotification | None, boxed_activated_args: WinRTObject | None
-        ) -> None:
-            if not sender or not boxed_activated_args:
-                return
-
-            try:
-                activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
-            except Exception:
-                return
-
-            action_id = activated_args.arguments
-
-            if action_id == DEFAULT_ACTION:
-                self.handle_clicked(notification.identifier, notification)
-
-            elif action_id == REPLY_ACTION and activated_args.user_input:
-                boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
-                reply = unbox(boxed_reply)
-                self.handle_replied(notification.identifier, reply, notification)
-
-            elif action_id.startswith(BUTTON_ACTION_PREFIX):
-                button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
-                self.handle_button(notification.identifier, button_id, notification)
-
-        def on_dismissed(
-            sender: ToastNotification | None,
-            dismissed_args: ToastDismissedEventArgs | None,
-        ) -> None:
-            self._clear_notification_from_cache(notification.identifier)
-
-            if (
-                dismissed_args
-                and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
-            ):
-                self.handle_dismissed(notification.identifier, notification)
-
-        def on_failed(
-            sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
-        ) -> None:
-            if failed_args:
-                logger.warning(
-                    "Notification failed with error code %s",
-                    failed_args.error_code.value,
-                )
-            else:
-                logger.warning("Notification failed with unknown error")
-
-        native.add_activated(on_activated)
-        native.add_dismissed(on_dismissed)
-        native.add_failed(on_failed)
+        native.add_activated(self._on_activated)
+        native.add_dismissed(self._on_dismissed)
+        native.add_failed(self._on_failed)
 
         self.notifier.show(native)
+
+    def _on_activated(
+        self, sender: ToastNotification | None, boxed_activated_args: WinRTObject | None
+    ) -> None:
+        if not sender or not boxed_activated_args:
+            return
+
+        notification = self._clear_notification_from_cache(sender.tag)
+
+        try:
+            activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
+        except Exception:
+            return
+
+        action_id = activated_args.arguments
+
+        if action_id == DEFAULT_ACTION:
+            self.handle_clicked(sender.tag, notification)
+
+        elif action_id == REPLY_ACTION and activated_args.user_input:
+            boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
+            reply = unbox(boxed_reply)
+            self.handle_replied(sender.tag, reply, notification)
+
+        elif action_id.startswith(BUTTON_ACTION_PREFIX):
+            button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
+            self.handle_button(sender.tag, button_id, notification)
+
+    def _on_dismissed(
+        self,
+        sender: ToastNotification | None,
+        dismissed_args: ToastDismissedEventArgs | None,
+    ) -> None:
+        if not sender:
+            return
+
+        notification = self._clear_notification_from_cache(sender.tag)
+
+        if (
+            dismissed_args
+            and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
+        ):
+            self.handle_dismissed(sender.tag, notification)
+
+    def _on_failed(
+        self, sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
+    ) -> None:
+        if not sender:
+            return
+
+        self._clear_notification_from_cache(sender.tag)
+        if failed_args:
+            logger.warning(
+                "Notification '%s' failed with error code %s",
+                sender.tag,
+                failed_args.error_code.value,
+            )
+        else:
+            logger.warning("Notification failed with unknown error")
 
     async def _clear(self, identifier: str) -> None:
         """
