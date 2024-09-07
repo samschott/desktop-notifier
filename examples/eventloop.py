@@ -36,13 +36,19 @@ async def main() -> None:
 
     # Run the event loop forever to respond to user interactions with the notification.
     event = asyncio.Event()
-    loop = asyncio.get_running_loop()
 
-    loop.add_signal_handler(signal.SIGINT, event.set)
-    loop.add_signal_handler(signal.SIGTERM, event.set)
+    if platform.system() != "Windows":
+        # Handle SIGINT and SIGTERM gracefully on Unix.
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGINT, event.set)
+        loop.add_signal_handler(signal.SIGTERM, event.set)
 
     await event.wait()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        # Handle KeyboardInterrupt gracefully on Windows.
+        pass
