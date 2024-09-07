@@ -47,6 +47,28 @@ async def test_clicked_callback_called(notifier):
 
 
 @pytest.mark.asyncio
+async def test_clicked_callback_dismissed_not_called(notifier):
+    """
+    Dbus may send an on_dismissed event any time a notification is closed. Ensure that
+    its callback is not tiggered on different types of interactions.
+    """
+    await check_supported(notifier, Capability.ON_CLICKED)
+
+    notification = Notification(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        on_clicked=Mock(),
+        on_dismissed=Mock(),
+    )
+    identifier = await notifier.send_notification(notification)
+
+    simulate_clicked(notifier, identifier)
+
+    notification.on_dismissed.assert_not_called()
+    notification.on_clicked.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_dismissed_callback_called(notifier):
     await check_supported(notifier, Capability.ON_DISMISSED)
 
