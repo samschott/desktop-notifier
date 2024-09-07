@@ -1,5 +1,6 @@
 import asyncio
 import platform
+import time
 
 import pytest
 import pytest_asyncio
@@ -18,6 +19,7 @@ async def notifier():
     # Skip requesting authorization to void blocking if not granted.
     dn._did_request_authorisation = True
     yield dn
+    await asyncio.sleep(0.1)
     await dn.clear_all()
 
 
@@ -27,4 +29,5 @@ def notifier_sync():
     # Skip requesting authorization to void blocking if not granted.
     dn._async_api._did_request_authorisation = True
     yield dn
+    time.sleep(0.1)
     dn.clear_all()

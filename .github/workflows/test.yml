@@ -12,19 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macos-12, macos-latest, ubuntu-20.04, ubuntu-latest, windows-2019, windows-latest ]
-        python-version: ["3.8", "3.12"]
-        exclude:
-        - os: windows-2019
-          python-version: "3.8"
-        - os: windows-latest
-          python-version: "3.8"
-
+        python-version: ["3.9", "3.12"]
         include:
-        - os: windows-2019
-          python-version: "3.9"
-        - os: windows-latest
-          python-version: "3.9"
-
         - pre-command: ""
           pytest-run-prefix: ""
 
