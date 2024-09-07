@@ -4,6 +4,8 @@ from unittest.mock import Mock
 import pytest
 
 from desktop_notifier import Button, Notification, ReplyField
+from desktop_notifier.main import get_backend_class
+from desktop_notifier.backends.dummy import DummyNotificationCenter
 
 from .backends import (
     simulate_button_pressed,
@@ -14,6 +16,9 @@ from .backends import (
 
 if not platform.system() == "Darwin":
     pytest.skip("Only macOS test infra provided", allow_module_level=True)
+
+if get_backend_class() == DummyNotificationCenter:
+    pytest.skip("Dummy backend cannot handle callbacks", allow_module_level=True)
 
 
 @pytest.mark.asyncio
