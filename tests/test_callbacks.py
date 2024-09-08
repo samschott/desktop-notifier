@@ -1,4 +1,3 @@
-import platform
 from unittest.mock import Mock
 
 import pytest
@@ -17,9 +16,6 @@ from .backends import (
     simulate_dismissed,
     simulate_replied,
 )
-
-if platform.system() == "Windows":
-    pytest.skip("Windows test infra missing", allow_module_level=True)
 
 
 async def check_supported(notifier: DesktopNotifier, capability: Capability) -> None:

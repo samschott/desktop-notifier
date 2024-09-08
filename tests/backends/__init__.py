@@ -23,6 +23,13 @@ elif platform.system() == "Linux":
         simulate_dismissed,
         simulate_replied,
     )
+elif platform.system() == "Windows":
+    from .winrt import (
+        simulate_button_pressed,
+        simulate_clicked,
+        simulate_dismissed,
+        simulate_replied,
+    )
 else:
 
     def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
