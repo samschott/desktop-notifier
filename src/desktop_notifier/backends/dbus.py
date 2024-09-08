@@ -222,7 +222,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             ourselves when scheduling the notification.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._notification_cache.pop(identifier, None)
+        notification = self._clear_notification_from_cache(identifier)
 
         if not notification:
             return
@@ -242,7 +242,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         :param reason: An integer describing the reason why the notification was closed.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._notification_cache.pop(identifier, None)
+        notification = self._clear_notification_from_cache(identifier)
 
         if not notification:
             return

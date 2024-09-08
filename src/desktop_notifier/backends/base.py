@@ -67,12 +67,12 @@ class DesktopNotifierBackend(ABC):
             logger.debug("Notification sent: %s", notification)
             self._notification_cache[notification.identifier] = notification
 
-    def _clear_notification_from_cache(self, identifier: str) -> None:
+    def _clear_notification_from_cache(self, identifier: str) -> Notification | None:
         """
         Removes the notification from our cache. Should be called by backends when the
         notification is closed.
         """
-        self._notification_cache.pop(identifier, None)
+        return self._notification_cache.pop(identifier, None)
 
     @abstractmethod
     async def _send(self, notification: Notification) -> None:
