@@ -276,7 +276,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
                 failed_args.error_code.value,
             )
         else:
-            logger.warning("Notification failed with unknown error")
+            logger.warning("Notification '%s' failed with unknown error", sender.tag)
 
     async def _clear(self, identifier: str) -> None:
         """
