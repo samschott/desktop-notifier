@@ -227,11 +227,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
 
         notification = self._clear_notification_from_cache(sender.tag)
 
-        try:
-            activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
-        except Exception:
-            return
-
+        activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
         action_id = activated_args.arguments
 
         if action_id == DEFAULT_ACTION:
