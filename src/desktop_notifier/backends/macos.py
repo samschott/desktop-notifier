@@ -93,7 +93,7 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         self, center, response, completion_handler: objc_block
     ) -> None:
         identifier = py_from_ns(response.notification.request.identifier)
-        notification = self.implementation._notification_cache.pop(identifier, None)
+        notification = self.implementation._clear_notification_from_cache(identifier)
 
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
             self.implementation.handle_clicked(identifier, notification)
