@@ -1,3 +1,28 @@
+# v6.0.0
+
+## Added:
+
+* You can now set interaction callbacks at the `DesktopNotifier` level which will be
+  called on interactions with any notifications from the running app. Callbacks set on
+  an individual notification take precedence if set. 
+
+## Changed:
+
+* `send` methods now return the notification ID instead of the notification instance.
+* Notification objects are fully immutable.
+
+## Fixed:
+
+* Callbacks on notification dismissal not being called on macOS.
+
+## Deprecated:
+
+* Setting `notification_limit` will be ignored and logs a deprecation warning.
+
+## Removed:
+
+* Deprecated APIs from v5.0.0.
+
 # v5.0.1
 
 ## Fixed:
