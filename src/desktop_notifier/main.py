@@ -134,28 +134,9 @@ class DesktopNotifier:
     def __init__(
         self,
         app_name: str = "Python",
-        app_icon: Icon | Path | str | None = DEFAULT_ICON,
+        app_icon: Icon | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        if isinstance(app_icon, str):
-            warnings.warn(
-                message="Pass an Icon instance instead of a string. "
-                "Support for string input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            if parse.urlparse(app_icon).hostname != "":
-                app_icon = Icon(uri=app_icon)
-            else:
-                app_icon = Icon(name=app_icon)
-
-        if isinstance(app_icon, Path):
-            warnings.warn(
-                message="Pass an Icon instance instead of a Path. "
-                "Support for string input will be removed in a future release.",
-                category=DeprecationWarning,
-            )
-            app_icon = Icon(path=app_icon)
-
         if notification_limit is not None:
             warnings.warn(
                 message="Notification limits have been deprecated and no longer have an effect",
