@@ -222,10 +222,13 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
     def _on_activated(
         self, sender: ToastNotification | None, boxed_activated_args: WinRTObject | None
     ) -> None:
-        if not sender or not boxed_activated_args:
+        if not sender:
             return
 
         notification = self._clear_notification_from_cache(sender.tag)
+
+        if not boxed_activated_args:
+            return
 
         activated_args = ToastActivatedEventArgs._from(boxed_activated_args)
         action_id = activated_args.arguments
