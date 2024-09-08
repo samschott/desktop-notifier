@@ -11,10 +11,10 @@ import logging
 from typing import TypeVar
 
 from bidict import bidict
-from dbus_next.aio.message_bus import MessageBus
-from dbus_next.aio.proxy_object import ProxyInterface
-from dbus_next.errors import DBusError
-from dbus_next.signature import Variant
+from dbus_fast.aio.message_bus import MessageBus
+from dbus_fast.aio.proxy_object import ProxyInterface
+from dbus_fast.errors import DBusError
+from dbus_fast.signature import Variant
 
 from ..common import Capability, Notification, Urgency
 from .base import DesktopNotifierBackend
