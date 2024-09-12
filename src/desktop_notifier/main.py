@@ -8,9 +8,7 @@ import asyncio
 import logging
 import platform
 import warnings
-from pathlib import Path
 from typing import Any, Callable, Sequence, Type, TypeVar
-from urllib import parse
 
 from packaging.version import Version
 
