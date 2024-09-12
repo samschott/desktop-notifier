@@ -2,6 +2,13 @@ import platform
 
 from desktop_notifier import DesktopNotifier
 
+__all__ = [
+    "simulate_button_pressed",
+    "simulate_clicked",
+    "simulate_replied",
+    "simulate_dismissed",
+]
+
 if platform.system() == "Darwin":
     from .macos import (
         simulate_button_pressed,

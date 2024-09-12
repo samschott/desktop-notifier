@@ -45,4 +45,4 @@ jobs:
         python -m pip install -U .[dev]
     - name: mypy
       run: |
-        mypy src examples
+        mypy src tests examples
