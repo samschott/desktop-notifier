@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 from desktop_notifier import DesktopNotifier
-from desktop_notifier.backends.dbus import NOTIFICATION_CLOSED_DISMISSED
+from desktop_notifier.backends.dbus import (
+    NOTIFICATION_CLOSED_DISMISSED,
+    DBusDesktopNotifier,
+)
 
 
 def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
+    assert isinstance(notifier._backend, DBusDesktopNotifier)
+
     nid = notifier._backend._platform_to_interface_notification_identifier.inverse[
         identifier
     ]
@@ -15,6 +20,8 @@ def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
 
 
 def simulate_dismissed(notifier: DesktopNotifier, identifier: str) -> None:
+    assert isinstance(notifier._backend, DBusDesktopNotifier)
+
     nid = notifier._backend._platform_to_interface_notification_identifier.inverse[
         identifier
     ]
@@ -24,6 +31,8 @@ def simulate_dismissed(notifier: DesktopNotifier, identifier: str) -> None:
 def simulate_button_pressed(
     notifier: DesktopNotifier, identifier: str, button_identifier: str
 ) -> None:
+    assert isinstance(notifier._backend, DBusDesktopNotifier)
+
     nid = notifier._backend._platform_to_interface_notification_identifier.inverse[
         identifier
     ]

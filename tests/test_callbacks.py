@@ -29,158 +29,175 @@ async def check_supported(notifier: DesktopNotifier, capability: Capability) -> 
 
 
 @pytest.mark.asyncio
-async def test_clicked_callback_called(notifier):
+async def test_clicked_callback_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.ON_CLICKED)
 
-    notifier.on_clicked = Mock()
+    class_handler = Mock()
+    notification_handler = Mock()
+    notifier.on_clicked = class_handler
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        on_clicked=Mock(),
+        on_clicked=notification_handler,
     )
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_clicked(notifier, identifier)
 
-    notifier.on_clicked.assert_not_called()
-    notification.on_clicked.assert_called_once()
+    class_handler.assert_not_called()
+    notification_handler.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_clicked_callback_dismissed_not_called(notifier):
+async def test_clicked_callback_dismissed_not_called(notifier: DesktopNotifier) -> None:
     """
     Dbus may send an on_dismissed event any time a notification is closed. Ensure that
-    its callback is not tiggered on different types of interactions.
+    its callback is not triggered on different types of interactions.
     """
     await check_supported(notifier, Capability.ON_CLICKED)
 
+    on_clicked = Mock()
+    on_dismissed = Mock()
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        on_clicked=Mock(),
-        on_dismissed=Mock(),
+        on_clicked=on_clicked,
+        on_dismissed=on_dismissed,
     )
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_clicked(notifier, identifier)
 
-    notification.on_dismissed.assert_not_called()
-    notification.on_clicked.assert_called_once()
+    on_dismissed.assert_not_called()
+    on_clicked.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_dismissed_callback_called(notifier):
+async def test_dismissed_callback_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.ON_DISMISSED)
 
-    notifier.on_dismissed = Mock()
+    class_handler = Mock()
+    notification_handler = Mock()
+    notifier.on_dismissed = class_handler
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        on_dismissed=Mock(),
+        on_dismissed=notification_handler,
     )
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_dismissed(notifier, identifier)
 
-    notifier.on_dismissed.assert_not_called()
-    notification.on_dismissed.assert_called_once()
+    class_handler.assert_not_called()
+    notification_handler.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_button_pressed_callback_called(notifier):
+async def test_button_pressed_callback_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.BUTTONS)
 
-    notifier.on_button_pressed = Mock()
-    button1 = Button(title="Button 1", on_pressed=Mock())
-    button2 = Button(title="Button 2", on_pressed=Mock())
+    class_handler = Mock()
+    notification_b0_handler = Mock()
+    notification_b1_handler = Mock()
+    notifier.on_button_pressed = class_handler
+    button0 = Button(title="Button 0", on_pressed=notification_b0_handler)
+    button1 = Button(title="Button 1", on_pressed=notification_b1_handler)
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        buttons=[button1, button2],
+        buttons=(button0, button1),
     )
+
     identifier = await notifier.send_notification(notification)
+    simulate_button_pressed(notifier, identifier, button1.identifier)
 
-    simulate_button_pressed(notifier, identifier, button2.identifier)
-
-    notifier.on_button_pressed.assert_not_called()
-    button2.on_pressed.assert_called_once()
+    class_handler.assert_not_called()
+    notification_b1_handler.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_replied_callback_called(notifier):
+async def test_replied_callback_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.REPLY_FIELD)
+    class_handler = Mock()
+    notification_handler = Mock()
 
-    notifier.on_replied = Mock()
+    notifier.on_replied = class_handler
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        reply_field=ReplyField(on_replied=Mock()),
+        reply_field=ReplyField(on_replied=notification_handler),
     )
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_replied(notifier, identifier, "A notification response")
 
-    notifier.on_replied.assert_not_called()
-    notification.reply_field.on_replied.assert_called_with("A notification response")
+    class_handler.assert_not_called()
+    notification_handler.assert_called_with("A notification response")
 
 
 @pytest.mark.asyncio
-async def test_clicked_fallback_handler_called(notifier):
+async def test_clicked_fallback_handler_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.ON_CLICKED)
 
-    notifier.on_clicked = Mock()
+    class_handler = Mock()
+    notifier.on_clicked = class_handler
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_clicked(notifier, identifier)
 
-    notifier.on_clicked.assert_called_with(identifier)
+    class_handler.assert_called_with(identifier)
 
 
 @pytest.mark.asyncio
-async def test_dismissed_fallback_handler_called(notifier):
+async def test_dismissed_fallback_handler_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.ON_DISMISSED)
 
-    notifier.on_dismissed = Mock()
+    class_handler = Mock()
+    notifier.on_dismissed = class_handler
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_dismissed(notifier, identifier)
 
-    notifier.on_dismissed.assert_called_with(identifier)
+    class_handler.assert_called_with(identifier)
 
 
 @pytest.mark.asyncio
-async def test_button_pressed_fallback_handler_called(notifier):
+async def test_button_pressed_fallback_handler_called(
+    notifier: DesktopNotifier,
+) -> None:
     await check_supported(notifier, Capability.BUTTONS)
 
-    notifier.on_button_pressed = Mock()
-    button1 = Button(title="Button 1")
-    button2 = Button(title="Button 2")
+    class_handler = Mock()
+    notifier.on_button_pressed = class_handler
+    button0 = Button(title="Button 1")
+    button1 = Button(title="Button 2")
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
-        buttons=[button1, button2],
+        buttons=(button0, button1),
     )
+
     identifier = await notifier.send_notification(notification)
+    simulate_button_pressed(notifier, identifier, button1.identifier)
 
-    simulate_button_pressed(notifier, identifier, button2.identifier)
-
-    notifier.on_button_pressed.assert_called_with(identifier, button2.identifier)
+    class_handler.assert_called_once_with(identifier, button1.identifier)
 
 
 @pytest.mark.asyncio
-async def test_replied_fallback_handler_called(notifier):
+async def test_replied_fallback_handler_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.REPLY_FIELD)
 
-    notifier.on_replied = Mock()
+    class_handler = Mock()
+    notifier.on_replied = class_handler
     notification = Notification(
         title="Julius Caesar",
         message="Et tu, Brute?",
         reply_field=ReplyField(),
     )
-    identifier = await notifier.send_notification(notification)
 
+    identifier = await notifier.send_notification(notification)
     simulate_replied(notifier, identifier, "A notification response")
 
-    notifier.on_replied.assert_called_with(identifier, "A notification response")
+    class_handler.assert_called_with(identifier, "A notification response")

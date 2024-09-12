@@ -29,20 +29,24 @@ UNMutableNotificationContent = ObjCClass("UNMutableNotificationContent")
 
 
 def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
+    assert isinstance(notifier._backend, CocoaNotificationCenter)
     _send_response(notifier._backend, identifier, UNNotificationDefaultActionIdentifier)
 
 
 def simulate_dismissed(notifier: DesktopNotifier, identifier: str) -> None:
+    assert isinstance(notifier._backend, CocoaNotificationCenter)
     _send_response(notifier._backend, identifier, UNNotificationDismissActionIdentifier)
 
 
 def simulate_button_pressed(
     notifier: DesktopNotifier, identifier: str, button_identifier: str
 ) -> None:
+    assert isinstance(notifier._backend, CocoaNotificationCenter)
     _send_response(notifier._backend, identifier, button_identifier)
 
 
 def simulate_replied(notifier: DesktopNotifier, identifier: str, reply: str) -> None:
+    assert isinstance(notifier._backend, CocoaNotificationCenter)
     _send_response(notifier._backend, identifier, ReplyActionIdentifier, reply)
 
 
@@ -51,7 +55,7 @@ def _send_response(
     identifier: str,
     action_identifier: str,
     response_text: str | None = None,
-) -> UNNotificationResponse:
+) -> None:
     content = UNMutableNotificationContent.alloc().init()
     request = UNNotificationRequest.requestWithIdentifier(
         identifier, content=content, trigger=None

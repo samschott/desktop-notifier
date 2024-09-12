@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import platform
 import time
+from typing import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
@@ -14,7 +17,7 @@ if platform.system() == "Darwin":
 
 
 @pytest_asyncio.fixture
-async def notifier():
+async def notifier() -> AsyncGenerator[DesktopNotifier]:
     dn = DesktopNotifier()
     # Skip requesting authorization to avoid blocking if not granted.
     dn._did_request_authorisation = True
@@ -24,7 +27,7 @@ async def notifier():
 
 
 @pytest.fixture
-def notifier_sync():
+def notifier_sync() -> Generator[DesktopNotifierSync]:
     dn = DesktopNotifierSync()
     # Skip requesting authorization to avoid blocking if not granted.
     dn._async_api._did_request_authorisation = True

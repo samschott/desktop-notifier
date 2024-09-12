@@ -7,6 +7,7 @@ from desktop_notifier import (
     DEFAULT_SOUND,
     Attachment,
     Button,
+    DesktopNotifier,
     Icon,
     ReplyField,
     Sound,
@@ -15,7 +16,7 @@ from desktop_notifier import (
 
 
 @pytest.mark.asyncio
-async def test_request_authorisation(notifier):
+async def test_request_authorisation(notifier: DesktopNotifier) -> None:
     """
     Authorization should already be grated when setting up the test environment.
     Check that calling request_authorisation returns true.
@@ -28,7 +29,7 @@ async def test_request_authorisation(notifier):
 
 
 @pytest.mark.asyncio
-async def test_send(notifier):
+async def test_send(notifier: DesktopNotifier) -> None:
     notification = await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
@@ -51,49 +52,49 @@ async def test_send(notifier):
 
 
 @pytest.mark.asyncio
-async def test_icon_name(notifier):
+async def test_icon_name(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", icon=Icon(name="call-start")
     )
 
 
 @pytest.mark.asyncio
-async def test_icon_path(notifier):
+async def test_icon_path(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", icon=Icon(path=Path("/blue"))
     )
 
 
 @pytest.mark.asyncio
-async def test_icon_uri(notifier):
+async def test_icon_uri(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", icon=Icon(uri="file:///blue")
     )
 
 
 @pytest.mark.asyncio
-async def test_sound_name(notifier):
+async def test_sound_name(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", sound=Sound(name="Tink")
     )
 
 
 @pytest.mark.asyncio
-async def test_sound_path(notifier):
+async def test_sound_path(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", sound=Sound(path=Path("/blue"))
     )
 
 
 @pytest.mark.asyncio
-async def test_sound_uri(notifier):
+async def test_sound_uri(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar", message="Et tu, Brute?", sound=Sound(uri="file:///blue")
     )
 
 
 @pytest.mark.asyncio
-async def test_attachment_path(notifier):
+async def test_attachment_path(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
@@ -102,7 +103,7 @@ async def test_attachment_path(notifier):
 
 
 @pytest.mark.asyncio
-async def test_attachment_uri(notifier):
+async def test_attachment_uri(notifier: DesktopNotifier) -> None:
     await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
@@ -115,7 +116,7 @@ async def test_attachment_uri(notifier):
     sys.platform.startswith("win"),
     reason="Clearing individual notifications is broken on Windows",
 )
-async def test_clear(notifier):
+async def test_clear(notifier: DesktopNotifier) -> None:
     n0 = await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
@@ -133,7 +134,7 @@ async def test_clear(notifier):
 
 
 @pytest.mark.asyncio
-async def test_clear_all(notifier):
+async def test_clear_all(notifier: DesktopNotifier) -> None:
     n0 = await notifier.send(
         title="Julius Caesar",
         message="Et tu, Brute?",

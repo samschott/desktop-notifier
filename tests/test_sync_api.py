@@ -2,10 +2,16 @@ import sys
 
 import pytest
 
-from desktop_notifier import DEFAULT_SOUND, Button, ReplyField, Urgency
+from desktop_notifier import (
+    DEFAULT_SOUND,
+    Button,
+    DesktopNotifierSync,
+    ReplyField,
+    Urgency,
+)
 
 
-def test_send(notifier_sync):
+def test_send(notifier_sync: DesktopNotifierSync) -> None:
     notification = notifier_sync.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
@@ -34,7 +40,7 @@ def test_send(notifier_sync):
     sys.platform.startswith("win"),
     reason="Clearing individual notifications is broken on Windows",
 )
-def test_clear(notifier_sync):
+def test_clear(notifier_sync: DesktopNotifierSync) -> None:
     n0 = notifier_sync.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
@@ -51,7 +57,7 @@ def test_clear(notifier_sync):
     assert n0 not in notifier_sync.get_current_notifications()
 
 
-def test_clear_all(notifier_sync):
+def test_clear_all(notifier_sync: DesktopNotifierSync) -> None:
     n0 = notifier_sync.send(
         title="Julius Caesar",
         message="Et tu, Brute?",

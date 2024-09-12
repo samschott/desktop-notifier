@@ -312,7 +312,7 @@ class DesktopNotifier:
         """
         A method to call when a notification is dismissed
 
-        The method must take the notification identifier and the button number as
+        The method must take the notification identifier and the button identifier as
         arguments.
 
         If the notification button itself already specifies an on_pressed handler, it
