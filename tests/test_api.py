@@ -1,4 +1,6 @@
+import asyncio
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -13,6 +15,19 @@ from desktop_notifier import (
     Sound,
     Urgency,
 )
+
+
+async def wait_for_notifications(
+    notifier: DesktopNotifier, notification_count: int = 1, timeout_sec: float = 2.0
+) -> None:
+    t0 = time.monotonic()
+
+    while time.monotonic() - t0 < timeout_sec:
+        if len(await notifier.get_current_notifications()) == notification_count:
+            return
+        await asyncio.sleep(0.2)
+
+    raise TimeoutError("Timed out while waiting for notifications")
 
 
 @pytest.mark.asyncio
@@ -48,6 +63,7 @@ async def test_send(notifier: DesktopNotifier) -> None:
         thread="test_notifications",
         timeout=5,
     )
+    await wait_for_notifications(notifier)
     assert notification in await notifier.get_current_notifications()
 
 
@@ -125,7 +141,9 @@ async def test_clear(notifier: DesktopNotifier) -> None:
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
+    await wait_for_notifications(notifier, 2)
     current_notifications = await notifier.get_current_notifications()
+
     assert n0 in current_notifications
     assert n1 in current_notifications
 
@@ -143,8 +161,9 @@ async def test_clear_all(notifier: DesktopNotifier) -> None:
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
-
+    await wait_for_notifications(notifier, 2)
     current_notifications = await notifier.get_current_notifications()
+
     assert n0 in current_notifications
     assert n1 in current_notifications
 
