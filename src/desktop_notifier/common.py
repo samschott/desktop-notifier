@@ -201,6 +201,13 @@ class Notification:
 
     Some properties of a notification may be ignored or interpreted differently
     depending on the platform.
+
+    Callbacks for interactions will be executed on the Python process that scheduled the
+    notification and only as long as the DesktopNotifier instance that scheduled the
+    notification still exists.
+
+    Install handlers on the DesktopNotifier instance itself to respond to interactions
+    with notification from your app while it was not running.
     """
 
     title: str
