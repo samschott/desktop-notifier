@@ -115,7 +115,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
         if notification.sound:
             if notification.sound.is_named():
-                hints_v["sound-name"] = Variant("s", "message-new-instant")
+                hints_v["sound-name"] = Variant("s", notification.sound.name)
             else:
                 hints_v["sound-file"] = Variant("s", notification.sound.as_uri())
 
