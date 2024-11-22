@@ -15,7 +15,7 @@ from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.errors import DBusError
 from dbus_fast.signature import Variant
 
-from ..common import Capability, Notification, DispatchedNotification, Urgency, Icon
+from ..common import Capability, DispatchedNotification, Icon, Notification, Urgency
 from .base import DesktopNotifierBackend
 
 __all__ = ["DBusDesktopNotifier"]
@@ -153,7 +153,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
         icon: str = ""
         if notification.icon or self.app_icon:
-            icon_obj: Icon = notification.icon or self.app_icon
+            icon_obj = notification.icon or self.app_icon
             icon = icon_obj.name if icon_obj.is_named() else icon_obj.as_uri()
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
@@ -194,7 +194,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         """
         Asynchronously clears all notifications from notification center
         """
-        identifiers: [str] = list(self._notification_cache.keys())
+        identifiers = list(self._notification_cache.keys())
         for identifier in identifiers:
             await self._clear(identifier)
 

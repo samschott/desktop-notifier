@@ -4,7 +4,7 @@ Dummy backend for unsupported platforms
 """
 from __future__ import annotations
 
-from ..common import Capability, Notification, DispatchedNotification
+from ..common import Capability, DispatchedNotification, Notification
 from .base import DesktopNotifierBackend
 
 

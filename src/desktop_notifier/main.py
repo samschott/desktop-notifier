@@ -19,9 +19,9 @@ from .common import (
     Attachment,
     Button,
     Capability,
+    DispatchedNotification,
     Icon,
     Notification,
-    DispatchedNotification,
     ReplyField,
     Sound,
     Urgency,
@@ -185,8 +185,7 @@ class DesktopNotifier:
         return await self._backend.has_authorisation()
 
     async def send_notification(
-        self,
-        notification: Notification | DispatchedNotification
+        self, notification: Notification | DispatchedNotification
     ) -> DispatchedNotification | None:
         """
         Sends a desktop notification.

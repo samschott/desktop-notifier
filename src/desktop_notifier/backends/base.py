@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
-from ..common import Capability, Notification, DispatchedNotification, Icon, Button, uuid_str
+from ..common import Capability, DispatchedNotification, Icon, Notification, uuid_str
 
 __all__ = [
     "DesktopNotifierBackend",
@@ -51,7 +51,9 @@ class DesktopNotifierBackend(ABC):
         """
         ...
 
-    async def send(self, notification: Notification | DispatchedNotification) -> DispatchedNotification | None:
+    async def send(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """
         Sends a desktop notification.
 
@@ -59,17 +61,19 @@ class DesktopNotifierBackend(ABC):
         """
         dispatched_notification: DispatchedNotification | None = None
         if isinstance(notification, DispatchedNotification):
-            dispatched_notification: DispatchedNotification = notification
-            notification: Notification = dispatched_notification.notification
+            dispatched_notification = notification
+            notification = dispatched_notification.notification
 
         try:
-            identifier: str | None = await self._send(notification, dispatched_notification)
+            identifier = await self._send(notification, dispatched_notification)
         except Exception:
             # Notifications can fail for many reasons:
             # The dbus service may not be available, we might be in a headless session,
             # etc. Since notifications are not critical to an application, we only emit
             # a warning.
-            logger.warning("Failed sending notification: %s", notification, exc_info=True)
+            logger.warning(
+                "Failed sending notification: %s", notification, exc_info=True
+            )
             return None
         else:
             logger.debug("Notification sent: %s", notification)
@@ -86,7 +90,9 @@ class DesktopNotifierBackend(ABC):
             self._notification_cache[identifier] = dispatched_notification
             return dispatched_notification
 
-    def _clear_notification_from_cache(self, identifier: str) -> DispatchedNotification | None:
+    def _clear_notification_from_cache(
+        self, identifier: str
+    ) -> DispatchedNotification | None:
         """
         Removes the notification from our cache. Should be called by backends when the
         notification is closed.
@@ -166,7 +172,7 @@ class DesktopNotifierBackend(ABC):
         ...
 
     def handle_cleared(self, identifier: str) -> None:
-        dispatched_notification: DispatchedNotification | None = self._clear_notification_from_cache(identifier)
+        dispatched_notification = self._clear_notification_from_cache(identifier)
         if dispatched_notification and not dispatched_notification.cleared:
             dispatched_notification.cleared = True
 
@@ -177,7 +183,7 @@ class DesktopNotifierBackend(ABC):
             self.on_cleared(identifier)
 
     def handle_clicked(self, identifier: str) -> None:
-        dispatched_notification: DispatchedNotification | None = self._clear_notification_from_cache(identifier)
+        dispatched_notification = self._clear_notification_from_cache(identifier)
         if dispatched_notification and not dispatched_notification.cleared:
             dispatched_notification.cleared = True
             dispatched_notification.clicked = True
@@ -189,7 +195,7 @@ class DesktopNotifierBackend(ABC):
             self.on_clicked(identifier)
 
     def handle_dismissed(self, identifier: str) -> None:
-        dispatched_notification: DispatchedNotification | None = self._clear_notification_from_cache(identifier)
+        dispatched_notification = self._clear_notification_from_cache(identifier)
         if dispatched_notification and not dispatched_notification.cleared:
             dispatched_notification.cleared = True
             dispatched_notification.dismissed = True
@@ -201,28 +207,29 @@ class DesktopNotifierBackend(ABC):
             self.on_dismissed(identifier)
 
     def handle_replied(self, identifier: str, reply_text: str) -> None:
-        dispatched_notification: DispatchedNotification | None = self._clear_notification_from_cache(identifier)
+        dispatched_notification = self._clear_notification_from_cache(identifier)
         if dispatched_notification and not dispatched_notification.cleared:
             dispatched_notification.cleared = True
             dispatched_notification.replied = reply_text
 
             if dispatched_notification.notification.reply_field:
-                if dispatched_notification.notification.reply_field.on_replied:
-                    dispatched_notification.notification.reply_field.on_replied(reply_text)
+                reply_field = dispatched_notification.notification.reply_field
+                if reply_field.on_replied:
+                    reply_field.on_replied(reply_text)
                     return
         if self.on_replied:
             self.on_replied(identifier, reply_text)
 
     def handle_button(self, identifier: str, button_identifier: str) -> None:
-        dispatched_notification: DispatchedNotification | None = self._clear_notification_from_cache(identifier)
+        dispatched_notification = self._clear_notification_from_cache(identifier)
         if dispatched_notification and not dispatched_notification.cleared:
             dispatched_notification.cleared = True
             dispatched_notification.button_clicked = button_identifier
 
-            if button_identifier in dispatched_notification.notification.buttons_dict:
-                button: Button = dispatched_notification.notification.buttons_dict[button_identifier]
-                if button.on_pressed:
-                    button.on_pressed()
+            buttons = dispatched_notification.notification.buttons_dict
+            if button_identifier in buttons:
+                if buttons[button_identifier].on_pressed:
+                    buttons[button_identifier].on_pressed()
                     return
         if self.on_button_pressed:
             self.on_button_pressed(identifier, button_identifier)
