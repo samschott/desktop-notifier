@@ -25,8 +25,10 @@ __all__ = [
     "Urgency",
     "AuthorisationError",
     "Notification",
+    "DispatchedNotification",
     "DEFAULT_ICON",
     "DEFAULT_SOUND",
+    "uuid_str",
 ]
 
 try:
@@ -179,6 +181,10 @@ class Button:
     identifier: str = dataclasses.field(default_factory=uuid_str)
     """A unique identifier to use in callbacks to specify with button was clicked"""
 
+    def __post_init__(self) -> None:
+        if self.identifier is None:
+            object.__setattr__(self, "identifier", uuid_str())
+
 
 @dataclass(frozen=True)
 class ReplyField:
@@ -230,6 +236,9 @@ class Notification:
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
 
+    on_cleared: Callable[[], Any] | None = None
+    """Method to call when the notification is cleared without user interaction"""
+
     on_clicked: Callable[[], Any] | None = None
     """Method to call when the notification is clicked"""
 
@@ -252,9 +261,17 @@ class Notification:
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
 
-    _buttons_dict: dict[str, Button] = field(default_factory=dict)
+    _buttons_dict: dict[str, Button] = field(
+        default_factory=dict, init=False, repr=False, compare=False
+    )
+
+    @property
+    def buttons_dict(self) -> dict[str, Button]:
+        return self._buttons_dict
 
     def __post_init__(self) -> None:
+        if self.identifier is None:
+            object.__setattr__(self, "identifier", uuid_str())
         for button in self.buttons:
             self._buttons_dict[button.identifier] = button
 
@@ -263,6 +280,36 @@ class Notification:
             f"<{self.__class__.__name__}(identifier='{self.identifier}', "
             f"title='{self.title}', message='{self.message}')>"
         )
+
+
+@dataclass
+class DispatchedNotification:
+    """A desktop notification that was sent to the notifications server earlier"""
+
+    identifier: str
+    """A platform-dependant unique identifier for this dispatched notification.
+    The format varies from platform to platform. The identifier is unique among
+    the currently active notifications, but might be reused if a notification is
+    replaced. It might be identical to the randomly generated UUID of the source
+    notification, but you must not rely on this"""
+
+    notification: Notification
+    """The notification that was sent to the notifications server"""
+
+    cleared: bool = False
+    """Whether the notification has been cleared (both with and without user interaction, updated at runtime)"""
+
+    clicked: bool = False
+    """Whether the user clicked on the notification (updated at runtime)"""
+
+    dismissed: bool = False
+    """Whether the user dismissed the notification (updated at runtime)"""
+
+    button_clicked: str | None = None
+    """The identifier of the button the user clicked on, if applicable (updated at runtime)"""
+
+    replied: str | None = None
+    """The text the user entered into the notification's reply field, if applicable (updated at runtime)"""
 
 
 class Capability(Enum):
