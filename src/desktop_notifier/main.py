@@ -157,7 +157,7 @@ class DesktopNotifier:
         self._backend.app_name = value
 
     @property
-    def app_icon(self) -> str | None:
+    def app_icon(self) -> Icon | None:
         """The application icon"""
         return self._backend.app_icon
 
