@@ -12,6 +12,7 @@ from .common import (
     Attachment,
     Button,
     Capability,
+    DispatchedNotification,
     Icon,
     Notification,
     ReplyField,
@@ -41,7 +42,7 @@ class DesktopNotifierSync:
         app_icon: Icon | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        self._async_api = DesktopNotifier(app_name, app_icon)
+        self._async_api = DesktopNotifier(app_name, app_icon, notification_limit)
         self._loop = asyncio.new_event_loop()
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
@@ -62,8 +63,16 @@ class DesktopNotifierSync:
 
     @app_name.setter
     def app_name(self, value: str) -> None:
-        """Setter: app_name"""
         self._async_api.app_name = value
+
+    @property
+    def app_icon(self) -> Icon | None:
+        """The application icon"""
+        return self._async_api.app_icon
+
+    @app_icon.setter
+    def app_icon(self, value: Icon | None) -> None:
+        self._async_api.app_icon = value
 
     def request_authorisation(self) -> bool:
         """See :meth:`desktop_notifier.main.DesktopNotifier.request_authorisation`"""
@@ -75,7 +84,9 @@ class DesktopNotifierSync:
         coro = self._async_api.has_authorisation()
         return self._run_coro_sync(coro)
 
-    def send_notification(self, notification: Notification) -> str:
+    def send_notification(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send_notification`"""
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
@@ -88,13 +99,14 @@ class DesktopNotifierSync:
         icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
+        on_cleared: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,  # in seconds
-    ) -> str:
+    ) -> DispatchedNotification | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send`"""
         notification = Notification(
             title,
@@ -103,6 +115,7 @@ class DesktopNotifierSync:
             icon=icon,
             buttons=tuple(buttons),
             reply_field=reply_field,
+            on_cleared=on_cleared,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -113,7 +126,7 @@ class DesktopNotifierSync:
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
 
-    def get_current_notifications(self) -> list[str]:
+    def get_current_notifications(self) -> dict[str, DispatchedNotification]:
         """See :meth:`desktop_notifier.main.DesktopNotifier.get_current_notifications`"""
         coro = self._async_api.get_current_notifications()
         return self._run_coro_sync(coro)
