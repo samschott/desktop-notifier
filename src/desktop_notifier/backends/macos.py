@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 foundation = load_library("Foundation")
 uns = load_library("UserNotifications")
 
+UNNotification = ObjCClass("UNNotification")
 UNUserNotificationCenter = ObjCClass("UNUserNotificationCenter")
 UNMutableNotificationContent = ObjCClass("UNMutableNotificationContent")
 UNNotificationRequest = ObjCClass("UNNotificationRequest")
@@ -194,6 +195,28 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
         settings.autorelease()  # type:ignore[attr-defined]
 
         return authorized
+
+    async def get_current_notifications(self) -> list[str]:
+        future: Future[list[UNNotification]] = Future()  # type:ignore[valid-type]
+
+        def handler(notifications: objc_id) -> None:
+            notifications = py_from_ns(notifications)
+            for notification in notifications:
+                notification.retain()
+            future.set_result(notifications)
+
+        self.nc.getDeliveredNotificationsWithCompletionHandler(handler)
+
+        notifications = await asyncio.wrap_future(future)
+        identifiers = [
+            str(n.request.identifier)  # type:ignore[attr-defined]
+            for n in notifications
+        ]
+
+        for notification in notifications:
+            notification.autorelease()  # type:ignore[attr-defined]
+
+        return identifiers
 
     async def _send(self, notification: Notification) -> None:
         """
