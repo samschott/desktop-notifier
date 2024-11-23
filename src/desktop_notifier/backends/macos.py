@@ -151,8 +151,6 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         def on_auth_completed(granted: bool, error: objc_id) -> None:
             ns_error = py_from_ns(error)
-            if ns_error:
-                ns_error.retain()
             future.set_result((granted, ns_error))
 
         self.nc.requestAuthorizationWithOptions(
@@ -166,7 +164,6 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         if error:
             log_nserror(error, "Error requesting notification authorization")
-            error.autorelease()  # type:ignore[attr-defined]
         elif not has_authorization:
             logger.info("Not authorized to send notifications.")
         else:
@@ -180,20 +177,17 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         def handler(settings: objc_id) -> None:
             settings = py_from_ns(settings)
-            settings.retain()
+            future.set_result(settings)
             future.set_result(settings)
 
         self.nc.getNotificationSettingsWithCompletionHandler(handler)
 
         settings = await asyncio.wrap_future(future)
-        authorized = settings.authorizationStatus in (  # type:ignore[attr-defined]
+        return settings.authorizationStatus in (  # type:ignore[attr-defined]
             UNAuthorizationStatusAuthorized,
             UNAuthorizationStatusProvisional,
             UNAuthorizationStatusEphemeral,
         )
-        settings.autorelease()  # type:ignore[attr-defined]
-
-        return authorized
 
     async def _send(self, notification: Notification) -> None:
         """
@@ -248,8 +242,6 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         def handler(error: objc_id) -> None:
             ns_error = py_from_ns(error)
-            if ns_error:
-                ns_error.retain()
             future.set_result(ns_error)
 
         # Post the notification.
@@ -262,7 +254,6 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         if error:
             log_nserror(error, "Error when scheduling notification")
-            error.autorelease()  # type:ignore[attr-defined]
 
     async def _find_or_create_notification_category(
         self, notification: Notification
@@ -339,15 +330,11 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         def handler(categories: objc_id) -> None:
             categories = py_from_ns(categories)
-            categories.retain()
             future.set_result(categories)
 
         self.nc.getNotificationCategoriesWithCompletionHandler(handler)
 
-        categories = await asyncio.wrap_future(future)
-        categories.autorelease()  # type:ignore[attr-defined]
-
-        return categories
+        return await asyncio.wrap_future(future)
 
     def _clear_notification_categories(self) -> None:
         """Clears all registered notification categories for this application."""
