@@ -98,7 +98,7 @@ jobs:
           ${{ matrix.pytest-run-prefix }} pytest --verbose --cov=desktop_notifier --cov-report=xml
 
     - name: upload code coverage
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         file: ./coverage.xml
         flags: pytest
