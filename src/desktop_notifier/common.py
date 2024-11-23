@@ -9,8 +9,9 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from importlib.resources import as_file, files
 from pathlib import Path
-from typing import Any, Callable, ContextManager
+from typing import Any, Callable
 from urllib.parse import unquote, urlparse
 
 __all__ = [
@@ -29,20 +30,10 @@ __all__ = [
     "DEFAULT_SOUND",
 ]
 
-try:
-    from importlib.resources import as_file, files
-
-    def resource_path(package: str, resource: str) -> ContextManager[Path]:
-        return as_file(files(package) / resource)
-
-except ImportError:
-    from importlib.resources import path as resource_path
-
 
 logger = logging.getLogger(__name__)
-
-python_icon_path = resource_path(
-    package="desktop_notifier.resources", resource="python.png"
+python_icon_path = as_file(
+    files("desktop_notifier.resources") / "python.png"
 ).__enter__()
 
 

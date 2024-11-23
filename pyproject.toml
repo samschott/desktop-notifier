@@ -37,7 +37,7 @@ classifiers = [
     "Topic :: Desktop Environment :: K Desktop Environment (KDE)",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
     "bidict",
     "packaging",
@@ -96,7 +96,7 @@ files = ["src"]
 
 [tool.black]
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
+target-version = ["py38", "py39", "py310", "py311", "py312", "py313"]
 
 [tool.isort]
 profile = "black"
