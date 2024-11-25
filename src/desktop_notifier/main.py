@@ -280,7 +280,10 @@ class DesktopNotifier:
         """
         A method to call when a notification is clicked
 
-        The method must take the notification identifier as a single argument.
+        The method must take the notification identifier as a single argument. You must
+        check whether the given identifier matches any of the notifications you care
+        about, because the notifications server might signal events of other
+        applications as well.
 
         If the notification itself already specifies an on_clicked handler, it will be
         used instead of the class-level handler.
@@ -296,7 +299,10 @@ class DesktopNotifier:
         """
         A method to call when a notification is dismissed
 
-        The method must take the notification identifier as a single argument.
+        The method must take the notification identifier as a single argument. You must
+        check whether the given identifier matches any of the notifications you care
+        about, because the notifications server might signal events of other
+        applications as well.
 
         If the notification itself already specifies an on_dismissed handler, it will be
         used instead of the class-level handler.
@@ -313,7 +319,9 @@ class DesktopNotifier:
         A method to call when a notification is dismissed
 
         The method must take the notification identifier and the button identifier as
-        arguments.
+        arguments. You must check whether the given identifier matches any of the
+        notifications you care about, because the notifications server might signal
+        events of other applications as well.
 
         If the notification button itself already specifies an on_pressed handler, it
         will be used instead of the class-level handler.
@@ -330,6 +338,9 @@ class DesktopNotifier:
         A method to call when a user responds through the reply field of a notification
 
         The method must take the notification identifier and input text as arguments.
+        You must check whether the given identifier matches any of the notifications
+        you care about, because the notifications server might signal events of other
+        applications as well.
 
         If the notification's reply field itself already specifies an on_replied
         handler, it will be used instead of the class-level handler.
