@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import unquote, urlparse
 
+from immutabledict import immutabledict
+
 __all__ = [
     "Capability",
     "FileResource",
@@ -222,6 +224,11 @@ class Notification:
     buttons: tuple[Button, ...] = field(default_factory=tuple, repr=False)
     """Buttons shown on an interactive notification"""
 
+    buttons_dict: immutabledict[str, Button] = field(
+        default_factory=immutabledict, init=False, repr=False, compare=False
+    )
+    """Buttons shown on an interactive notification, indexed by button identifier"""
+
     reply_field: ReplyField | None = field(default=None, repr=False)
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
@@ -251,11 +258,12 @@ class Notification:
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
 
-    _buttons_dict: dict[str, Button] = field(default_factory=dict)
-
     def __post_init__(self) -> None:
-        for button in self.buttons:
-            self._buttons_dict[button.identifier] = button
+        object.__setattr__(
+            self,
+            "buttons_dict",
+            immutabledict({button.identifier: button for button in self.buttons}),
+        )
 
 
 class Capability(Enum):
