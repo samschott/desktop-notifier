@@ -207,36 +207,36 @@ class Notification:
     message: str
     """Notification message"""
 
-    urgency: Urgency = Urgency.Normal
+    urgency: Urgency = field(default=Urgency.Normal, repr=False)
     """Notification urgency. Can determine stickiness, notification appearance and
     break through silencing."""
 
-    icon: Icon | None = None
+    icon: Icon | None = field(default=None, repr=False)
     """Icon to use for the notification"""
 
-    buttons: tuple[Button, ...] = field(default_factory=tuple)
+    buttons: tuple[Button, ...] = field(default_factory=tuple, repr=False)
     """Buttons shown on an interactive notification"""
 
-    reply_field: ReplyField | None = None
+    reply_field: ReplyField | None = field(default=None, repr=False)
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
 
-    on_clicked: Callable[[], Any] | None = None
+    on_clicked: Callable[[], Any] | None = field(default=None, repr=False)
     """Method to call when the notification is clicked"""
 
-    on_dismissed: Callable[[], Any] | None = None
+    on_dismissed: Callable[[], Any] | None = field(default=None, repr=False)
     """Method to call when the notification is dismissed"""
 
-    attachment: Attachment | None = None
+    attachment: Attachment | None = field(default=None, repr=False)
     """A file attached to the notification which may be displayed as a preview"""
 
-    sound: Sound | None = None
+    sound: Sound | None = field(default=None, repr=False)
     """A sound to play on notification"""
 
-    thread: str | None = None
+    thread: str | None = field(default=None, repr=False)
     """An identifier to group related notifications together, e.g., from a chat space"""
 
-    timeout: int = -1
+    timeout: int = field(default=-1, repr=False)
     """Duration in seconds for which the notification is shown"""
 
     identifier: str = field(default_factory=uuid_str)
@@ -248,12 +248,6 @@ class Notification:
     def __post_init__(self) -> None:
         for button in self.buttons:
             self._buttons_dict[button.identifier] = button
-
-    def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__}(identifier='{self.identifier}', "
-            f"title='{self.title}', message='{self.message}')>"
-        )
 
 
 class Capability(Enum):
