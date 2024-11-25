@@ -177,6 +177,10 @@ class Button:
     identifier: str = dataclasses.field(default_factory=uuid_str)
     """A unique identifier to use in callbacks to specify with button was clicked"""
 
+    def __post_init__(self) -> None:
+        if self.identifier is None:
+            object.__setattr__(self, "identifier", uuid_str())
+
 
 @dataclass(frozen=True)
 class ReplyField:
@@ -259,6 +263,9 @@ class Notification:
     passed by the client."""
 
     def __post_init__(self) -> None:
+        if self.identifier is None:
+            object.__setattr__(self, "identifier", uuid_str())
+
         object.__setattr__(
             self,
             "buttons_dict",
