@@ -41,6 +41,7 @@ requires-python = ">=3.9"
 dependencies = [
     "bidict",
     "packaging",
+    "immutabledict",
     "dbus-fast;sys_platform=='linux'",
     "rubicon-objc;sys_platform=='darwin'",
     "winrt-windows.applicationmodel.core;sys_platform=='win32'",
