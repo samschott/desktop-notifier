@@ -11,6 +11,10 @@ if platform.system() == "Darwin":
     asyncio.set_event_loop_policy(EventLoopPolicy())
 
 
+def on_cleared(identifier: str) -> None:
+    print(f"Notification '{identifier}' was cleared without user interaction")
+
+
 def on_clicked(identifier: str) -> None:
     print(f"Notification '{identifier}' was clicked")
 
@@ -29,6 +33,7 @@ def on_replied(identifier: str, reply: str) -> None:
 
 async def main() -> None:
     notifier = DesktopNotifier(app_name="Sample App")
+    notifier.on_cleared = on_cleared
     notifier.on_clicked = on_clicked
     notifier.on_dismissed = on_dismissed
     notifier.on_button_pressed = on_button_pressed
@@ -47,6 +52,7 @@ async def main() -> None:
             button_title="Send",
         ),
         sound=DEFAULT_SOUND,
+        timeout=10,
     )
 
     # Run the event loop forever to respond to user interactions with the notification.
