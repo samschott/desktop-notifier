@@ -260,6 +260,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             Capability.TITLE,
             Capability.TIMEOUT,
             Capability.URGENCY,
+            Capability.ON_DISPATCHED,
         }
 
         # Capabilities supported by some notification servers.

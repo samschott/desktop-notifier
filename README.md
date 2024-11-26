@@ -91,6 +91,7 @@ async def main() -> None:
         reply_field=ReplyField(
             on_replied=lambda text: print("Brutus replied:", text),
         ),
+        on_dispatched=lambda: print("Notification showing"),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
         sound=DEFAULT_SOUND,
