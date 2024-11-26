@@ -22,7 +22,7 @@ from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_block, objc_id
 
-from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from ..common import DEFAULT_SOUND, Capability, Icon, Notification, Urgency
 from .base import DesktopNotifierBackend
 from .macos_support import macos_version
 
@@ -129,8 +129,8 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
         Urgency.Critical: UNNotificationInterruptionLevel.TimeSensitive,
     }
 
-    def __init__(self, app_name: str) -> None:
-        super().__init__(app_name)
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
+        super().__init__(app_name, app_icon)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
         self.nc_delegate.implementation = self

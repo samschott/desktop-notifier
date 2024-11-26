@@ -16,7 +16,7 @@ from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.errors import DBusError
 from dbus_fast.signature import Variant
 
-from ..common import Capability, Notification, Urgency
+from ..common import Capability, Icon, Notification, Urgency
 from .base import DesktopNotifierBackend
 
 __all__ = ["DBusDesktopNotifier"]
@@ -48,8 +48,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
     supported_hint_signatures = {"a{sv}", "a{ss}"}
 
-    def __init__(self, app_name: str) -> None:
-        super().__init__(app_name)
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
+        super().__init__(app_name, app_icon)
         self.interface: ProxyInterface | None = None
         self._platform_to_interface_notification_identifier: bidict[int, str] = bidict()
 
@@ -143,13 +143,20 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             hints = {}
 
         timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
+
+        icon: str = ""
         if notification.icon:
-            if notification.icon.is_named():
-                icon = notification.icon.name
-            else:
-                icon = notification.icon.as_uri()
-        else:
-            icon = ""
+            icon = (
+                notification.icon.as_name()
+                if notification.icon.is_named()
+                else notification.icon.as_uri()
+            )
+        elif self.app_icon:
+            icon = (
+                self.app_icon.as_name()
+                if self.app_icon.is_named()
+                else self.app_icon.as_uri()
+            )
 
         # dbus_next proxy APIs are generated at runtime. Silence the type checker but
         # raise an AttributeError if required.

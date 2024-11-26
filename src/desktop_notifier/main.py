@@ -127,8 +127,6 @@ class DesktopNotifier:
         deprecated.
     """
 
-    app_icon: Icon | None
-
     def __init__(
         self,
         app_name: str = "Python",
@@ -141,10 +139,8 @@ class DesktopNotifier:
                 category=DeprecationWarning,
             )
 
-        self.app_icon = app_icon
-
         backend = get_backend_class()
-        self._backend = backend(app_name)
+        self._backend = backend(app_name, app_icon)
         self._did_request_authorisation = False
 
         self._capabilities: frozenset[Capability] | None = None
@@ -156,8 +152,16 @@ class DesktopNotifier:
 
     @app_name.setter
     def app_name(self, value: str) -> None:
-        """Setter: app_name"""
         self._backend.app_name = value
+
+    @property
+    def app_icon(self) -> Icon | None:
+        """The application icon"""
+        return self._backend.app_icon
+
+    @app_icon.setter
+    def app_icon(self, value: Icon | None) -> None:
+        self._backend.app_icon = value
 
     async def request_authorisation(self) -> bool:
         """
@@ -192,9 +196,6 @@ class DesktopNotifier:
         :param notification: The notification to send.
         :returns: An identifier for the scheduled notification.
         """
-        if not notification.icon:
-            object.__setattr__(notification, "icon", self.app_icon)
-
         # Ask for authorisation if not already done. On some platforms, this will
         # trigger a system dialog to ask the user for permission.
         if not self._did_request_authorisation:
