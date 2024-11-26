@@ -106,6 +106,10 @@ class DesktopNotifierBackend(ABC):
         This asyncio task might be cancelled by :meth:`_clear_notification_from_cache`.
         """
         await asyncio.sleep(timeout)
+
+        # manually call handle_cleared() so that the event isn't misidentified as dismissal
+        self.handle_cleared(identifier)
+
         await self._clear(identifier)
 
     def _clear_notification_from_cache(
