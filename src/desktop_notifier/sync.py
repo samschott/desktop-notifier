@@ -41,7 +41,7 @@ class DesktopNotifierSync:
         app_icon: Icon | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        self._async_api = DesktopNotifier(app_name, app_icon)
+        self._async_api = DesktopNotifier(app_name, app_icon, notification_limit)
         self._loop = asyncio.new_event_loop()
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
