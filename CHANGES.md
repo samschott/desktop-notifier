@@ -1,3 +1,34 @@
+# v7.0.0
+
+## Added:
+
+* New `DispatchedNotification` class with the platform native notification identifier
+  and runtime-updated status information about that notification
+* New cross-platform implementation for `timeout`
+* New `on_dispatched` event that is triggered when a notification was sent to the
+  notifications server.
+* New `on_cleared` event that is triggered when a notification is closed without
+  user interaction (e.g. because it expired).
+* Add class-level callbacks to `DesktopNotifierSync` as well
+
+## Changed:
+
+* `send` methods now return `DispatchedNotification` instances.
+* `send` methods now also accept `DispatchedNotification` instances, allowing one to
+  replace existing notifications with updated information; to do so simply create a
+  new `DispatchedNotification` instance with the same `identifier`, but a different
+  `Notification` instance
+* `Notification` now accepts floats as `timeout`
+* `Notification` and `Button` instances can now be initialized with `identifier=None`
+* Interaction callbacks at the `DesktopNotifier` level now truly receive all events
+  the notifications server signals; depending on the platform this might include
+  interactions with notifications of other applications as well
+
+## Fixed:
+
+* Fixed sending notifications with a named sound resource on Linux
+  (given that the notifications server has that capability)
+
 # v6.0.0
 
 ## Added:
