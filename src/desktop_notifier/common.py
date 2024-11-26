@@ -229,6 +229,9 @@ class Notification:
     on_dispatched: Callable[[], Any] | None = None
     """Method to call when the notification was sent to the notifications server for display"""
 
+    on_cleared: Callable[[], Any] | None = None
+    """Method to call when the notification is cleared without user interaction"""
+
     on_clicked: Callable[[], Any] | None = None
     """Method to call when the notification is clicked"""
 
@@ -299,6 +302,10 @@ class Capability(Enum):
 
     ON_DISPATCHED = auto()
     """Supports on-dispatched callbacks"""
+
+    ON_CLEARED = auto()
+    """Supports distinguishing between an user closing a notification, and clearing a
+    notification programmatically, and consequently supports on-cleared callbacks"""
 
     ON_CLICKED = auto()
     """Supports on-clicked callbacks"""
