@@ -216,6 +216,7 @@ class DesktopNotifier:
         icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
+        on_dispatched: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
@@ -239,6 +240,7 @@ class DesktopNotifier:
             icon=icon,
             buttons=tuple(buttons),
             reply_field=reply_field,
+            on_dispatched=on_dispatched,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -274,6 +276,22 @@ class DesktopNotifier:
         if not self._capabilities:
             self._capabilities = await self._backend.get_capabilities()
         return self._capabilities
+
+    @property
+    def on_dispatched(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is sent to the notifications server
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_dispatched handler, it will
+        be used instead of the class-level handler.
+        """
+        return self._backend.on_dispatched
+
+    @on_dispatched.setter
+    def on_dispatched(self, handler: Callable[[str], Any] | None) -> None:
+        self._backend.on_dispatched = handler
 
     @property
     def on_clicked(self) -> Callable[[str], Any] | None:

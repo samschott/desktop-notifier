@@ -398,6 +398,7 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
             Capability.MESSAGE,
             Capability.BUTTONS,
             Capability.REPLY_FIELD,
+            Capability.ON_DISPATCHED,
             Capability.ON_CLICKED,
             Capability.ON_DISMISSED,
             Capability.SOUND,
