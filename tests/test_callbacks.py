@@ -25,7 +25,7 @@ if platform.system() == "Windows":
 async def check_supported(notifier: DesktopNotifier, capability: Capability) -> None:
     capabilities = await notifier.get_capabilities()
     if capability not in capabilities:
-        pytest.skip(f"{notifier} not supported by backend")
+        pytest.skip(f"{capability} not supported by {notifier} backend")
 
 
 @pytest.mark.asyncio
