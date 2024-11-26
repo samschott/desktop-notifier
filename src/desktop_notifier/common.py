@@ -221,6 +221,9 @@ class Notification:
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
 
+    on_cleared: Callable[[], Any] | None = None
+    """Method to call when the notification is cleared without user interaction"""
+
     on_clicked: Callable[[], Any] | None = None
     """Method to call when the notification is clicked"""
 
@@ -288,6 +291,10 @@ class Capability(Enum):
 
     ATTACHMENT = auto()
     """Supports notification attachments. Allowed file types vary by platform."""
+
+    ON_CLEARED = auto()
+    """Supports distinguishing between an user closing a notification, and clearing a
+    notification programmatically, and consequently supports on-cleared callbacks"""
 
     ON_CLICKED = auto()
     """Supports on-clicked callbacks"""
