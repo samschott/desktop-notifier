@@ -404,6 +404,7 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
             Capability.SOUND_NAME,
             Capability.THREAD,
             Capability.ATTACHMENT,
+            Capability.TIMEOUT,
         }
         if macos_version >= Version("12.0"):
             capabilities.add(Capability.URGENCY)
