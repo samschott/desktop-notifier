@@ -257,6 +257,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             Capability.ICON,
             Capability.TITLE,
             Capability.URGENCY,
+            Capability.ON_DISPATCHED,
             Capability.ON_CLEARED,
             Capability.TIMEOUT,
         }

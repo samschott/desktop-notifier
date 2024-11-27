@@ -294,6 +294,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             Capability.ICON,
             Capability.BUTTONS,
             Capability.REPLY_FIELD,
+            Capability.ON_DISPATCHED,
             Capability.ON_CLICKED,
             Capability.ON_DISMISSED,
             Capability.THREAD,

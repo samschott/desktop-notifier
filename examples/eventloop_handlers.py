@@ -11,6 +11,10 @@ if platform.system() == "Darwin":
     asyncio.set_event_loop_policy(EventLoopPolicy())
 
 
+def on_dispatched(identifier: str) -> None:
+    print(f"Notification '{identifier}' is showing now")
+
+
 def on_cleared(identifier: str) -> None:
     print(f"Notification '{identifier}' was cleared without user interaction")
 
@@ -33,6 +37,7 @@ def on_replied(identifier: str, reply: str) -> None:
 
 async def main() -> None:
     notifier = DesktopNotifier(app_name="Sample App")
+    notifier.on_dispatched = on_dispatched
     notifier.on_cleared = on_cleared
     notifier.on_clicked = on_clicked
     notifier.on_dismissed = on_dismissed

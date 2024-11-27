@@ -32,6 +32,7 @@ class DesktopNotifierBackend(ABC):
         self._notification_cache: dict[str, Notification] = dict()
         self._timeout_tasks: dict[str, Task[Any]] = dict()
 
+        self.on_dispatched: Callable[[str], Any] | None = None
         self.on_cleared: Callable[[str], Any] | None = None
         self.on_clicked: Callable[[str], Any] | None = None
         self.on_dismissed: Callable[[str], Any] | None = None
@@ -71,6 +72,8 @@ class DesktopNotifierBackend(ABC):
         else:
             logger.debug("Notification sent: %s", notification)
             self._notification_cache[notification.identifier] = notification
+
+            self.handle_dispatched(notification.identifier)
 
             if notification.timeout > 0:
                 self._timeout_tasks[notification.identifier] = asyncio.create_task(
@@ -162,6 +165,15 @@ class DesktopNotifierBackend(ABC):
         the notification server.
         """
         ...
+
+    def handle_dispatched(self, identifier: str) -> None:
+        if identifier in self._notification_cache:
+            notification = self._notification_cache[identifier]
+            if notification.on_dispatched:
+                notification.on_dispatched()
+                return
+        if self.on_dispatched:
+            self.on_dispatched(identifier)
 
     def handle_cleared(self, identifier: str) -> None:
         notification = self._clear_notification_from_cache(identifier)

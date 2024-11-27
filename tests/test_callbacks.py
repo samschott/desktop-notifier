@@ -69,6 +69,23 @@ async def test_cleared_callback_not_dismissed(notifier: DesktopNotifier) -> None
 
 
 @pytest.mark.asyncio
+async def test_dispatched_callback_called(notifier: DesktopNotifier) -> None:
+    class_handler = Mock()
+    notification_handler = Mock()
+    notifier.on_dispatched = class_handler
+    notification = Notification(
+        title="Julius Caesar",
+        message="Et tu, Brute?",
+        on_dispatched=notification_handler,
+    )
+
+    await notifier.send_notification(notification)
+
+    class_handler.assert_not_called()
+    notification_handler.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_clicked_callback_called(notifier: DesktopNotifier) -> None:
     await check_supported(notifier, Capability.ON_CLICKED)
 
@@ -173,6 +190,17 @@ async def test_replied_callback_called(notifier: DesktopNotifier) -> None:
 
     class_handler.assert_not_called()
     notification_handler.assert_called_with("A notification response")
+
+
+@pytest.mark.asyncio
+async def test_dispatched_fallback_handler_called(notifier: DesktopNotifier) -> None:
+    class_handler = Mock()
+    notifier.on_dispatched = class_handler
+    notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
+
+    identifier = await notifier.send_notification(notification)
+
+    class_handler.assert_called_with(identifier)
 
 
 @pytest.mark.asyncio
