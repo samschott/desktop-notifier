@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import platform
+import sys
 import time
 from typing import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
 
-from desktop_notifier import DesktopNotifier, DesktopNotifierSync
+try:
+    from desktop_notifier import DesktopNotifier, DesktopNotifierSync
+except ModuleNotFoundError:
+    import_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(import_dir + "/../src")
+
+    from desktop_notifier import DesktopNotifier, DesktopNotifierSync
 
 if platform.system() == "Darwin":
     from rubicon.objc.eventloop import EventLoopPolicy

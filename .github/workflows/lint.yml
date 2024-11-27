@@ -25,7 +25,7 @@ jobs:
         flake8 src tests examples
     - name: isort
       run: |
-        isort src tests examples
+        isort --check --diff src tests examples
 
   mypy:
     runs-on: ${{ matrix.os }}

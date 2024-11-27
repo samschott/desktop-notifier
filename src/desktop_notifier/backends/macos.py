@@ -22,7 +22,15 @@ from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_block, objc_id
 
-from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from ..common import (
+    DEFAULT_SOUND,
+    Capability,
+    DispatchedNotification,
+    Icon,
+    Notification,
+    Urgency,
+    uuid_str,
+)
 from .base import DesktopNotifierBackend
 from .macos_support import macos_version
 
@@ -94,21 +102,17 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
         self, center, response, completion_handler: objc_block
     ) -> None:
         identifier = py_from_ns(response.notification.request.identifier)
-        notification = self.implementation._clear_notification_from_cache(identifier)
 
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier:
-            self.implementation.handle_clicked(identifier, notification)
-
+            self.implementation.handle_clicked(identifier)
         elif response.actionIdentifier == UNNotificationDismissActionIdentifier:
-            self.implementation.handle_dismissed(identifier, notification)
-
+            self.implementation.handle_dismissed(identifier)
         elif response.actionIdentifier == ReplyActionIdentifier:
             reply_text = py_from_ns(response.userText)
-            self.implementation.handle_replied(identifier, reply_text, notification)
-
+            self.implementation.handle_replied(identifier, reply_text)
         else:
             action_id = py_from_ns(response.actionIdentifier)
-            self.implementation.handle_button(identifier, action_id, notification)
+            self.implementation.handle_button(identifier, action_id)
 
         completion_handler()
 
@@ -129,8 +133,8 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
         Urgency.Critical: UNNotificationInterruptionLevel.TimeSensitive,
     }
 
-    def __init__(self, app_name: str) -> None:
-        super().__init__(app_name)
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
+        super().__init__(app_name, app_icon)
         self.nc = UNUserNotificationCenter.currentNotificationCenter()
         self.nc_delegate = NotificationCenterDelegate.alloc().init()
         self.nc_delegate.implementation = self
@@ -218,12 +222,24 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         return identifiers
 
-    async def _send(self, notification: Notification) -> None:
+    async def _send(
+        self,
+        notification: Notification,
+        replace_notification: DispatchedNotification | None = None,
+    ) -> str | None:
         """
         Uses UNUserNotificationCenter to schedule a notification.
 
         :param notification: Notification to send.
         """
+        identifier = notification.identifier
+        if replace_notification:
+            await self._clear(replace_notification.identifier)
+            identifier = replace_notification.identifier
+        elif identifier in self._notification_cache:
+            # identifier is already in use, generate a new random identifier
+            identifier = uuid_str()
+
         # On macOS, we need to register a new notification category for every
         # unique set of buttons.
         category_id = await self._find_or_create_notification_category(notification)
@@ -264,7 +280,7 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
                 content.attachments = [attachment]
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
-            notification.identifier, content=content, trigger=None
+            identifier, content=content, trigger=None
         )
 
         future: Future[NSError] = Future()  # type:ignore[valid-type]
@@ -286,6 +302,8 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
         if error:
             log_nserror(error, "Error when scheduling notification")
             error.autorelease()  # type:ignore[attr-defined]
+
+        return identifier
 
     async def _find_or_create_notification_category(
         self, notification: Notification
@@ -398,12 +416,14 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
             Capability.MESSAGE,
             Capability.BUTTONS,
             Capability.REPLY_FIELD,
+            Capability.ON_DISPATCHED,
             Capability.ON_CLICKED,
             Capability.ON_DISMISSED,
             Capability.SOUND,
             Capability.SOUND_NAME,
             Capability.THREAD,
             Capability.ATTACHMENT,
+            Capability.TIMEOUT,
         }
         if macos_version >= Version("12.0"):
             capabilities.add(Capability.URGENCY)

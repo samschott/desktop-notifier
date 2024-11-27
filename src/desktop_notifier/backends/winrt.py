@@ -31,7 +31,15 @@ from winrt.windows.ui.notifications import (
 )
 
 # local imports
-from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from ..common import (
+    DEFAULT_SOUND,
+    Capability,
+    DispatchedNotification,
+    Icon,
+    Notification,
+    Urgency,
+    uuid_str,
+)
 from .base import DesktopNotifierBackend
 
 __all__ = ["WinRTDesktopNotifier"]
@@ -69,11 +77,8 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         Urgency.Critical: ToastNotificationPriority.HIGH,
     }
 
-    def __init__(
-        self,
-        app_name: str,
-    ) -> None:
-        super().__init__(app_name)
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
+        super().__init__(app_name, app_icon)
 
         manager = ToastNotificationManager.get_default()
 
@@ -115,12 +120,24 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             # See https://github.com/samschott/desktop-notifier/issues/95.
             return True
 
-    async def _send(self, notification: Notification) -> None:
+    async def _send(
+        self,
+        notification: Notification,
+        replace_notification: DispatchedNotification | None = None,
+    ) -> str | None:
         """
         Asynchronously sends a notification.
 
         :param notification: Notification to send.
         """
+        identifier = notification.identifier
+        if replace_notification:
+            await self._clear(replace_notification.identifier)
+            identifier = replace_notification.identifier
+        elif identifier in self._notification_cache:
+            # identifier is already in use, generate a new random identifier
+            identifier = uuid_str()
+
         toast_xml = Element("toast", {"launch": DEFAULT_ACTION})
         visual_xml = SubElement(toast_xml, "visual")
         actions_xml = SubElement(toast_xml, "actions")
@@ -145,13 +162,18 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         message_xml = SubElement(binding, "text")
         message_xml.text = notification.message
 
-        if notification.icon and notification.icon.is_file():
+        icon_obj: Icon | None = None
+        if notification.icon:
+            icon_obj = notification.icon
+        elif self.app_icon:
+            icon_obj = self.app_icon
+        if icon_obj and icon_obj.is_file():
             SubElement(
                 binding,
                 "image",
                 {
                     "placement": "appLogoOverride",
-                    "src": notification.icon.as_uri(),
+                    "src": icon_obj.as_uri(),
                 },
             )
 
@@ -210,7 +232,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         xml_document.load_xml(tostring(toast_xml, encoding="unicode"))
 
         native = ToastNotification(xml_document)
-        native.tag = notification.identifier
+        native.tag = identifier
         native.priority = self._to_native_urgency[notification.urgency]
 
         native.add_activated(self._on_activated)
@@ -219,13 +241,13 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
 
         self.notifier.show(native)
 
+        return identifier
+
     def _on_activated(
         self, sender: ToastNotification | None, boxed_activated_args: WinRTObject | None
     ) -> None:
         if not sender:
             return
-
-        notification = self._clear_notification_from_cache(sender.tag)
 
         if not boxed_activated_args:
             return
@@ -234,16 +256,14 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         action_id = activated_args.arguments
 
         if action_id == DEFAULT_ACTION:
-            self.handle_clicked(sender.tag, notification)
-
+            self.handle_clicked(sender.tag)
         elif action_id == REPLY_ACTION and activated_args.user_input:
             boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
             reply = unbox(boxed_reply)
-            self.handle_replied(sender.tag, reply, notification)
-
+            self.handle_replied(sender.tag, reply)
         elif action_id.startswith(BUTTON_ACTION_PREFIX):
             button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
-            self.handle_button(sender.tag, button_id, notification)
+            self.handle_button(sender.tag, button_id)
 
     def _on_dismissed(
         self,
@@ -253,13 +273,11 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         if not sender:
             return
 
-        notification = self._clear_notification_from_cache(sender.tag)
-
-        if (
-            dismissed_args
-            and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
-        ):
-            self.handle_dismissed(sender.tag, notification)
+        if dismissed_args:
+            # ToastDismissalReason.APPLICATION_HIDDEN and ToastDismissalReason.TIMED_OUT
+            # both just indicate that the toast was sent to the notifications center
+            if dismissed_args.reason == ToastDismissalReason.USER_CANCELED:
+                self.handle_dismissed(sender.tag)
 
     def _on_failed(
         self, sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
@@ -298,12 +316,14 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             Capability.ICON,
             Capability.BUTTONS,
             Capability.REPLY_FIELD,
+            Capability.ON_DISPATCHED,
             Capability.ON_CLICKED,
             Capability.ON_DISMISSED,
             Capability.THREAD,
             Capability.ATTACHMENT,
             Capability.SOUND,
             Capability.SOUND_NAME,
+            Capability.TIMEOUT,
         }
         # Custom audio is support only starting with the Windows 10 Anniversary update.
         # See https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/custom-audio-on-toasts#add-the-custom-audio.

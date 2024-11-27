@@ -12,6 +12,7 @@ from .common import (
     Attachment,
     Button,
     Capability,
+    DispatchedNotification,
     Icon,
     Notification,
     ReplyField,
@@ -41,7 +42,7 @@ class DesktopNotifierSync:
         app_icon: Icon | None = DEFAULT_ICON,
         notification_limit: int | None = None,
     ) -> None:
-        self._async_api = DesktopNotifier(app_name, app_icon)
+        self._async_api = DesktopNotifier(app_name, app_icon, notification_limit)
         self._loop = asyncio.new_event_loop()
 
     def _run_coro_sync(self, coro: Coroutine[None, None, T]) -> T:
@@ -62,8 +63,16 @@ class DesktopNotifierSync:
 
     @app_name.setter
     def app_name(self, value: str) -> None:
-        """Setter: app_name"""
         self._async_api.app_name = value
+
+    @property
+    def app_icon(self) -> Icon | None:
+        """The application icon"""
+        return self._async_api.app_icon
+
+    @app_icon.setter
+    def app_icon(self, value: Icon | None) -> None:
+        self._async_api.app_icon = value
 
     def request_authorisation(self) -> bool:
         """See :meth:`desktop_notifier.main.DesktopNotifier.request_authorisation`"""
@@ -75,7 +84,9 @@ class DesktopNotifierSync:
         coro = self._async_api.has_authorisation()
         return self._run_coro_sync(coro)
 
-    def send_notification(self, notification: Notification) -> str:
+    def send_notification(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send_notification`"""
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
@@ -88,13 +99,15 @@ class DesktopNotifierSync:
         icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
+        on_dispatched: Callable[[], Any] | None = None,
+        on_cleared: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,  # in seconds
-    ) -> str:
+    ) -> DispatchedNotification | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send`"""
         notification = Notification(
             title,
@@ -103,6 +116,8 @@ class DesktopNotifierSync:
             icon=icon,
             buttons=tuple(buttons),
             reply_field=reply_field,
+            on_dispatched=on_dispatched,
+            on_cleared=on_cleared,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -132,3 +147,101 @@ class DesktopNotifierSync:
         """See :meth:`desktop_notifier.main.DesktopNotifier.get_capabilities`"""
         coro = self._async_api.get_capabilities()
         return self._run_coro_sync(coro)
+
+    @property
+    def on_dispatched(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is sent to the notifications server
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_dispatched handler, it will
+        be used instead of the class-level handler.
+        """
+        return self._async_api.on_dispatched
+
+    @on_dispatched.setter
+    def on_dispatched(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_dispatched = handler
+
+    @property
+    def on_cleared(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is cleared without user interaction
+        (e.g. after a timeout, or if cleared by another process)
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_cleared handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._async_api.on_cleared
+
+    @on_cleared.setter
+    def on_cleared(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_cleared = handler
+
+    @property
+    def on_clicked(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is clicked
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_clicked handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._async_api.on_clicked
+
+    @on_clicked.setter
+    def on_clicked(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_clicked = handler
+
+    @property
+    def on_dismissed(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is dismissed
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_dismissed handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._async_api.on_dismissed
+
+    @on_dismissed.setter
+    def on_dismissed(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_dismissed = handler
+
+    @property
+    def on_button_pressed(self) -> Callable[[str, str], Any] | None:
+        """
+        A method to call when a notification is dismissed
+
+        The method must take the notification identifier and the button identifier as
+        arguments.
+
+        If the notification button itself already specifies an on_pressed handler, it
+        will be used instead of the class-level handler.
+        """
+        return self._async_api.on_button_pressed
+
+    @on_button_pressed.setter
+    def on_button_pressed(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._async_api.on_button_pressed = handler
+
+    @property
+    def on_replied(self) -> Callable[[str, str], Any] | None:
+        """
+        A method to call when a user responds through the reply field of a notification
+
+        The method must take the notification identifier and input text as arguments.
+
+        If the notification's reply field itself already specifies an on_replied
+        handler, it will be used instead of the class-level handler.
+        """
+        return self._async_api.on_replied
+
+    @on_replied.setter
+    def on_replied(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._async_api.on_replied = handler

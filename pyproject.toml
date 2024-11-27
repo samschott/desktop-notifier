@@ -39,8 +39,8 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "bidict",
     "packaging",
+    "immutabledict",
     "dbus-fast;sys_platform=='linux'",
     "rubicon-objc;sys_platform=='darwin'",
     "winrt-windows.applicationmodel.core;sys_platform=='win32'",
@@ -81,9 +81,7 @@ docs = [
 desktop_notifier = ["**/*.png"]
 
 [tool.flake8]
-ignore = "E203,E501,W503,H306"
-per-file-ignores = """
-__init__.py: F401"""
+ignore = "E501,W503"
 statistics = "True"
 
 [tool.mypy]

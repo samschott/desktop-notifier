@@ -19,6 +19,7 @@ from .common import (
     Attachment,
     Button,
     Capability,
+    DispatchedNotification,
     Icon,
     Notification,
     ReplyField,
@@ -38,6 +39,7 @@ __all__ = [
     "Capability",
     "DEFAULT_SOUND",
     "DEFAULT_ICON",
+    "DispatchedNotification",
 ]
 
 logger = logging.getLogger(__name__)
@@ -127,8 +129,6 @@ class DesktopNotifier:
         deprecated.
     """
 
-    app_icon: Icon | None
-
     def __init__(
         self,
         app_name: str = "Python",
@@ -141,10 +141,8 @@ class DesktopNotifier:
                 category=DeprecationWarning,
             )
 
-        self.app_icon = app_icon
-
         backend = get_backend_class()
-        self._backend = backend(app_name)
+        self._backend = backend(app_name, app_icon)
         self._did_request_authorisation = False
 
         self._capabilities: frozenset[Capability] | None = None
@@ -156,8 +154,16 @@ class DesktopNotifier:
 
     @app_name.setter
     def app_name(self, value: str) -> None:
-        """Setter: app_name"""
         self._backend.app_name = value
+
+    @property
+    def app_icon(self) -> Icon | None:
+        """The application icon"""
+        return self._backend.app_icon
+
+    @app_icon.setter
+    def app_icon(self, value: Icon | None) -> None:
+        self._backend.app_icon = value
 
     async def request_authorisation(self) -> bool:
         """
@@ -178,7 +184,9 @@ class DesktopNotifier:
         """Returns whether we have authorisation to send notifications."""
         return await self._backend.has_authorisation()
 
-    async def send_notification(self, notification: Notification) -> str:
+    async def send_notification(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """
         Sends a desktop notification.
 
@@ -190,11 +198,7 @@ class DesktopNotifier:
         disturb" is enabled on macOS).
 
         :param notification: The notification to send.
-        :returns: An identifier for the scheduled notification.
         """
-        if not notification.icon:
-            object.__setattr__(notification, "icon", self.app_icon)
-
         # Ask for authorisation if not already done. On some platforms, this will
         # trigger a system dialog to ask the user for permission.
         if not self._did_request_authorisation:
@@ -204,9 +208,7 @@ class DesktopNotifier:
 
         # We attempt to send the notification regardless of authorization.
         # The user may have changed settings in the meantime.
-        await self._backend.send(notification)
-
-        return notification.identifier
+        return await self._backend.send(notification)
 
     async def send(
         self,
@@ -216,21 +218,21 @@ class DesktopNotifier:
         icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
+        on_dispatched: Callable[[], Any] | None = None,
+        on_cleared: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,  # in seconds
-    ) -> str:
+    ) -> DispatchedNotification | None:
         """
         Sends a desktop notification
 
         This is a convenience function which creates a
         :class:`desktop_notifier.base.Notification` with the provided arguments and then
         calls :meth:`send_notification`.
-
-        :returns: An identifier for the scheduled notification.
         """
         notification = Notification(
             title,
@@ -239,6 +241,8 @@ class DesktopNotifier:
             icon=icon,
             buttons=tuple(buttons),
             reply_field=reply_field,
+            on_dispatched=on_dispatched,
+            on_cleared=on_cleared,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -251,6 +255,10 @@ class DesktopNotifier:
     async def get_current_notifications(self) -> list[str]:
         """Returns identifiers of all currently displayed notifications for this app."""
         return await self._backend.get_current_notifications()
+
+    def get_cached_notifications(self) -> dict[str, DispatchedNotification]:
+        """Returns the notifications known to this Desktop Notifier instance."""
+        return self._backend.get_cached_notifications()
 
     async def clear(self, identifier: str) -> None:
         """
@@ -276,11 +284,47 @@ class DesktopNotifier:
         return self._capabilities
 
     @property
+    def on_dispatched(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is sent to the notifications server
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_dispatched handler, it will
+        be used instead of the class-level handler.
+        """
+        return self._backend.on_dispatched
+
+    @on_dispatched.setter
+    def on_dispatched(self, handler: Callable[[str], Any] | None) -> None:
+        self._backend.on_dispatched = handler
+
+    @property
+    def on_cleared(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is cleared without user interaction
+        (e.g. after a timeout, or if cleared by another process)
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_cleared handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._backend.on_cleared
+
+    @on_cleared.setter
+    def on_cleared(self, handler: Callable[[str], Any] | None) -> None:
+        self._backend.on_cleared = handler
+
+    @property
     def on_clicked(self) -> Callable[[str], Any] | None:
         """
         A method to call when a notification is clicked
 
-        The method must take the notification identifier as a single argument.
+        The method must take the notification identifier as a single argument. You must
+        check whether the given identifier matches any of the notifications you care
+        about, because the notifications server might signal events of other
+        applications as well.
 
         If the notification itself already specifies an on_clicked handler, it will be
         used instead of the class-level handler.
@@ -296,7 +340,10 @@ class DesktopNotifier:
         """
         A method to call when a notification is dismissed
 
-        The method must take the notification identifier as a single argument.
+        The method must take the notification identifier as a single argument. You must
+        check whether the given identifier matches any of the notifications you care
+        about, because the notifications server might signal events of other
+        applications as well.
 
         If the notification itself already specifies an on_dismissed handler, it will be
         used instead of the class-level handler.
@@ -310,10 +357,12 @@ class DesktopNotifier:
     @property
     def on_button_pressed(self) -> Callable[[str, str], Any] | None:
         """
-        A method to call when a notification is dismissed
+        A method to call when one of the notification's buttons is clicked
 
         The method must take the notification identifier and the button identifier as
-        arguments.
+        arguments. You must check whether the given identifier matches any of the
+        notifications you care about, because the notifications server might signal
+        events of other applications as well.
 
         If the notification button itself already specifies an on_pressed handler, it
         will be used instead of the class-level handler.
@@ -330,6 +379,9 @@ class DesktopNotifier:
         A method to call when a user responds through the reply field of a notification
 
         The method must take the notification identifier and input text as arguments.
+        You must check whether the given identifier matches any of the notifications
+        you care about, because the notifications server might signal events of other
+        applications as well.
 
         If the notification's reply field itself already specifies an on_replied
         handler, it will be used instead of the class-level handler.

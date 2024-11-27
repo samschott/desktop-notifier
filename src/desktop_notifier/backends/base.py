@@ -4,11 +4,13 @@ This module defines the abstract implementation class that backends must inherit
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from abc import ABC, abstractmethod
+from asyncio import Task
 from typing import Any, Callable
 
-from ..common import Capability, Notification
+from ..common import Capability, DispatchedNotification, Icon, Notification, uuid_str
 
 __all__ = [
     "DesktopNotifierBackend",
@@ -24,10 +26,14 @@ class DesktopNotifierBackend(ABC):
     :param app_name: Name to identify the application in the notification center.
     """
 
-    def __init__(self, app_name: str) -> None:
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
         self.app_name = app_name
-        self._notification_cache: dict[str, Notification] = dict()
+        self.app_icon = app_icon
+        self._notification_cache: dict[str, DispatchedNotification] = dict()
+        self._timeout_tasks: dict[str, Task[Any]] = dict()
 
+        self.on_dispatched: Callable[[str], Any] | None = None
+        self.on_cleared: Callable[[str], Any] | None = None
         self.on_clicked: Callable[[str], Any] | None = None
         self.on_dismissed: Callable[[str], Any] | None = None
         self.on_button_pressed: Callable[[str, str], Any] | None = None
@@ -49,33 +55,81 @@ class DesktopNotifierBackend(ABC):
         """
         ...
 
-    async def send(self, notification: Notification) -> None:
+    async def send(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """
         Sends a desktop notification.
 
         :param notification: Notification to send.
         """
+        dispatched_notification: DispatchedNotification | None = None
+        if isinstance(notification, DispatchedNotification):
+            dispatched_notification = notification
+            notification = dispatched_notification.notification
+
         try:
-            await self._send(notification)
+            identifier = await self._send(notification, dispatched_notification)
         except Exception:
             # Notifications can fail for many reasons:
             # The dbus service may not be available, we might be in a headless session,
             # etc. Since notifications are not critical to an application, we only emit
             # a warning.
-            logger.warning("Notification failed", exc_info=True)
+            logger.warning(
+                "Failed sending notification: %s", notification, exc_info=True
+            )
+            return None
         else:
             logger.debug("Notification sent: %s", notification)
-            self._notification_cache[notification.identifier] = notification
+            if not identifier:
+                if dispatched_notification:
+                    identifier = dispatched_notification.identifier
+                elif notification.identifier not in self._notification_cache:
+                    identifier = notification.identifier
+                else:
+                    identifier = uuid_str()
 
-    def _clear_notification_from_cache(self, identifier: str) -> Notification | None:
+            dispatched_notification = DispatchedNotification(identifier, notification)
+            self._notification_cache[identifier] = dispatched_notification
+
+            self.handle_dispatched(identifier)
+
+            if notification.timeout > 0:
+                timeout_task = self._timeout_task(identifier, notification.timeout)
+                self._timeout_tasks[identifier] = asyncio.create_task(timeout_task)
+
+            return dispatched_notification
+
+    async def _timeout_task(self, identifier: str, timeout: float) -> None:
+        """
+        Waits until a notification's timeout delay is reached and clears the notification.
+        This asyncio task might be cancelled by :meth:`_clear_notification_from_cache`.
+        """
+        await asyncio.sleep(timeout)
+
+        # manually call handle_cleared() so that the event isn't misidentified as dismissal
+        self.handle_cleared(identifier)
+
+        await self._clear(identifier)
+
+    def _clear_notification_from_cache(
+        self, identifier: str
+    ) -> DispatchedNotification | None:
         """
         Removes the notification from our cache. Should be called by backends when the
         notification is closed.
         """
+        if identifier in self._timeout_tasks:
+            self._timeout_tasks[identifier].cancel()
+            del self._timeout_tasks[identifier]
         return self._notification_cache.pop(identifier, None)
 
     @abstractmethod
-    async def _send(self, notification: Notification) -> None:
+    async def _send(
+        self,
+        notification: Notification,
+        replace_notification: DispatchedNotification | None = None,
+    ) -> str | None:
         """
         Method to send a notification via the platform. This should be implemented by
         subclasses.
@@ -93,6 +147,10 @@ class DesktopNotifierBackend(ABC):
         """Returns identifiers of all currently displayed notifications for this app."""
         return list(self._notification_cache.keys())
 
+    def get_cached_notifications(self) -> dict[str, DispatchedNotification]:
+        """Returns the notifications known to this Desktop Notifier instance."""
+        return self._notification_cache.copy()
+
     async def clear(self, identifier: str) -> None:
         """
         Removes the given notification from the notification center. This is a wrapper
@@ -103,7 +161,6 @@ class DesktopNotifierBackend(ABC):
         :param identifier: Notification identifier.
         """
         await self._clear(identifier)
-        self._clear_notification_from_cache(identifier)
 
     @abstractmethod
     async def _clear(self, identifier: str) -> None:
@@ -122,9 +179,7 @@ class DesktopNotifierBackend(ABC):
         :meth:`_clear_all` to actually clear the notifications. Platform implementations
         must implement :meth:`_clear_all`.
         """
-
         await self._clear_all()
-        self._notification_cache.clear()
 
     @abstractmethod
     async def _clear_all(self) -> None:
@@ -142,46 +197,91 @@ class DesktopNotifierBackend(ABC):
         """
         ...
 
-    def handle_clicked(
-        self, identifier: str, notification: Notification | None = None
-    ) -> None:
-        if notification and notification.on_clicked:
-            notification.on_clicked()
-        elif self.on_clicked:
+    def handle_dispatched(self, identifier: str) -> None:
+        if identifier in self._notification_cache:
+            dispatched_notification = self._notification_cache[identifier]
+            if dispatched_notification.notification.on_dispatched:
+                dispatched_notification.notification.on_dispatched()
+                return
+        if self.on_dispatched:
+            self.on_dispatched(identifier)
+
+    def handle_cleared(self, identifier: str) -> None:
+        dispatched_notification = self._clear_notification_from_cache(identifier)
+        if dispatched_notification:
+            if dispatched_notification.cleared:
+                return
+
+            object.__setattr__(dispatched_notification, "cleared", True)
+
+            if dispatched_notification.notification.on_cleared:
+                dispatched_notification.notification.on_cleared()
+                return
+        if self.on_cleared:
+            self.on_cleared(identifier)
+
+    def handle_clicked(self, identifier: str) -> None:
+        dispatched_notification = self._clear_notification_from_cache(identifier)
+        if dispatched_notification:
+            if dispatched_notification.cleared:
+                return
+
+            object.__setattr__(dispatched_notification, "cleared", True)
+            object.__setattr__(dispatched_notification, "clicked", True)
+
+            if dispatched_notification.notification.on_clicked:
+                dispatched_notification.notification.on_clicked()
+                return
+        if self.on_clicked:
             self.on_clicked(identifier)
 
-    def handle_dismissed(
-        self, identifier: str, notification: Notification | None = None
-    ) -> None:
-        if notification and notification.on_dismissed:
-            notification.on_dismissed()
-        elif self.on_dismissed:
+    def handle_dismissed(self, identifier: str) -> None:
+        dispatched_notification = self._clear_notification_from_cache(identifier)
+        if dispatched_notification:
+            if dispatched_notification.cleared:
+                return
+
+            object.__setattr__(dispatched_notification, "cleared", True)
+            object.__setattr__(dispatched_notification, "dismissed", True)
+
+            if dispatched_notification.notification.on_dismissed:
+                dispatched_notification.notification.on_dismissed()
+                return
+        if self.on_dismissed:
             self.on_dismissed(identifier)
 
-    def handle_replied(
-        self, identifier: str, reply_text: str, notification: Notification | None = None
-    ) -> None:
-        if (
-            notification
-            and notification.reply_field
-            and notification.reply_field.on_replied
-        ):
-            notification.reply_field.on_replied(reply_text)
-        elif self.on_replied:
+    def handle_replied(self, identifier: str, reply_text: str) -> None:
+        dispatched_notification = self._clear_notification_from_cache(identifier)
+        if dispatched_notification:
+            if dispatched_notification.cleared:
+                return
+
+            object.__setattr__(dispatched_notification, "cleared", True)
+            object.__setattr__(dispatched_notification, "replied", reply_text)
+
+            reply_field = dispatched_notification.notification.reply_field
+            if reply_field and reply_field.on_replied:
+                reply_field.on_replied(reply_text)
+                return
+        if self.on_replied:
             self.on_replied(identifier, reply_text)
 
-    def handle_button(
-        self,
-        identifier: str,
-        button_identifier: str,
-        notification: Notification | None = None,
-    ) -> None:
-        if notification and button_identifier in notification._buttons_dict:
-            button = notification._buttons_dict[button_identifier]
-        else:
-            button = None
+    def handle_button(self, identifier: str, button_identifier: str) -> None:
+        dispatched_notification = self._clear_notification_from_cache(identifier)
+        if dispatched_notification:
+            if dispatched_notification.cleared:
+                return
 
-        if button and button.on_pressed:
-            button.on_pressed()
-        elif self.on_button_pressed:
+            object.__setattr__(dispatched_notification, "cleared", True)
+            object.__setattr__(
+                dispatched_notification, "button_clicked", button_identifier
+            )
+
+            buttons = dispatched_notification.notification.buttons_dict
+            if button_identifier in buttons:
+                button = buttons[button_identifier]
+                if button and button.on_pressed:
+                    button.on_pressed()
+                    return
+        if self.on_button_pressed:
             self.on_button_pressed(identifier, button_identifier)

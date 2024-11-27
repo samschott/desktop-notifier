@@ -73,10 +73,7 @@ from desktop_notifier import DesktopNotifier, Urgency, Button, ReplyField, DEFAU
 
 
 async def main() -> None:
-    notifier = DesktopNotifier(
-        app_name="Sample App",
-        notification_limit=10,
-    )
+    notifier = DesktopNotifier(app_name="Sample App")
 
     await notifier.send(
         title="Julius Caesar",
@@ -91,9 +88,12 @@ async def main() -> None:
         reply_field=ReplyField(
             on_replied=lambda text: print("Brutus replied:", text),
         ),
+        on_dispatched=lambda: print("Notification showing"),
+        on_cleared=lambda: print("Notification timed out"),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
         sound=DEFAULT_SOUND,
+        timeout=10,
     )
 
     # Run the event loop forever to respond to user interactions with the notification.

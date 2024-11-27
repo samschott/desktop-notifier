@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import unquote, urlparse
 
+from immutabledict import immutabledict
+
 __all__ = [
     "Capability",
     "FileResource",
@@ -28,6 +30,8 @@ __all__ = [
     "Notification",
     "DEFAULT_ICON",
     "DEFAULT_SOUND",
+    "DispatchedNotification",
+    "uuid_str",
 ]
 
 
@@ -100,6 +104,11 @@ class Resource(FileResource):
     name: str | None = None
     """Name of the system resource"""
 
+    def as_name(self) -> str:
+        if self.name is not None:
+            return self.name
+        raise AttributeError("No resource name provided")
+
     def is_named(self) -> bool:
         """Returns whether the instance was initialized with ``name``"""
         return self.name is not None
@@ -170,6 +179,10 @@ class Button:
     identifier: str = dataclasses.field(default_factory=uuid_str)
     """A unique identifier to use in callbacks to specify with button was clicked"""
 
+    def __post_init__(self) -> None:
+        if self.identifier is None:
+            object.__setattr__(self, "identifier", uuid_str())
+
 
 @dataclass(frozen=True)
 class ReplyField:
@@ -207,53 +220,92 @@ class Notification:
     message: str
     """Notification message"""
 
-    urgency: Urgency = Urgency.Normal
+    urgency: Urgency = field(default=Urgency.Normal, repr=False)
     """Notification urgency. Can determine stickiness, notification appearance and
     break through silencing."""
 
-    icon: Icon | None = None
+    icon: Icon | None = field(default=None, repr=False)
     """Icon to use for the notification"""
 
-    buttons: tuple[Button, ...] = field(default_factory=tuple)
+    buttons: tuple[Button, ...] = field(default_factory=tuple, repr=False)
     """Buttons shown on an interactive notification"""
 
-    reply_field: ReplyField | None = None
+    buttons_dict: immutabledict[str, Button] = field(
+        default_factory=immutabledict, init=False, repr=False, compare=False
+    )
+    """Buttons shown on an interactive notification, indexed by button identifier"""
+
+    reply_field: ReplyField | None = field(default=None, repr=False)
     """Text field shown on an interactive notification. This can be used for example
     for messaging apps to reply directly from the notification."""
 
-    on_clicked: Callable[[], Any] | None = None
+    on_dispatched: Callable[[], Any] | None = field(default=None, repr=False)
+    """Method to call when the notification was sent to the notifications server for display"""
+
+    on_cleared: Callable[[], Any] | None = field(default=None, repr=False)
+    """Method to call when the notification is cleared without user interaction"""
+
+    on_clicked: Callable[[], Any] | None = field(default=None, repr=False)
     """Method to call when the notification is clicked"""
 
-    on_dismissed: Callable[[], Any] | None = None
+    on_dismissed: Callable[[], Any] | None = field(default=None, repr=False)
     """Method to call when the notification is dismissed"""
 
-    attachment: Attachment | None = None
+    attachment: Attachment | None = field(default=None, repr=False)
     """A file attached to the notification which may be displayed as a preview"""
 
-    sound: Sound | None = None
+    sound: Sound | None = field(default=None, repr=False)
     """A sound to play on notification"""
 
-    thread: str | None = None
+    thread: str | None = field(default=None, repr=False)
     """An identifier to group related notifications together, e.g., from a chat space"""
 
-    timeout: int = -1
+    timeout: float = field(default=-1, repr=False)
     """Duration in seconds for which the notification is shown"""
 
     identifier: str = field(default_factory=uuid_str)
     """A unique identifier for this notification. Generated automatically if not
     passed by the client."""
 
-    _buttons_dict: dict[str, Button] = field(default_factory=dict)
-
     def __post_init__(self) -> None:
-        for button in self.buttons:
-            self._buttons_dict[button.identifier] = button
+        if self.identifier is None:
+            object.__setattr__(self, "identifier", uuid_str())
 
-    def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__}(identifier='{self.identifier}', "
-            f"title='{self.title}', message='{self.message}')>"
+        object.__setattr__(
+            self,
+            "buttons_dict",
+            immutabledict({button.identifier: button for button in self.buttons}),
         )
+
+
+@dataclass(frozen=True)
+class DispatchedNotification:
+    """A desktop notification that was sent to the notifications server earlier"""
+
+    identifier: str
+    """A platform-dependant unique identifier for this dispatched notification.
+    The format varies from platform to platform. The identifier is unique among
+    the currently active notifications, but might be reused if a notification is
+    replaced. It might be identical to the randomly generated UUID of the source
+    notification, but you must not rely on this"""
+
+    notification: Notification
+    """The notification that was sent to the notifications server"""
+
+    cleared: bool = field(default=False, init=False, repr=False)
+    """Whether the notification has been cleared (both with and without user interaction, updated at runtime)"""
+
+    clicked: bool = field(default=False, init=False, repr=False)
+    """Whether the user clicked on the notification (updated at runtime)"""
+
+    dismissed: bool = field(default=False, init=False, repr=False)
+    """Whether the user dismissed the notification (updated at runtime)"""
+
+    button_clicked: str | None = field(default=None, init=False, repr=False)
+    """The identifier of the button the user clicked on, if applicable (updated at runtime)"""
+
+    replied: str | None = field(default=None, init=False, repr=False)
+    """The text the user entered into the notification's reply field, if applicable (updated at runtime)"""
 
 
 class Capability(Enum):
@@ -288,6 +340,13 @@ class Capability(Enum):
 
     ATTACHMENT = auto()
     """Supports notification attachments. Allowed file types vary by platform."""
+
+    ON_DISPATCHED = auto()
+    """Supports on-dispatched callbacks"""
+
+    ON_CLEARED = auto()
+    """Supports distinguishing between an user closing a notification, and clearing a
+    notification programmatically, and consequently supports on-cleared callbacks"""
 
     ON_CLICKED = auto()
     """Supports on-clicked callbacks"""
