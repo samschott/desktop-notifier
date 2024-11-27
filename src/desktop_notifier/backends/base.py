@@ -4,8 +4,10 @@ This module defines the abstract implementation class that backends must inherit
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from abc import ABC, abstractmethod
+from asyncio import Task
 from typing import Any, Callable
 
 from ..common import Capability, Icon, Notification
@@ -28,6 +30,7 @@ class DesktopNotifierBackend(ABC):
         self.app_name = app_name
         self.app_icon = app_icon
         self._notification_cache: dict[str, Notification] = dict()
+        self._timeout_tasks: dict[str, Task[Any]] = dict()
 
         self.on_clicked: Callable[[str], Any] | None = None
         self.on_dismissed: Callable[[str], Any] | None = None
@@ -68,11 +71,27 @@ class DesktopNotifierBackend(ABC):
             logger.debug("Notification sent: %s", notification)
             self._notification_cache[notification.identifier] = notification
 
+            if notification.timeout > 0:
+                self._timeout_tasks[notification.identifier] = asyncio.create_task(
+                    self._timeout_task(notification.identifier, notification.timeout)
+                )
+
+    async def _timeout_task(self, identifier: str, timeout: float) -> None:
+        """
+        Waits until a notification's timeout delay is reached and clears the notification.
+        This asyncio task might be cancelled by :meth:`_clear_notification_from_cache`.
+        """
+        await asyncio.sleep(timeout)
+        await self._clear(identifier)
+
     def _clear_notification_from_cache(self, identifier: str) -> Notification | None:
         """
         Removes the notification from our cache. Should be called by backends when the
         notification is closed.
         """
+        if identifier in self._timeout_tasks:
+            self._timeout_tasks[identifier].cancel()
+            del self._timeout_tasks[identifier]
         return self._notification_cache.pop(identifier, None)
 
     @abstractmethod

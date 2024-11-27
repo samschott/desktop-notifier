@@ -142,7 +142,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         else:
             hints = {}
 
-        timeout = notification.timeout * 1000 if notification.timeout != -1 else -1
+        # few notifications servers implement timeouts, thus we use our own implementation
+        timeout = -1
 
         icon: str = ""
         if notification.icon:
@@ -253,8 +254,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             Capability.APP_NAME,
             Capability.ICON,
             Capability.TITLE,
-            Capability.TIMEOUT,
             Capability.URGENCY,
+            Capability.TIMEOUT,
         }
 
         # Capabilities supported by some notification servers.

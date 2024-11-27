@@ -300,6 +300,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             Capability.ATTACHMENT,
             Capability.SOUND,
             Capability.SOUND_NAME,
+            Capability.TIMEOUT,
         }
         # Custom audio is support only starting with the Windows 10 Anniversary update.
         # See https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/custom-audio-on-toasts#add-the-custom-audio.

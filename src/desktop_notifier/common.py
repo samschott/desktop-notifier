@@ -252,7 +252,7 @@ class Notification:
     thread: str | None = field(default=None, repr=False)
     """An identifier to group related notifications together, e.g., from a chat space"""
 
-    timeout: int = field(default=-1, repr=False)
+    timeout: float = field(default=-1, repr=False)
     """Duration in seconds for which the notification is shown"""
 
     identifier: str = field(default_factory=uuid_str)
