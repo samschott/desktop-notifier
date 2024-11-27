@@ -7,6 +7,7 @@ from desktop_notifier import (
     Button,
     Capability,
     DesktopNotifier,
+    DispatchedNotification,
     Notification,
     ReplyField,
 )
@@ -41,8 +42,10 @@ async def test_cleared_callback_called(notifier: DesktopNotifier) -> None:
         on_cleared=notification_handler,
     )
 
-    identifier = await notifier.send_notification(notification)
-    await notifier.clear(identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    await notifier.clear(dispatched_notification.identifier)
 
     class_handler.assert_not_called()
     notification_handler.assert_called_once()
@@ -61,8 +64,10 @@ async def test_cleared_callback_not_dismissed(notifier: DesktopNotifier) -> None
         on_dismissed=on_dismissed,
     )
 
-    identifier = await notifier.send_notification(notification)
-    await notifier.clear(identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    await notifier.clear(dispatched_notification.identifier)
 
     on_dismissed.assert_not_called()
     on_cleared.assert_called_once()
@@ -98,8 +103,10 @@ async def test_clicked_callback_called(notifier: DesktopNotifier) -> None:
         on_clicked=notification_handler,
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_clicked(notifier, identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    simulate_clicked(notifier, dispatched_notification)
 
     class_handler.assert_not_called()
     notification_handler.assert_called_once()
@@ -122,8 +129,10 @@ async def test_clicked_callback_dismissed_not_called(notifier: DesktopNotifier) 
         on_dismissed=on_dismissed,
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_clicked(notifier, identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    simulate_clicked(notifier, dispatched_notification)
 
     on_dismissed.assert_not_called()
     on_clicked.assert_called_once()
@@ -142,8 +151,10 @@ async def test_dismissed_callback_called(notifier: DesktopNotifier) -> None:
         on_dismissed=notification_handler,
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_dismissed(notifier, identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    simulate_dismissed(notifier, dispatched_notification)
 
     class_handler.assert_not_called()
     notification_handler.assert_called_once()
@@ -165,8 +176,10 @@ async def test_button_pressed_callback_called(notifier: DesktopNotifier) -> None
         buttons=(button0, button1),
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_button_pressed(notifier, identifier, button1.identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    simulate_button_pressed(notifier, dispatched_notification, button1.identifier)
 
     class_handler.assert_not_called()
     notification_b1_handler.assert_called_once()
@@ -185,8 +198,10 @@ async def test_replied_callback_called(notifier: DesktopNotifier) -> None:
         reply_field=ReplyField(on_replied=notification_handler),
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_replied(notifier, identifier, "A notification response")
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
+    simulate_replied(notifier, dispatched_notification, "A notification response")
 
     class_handler.assert_not_called()
     notification_handler.assert_called_with("A notification response")
@@ -198,9 +213,10 @@ async def test_dispatched_fallback_handler_called(notifier: DesktopNotifier) -> 
     notifier.on_dispatched = class_handler
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
 
-    identifier = await notifier.send_notification(notification)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
 
-    class_handler.assert_called_with(identifier)
+    class_handler.assert_called_with(dispatched_notification.identifier)
 
 
 @pytest.mark.asyncio
@@ -211,10 +227,12 @@ async def test_cleared_fallback_handler_called(notifier: DesktopNotifier) -> Non
     notifier.on_cleared = class_handler
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
 
-    identifier = await notifier.send_notification(notification)
-    await notifier.clear(identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
 
-    class_handler.assert_called_with(identifier)
+    await notifier.clear(dispatched_notification.identifier)
+
+    class_handler.assert_called_with(dispatched_notification.identifier)
 
 
 @pytest.mark.asyncio
@@ -225,10 +243,12 @@ async def test_clicked_fallback_handler_called(notifier: DesktopNotifier) -> Non
     notifier.on_clicked = class_handler
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
 
-    identifier = await notifier.send_notification(notification)
-    simulate_clicked(notifier, identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
 
-    class_handler.assert_called_with(identifier)
+    simulate_clicked(notifier, dispatched_notification)
+
+    class_handler.assert_called_with(dispatched_notification.identifier)
 
 
 @pytest.mark.asyncio
@@ -239,10 +259,12 @@ async def test_dismissed_fallback_handler_called(notifier: DesktopNotifier) -> N
     notifier.on_dismissed = class_handler
     notification = Notification(title="Julius Caesar", message="Et tu, Brute?")
 
-    identifier = await notifier.send_notification(notification)
-    simulate_dismissed(notifier, identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
 
-    class_handler.assert_called_with(identifier)
+    simulate_dismissed(notifier, dispatched_notification)
+
+    class_handler.assert_called_with(dispatched_notification.identifier)
 
 
 @pytest.mark.asyncio
@@ -261,10 +283,14 @@ async def test_button_pressed_fallback_handler_called(
         buttons=(button0, button1),
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_button_pressed(notifier, identifier, button1.identifier)
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
 
-    class_handler.assert_called_once_with(identifier, button1.identifier)
+    simulate_button_pressed(notifier, dispatched_notification, button1.identifier)
+
+    class_handler.assert_called_once_with(
+        dispatched_notification.identifier, button1.identifier
+    )
 
 
 @pytest.mark.asyncio
@@ -279,7 +305,11 @@ async def test_replied_fallback_handler_called(notifier: DesktopNotifier) -> Non
         reply_field=ReplyField(),
     )
 
-    identifier = await notifier.send_notification(notification)
-    simulate_replied(notifier, identifier, "A notification response")
+    dispatched_notification = await notifier.send_notification(notification)
+    assert isinstance(dispatched_notification, DispatchedNotification)
 
-    class_handler.assert_called_with(identifier, "A notification response")
+    simulate_replied(notifier, dispatched_notification, "A notification response")
+
+    class_handler.assert_called_with(
+        dispatched_notification.identifier, "A notification response"
+    )

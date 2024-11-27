@@ -5,7 +5,7 @@ from unittest.mock import Mock
 from rubicon.objc.api import Block, ObjCClass
 from rubicon.objc.runtime import load_library
 
-from desktop_notifier import DesktopNotifier
+from desktop_notifier import DesktopNotifier, DispatchedNotification
 from desktop_notifier.backends.macos import (
     CocoaNotificationCenter,
     ReplyActionIdentifier,
@@ -28,34 +28,60 @@ UNNotificationResponse = ObjCClass("UNNotificationResponse")
 UNMutableNotificationContent = ObjCClass("UNMutableNotificationContent")
 
 
-def simulate_clicked(notifier: DesktopNotifier, identifier: str) -> None:
+def simulate_clicked(
+    notifier: DesktopNotifier, dispatched_notification: DispatchedNotification
+) -> None:
     assert isinstance(notifier._backend, CocoaNotificationCenter)
-    _send_response(notifier._backend, identifier, UNNotificationDefaultActionIdentifier)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+    _send_response(
+        notifier._backend,
+        dispatched_notification,
+        UNNotificationDefaultActionIdentifier,
+    )
 
 
-def simulate_dismissed(notifier: DesktopNotifier, identifier: str) -> None:
+def simulate_dismissed(
+    notifier: DesktopNotifier, dispatched_notification: DispatchedNotification
+) -> None:
     assert isinstance(notifier._backend, CocoaNotificationCenter)
-    _send_response(notifier._backend, identifier, UNNotificationDismissActionIdentifier)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+    _send_response(
+        notifier._backend,
+        dispatched_notification,
+        UNNotificationDismissActionIdentifier,
+    )
 
 
 def simulate_button_pressed(
-    notifier: DesktopNotifier, identifier: str, button_identifier: str
+    notifier: DesktopNotifier,
+    dispatched_notification: DispatchedNotification,
+    button_identifier: str,
 ) -> None:
     assert isinstance(notifier._backend, CocoaNotificationCenter)
-    _send_response(notifier._backend, identifier, button_identifier)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+    _send_response(notifier._backend, dispatched_notification, button_identifier)
 
 
-def simulate_replied(notifier: DesktopNotifier, identifier: str, reply: str) -> None:
+def simulate_replied(
+    notifier: DesktopNotifier,
+    dispatched_notification: DispatchedNotification,
+    reply: str,
+) -> None:
     assert isinstance(notifier._backend, CocoaNotificationCenter)
-    _send_response(notifier._backend, identifier, ReplyActionIdentifier, reply)
+    assert isinstance(dispatched_notification, DispatchedNotification)
+    _send_response(
+        notifier._backend, dispatched_notification, ReplyActionIdentifier, reply
+    )
 
 
 def _send_response(
     backend: CocoaNotificationCenter,
-    identifier: str,
+    dispatched_notification: DispatchedNotification,
     action_identifier: str,
     response_text: str | None = None,
 ) -> None:
+    identifier = dispatched_notification.identifier
+
     content = UNMutableNotificationContent.alloc().init()
     request = UNNotificationRequest.requestWithIdentifier(
         identifier, content=content, trigger=None

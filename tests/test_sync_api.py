@@ -7,6 +7,7 @@ from desktop_notifier import (
     DEFAULT_SOUND,
     Button,
     DesktopNotifierSync,
+    DispatchedNotification,
     ReplyField,
     Urgency,
 )
@@ -26,7 +27,7 @@ def wait_for_notifications(
 
 
 def test_send(notifier_sync: DesktopNotifierSync) -> None:
-    notification = notifier_sync.send(
+    dispatched_notification = notifier_sync.send(
         title="Julius Caesar",
         message="Et tu, Brute?",
         urgency=Urgency.Critical,
@@ -47,8 +48,12 @@ def test_send(notifier_sync: DesktopNotifierSync) -> None:
         thread="test_notifications",
         timeout=5,
     )
+    assert isinstance(dispatched_notification, DispatchedNotification)
+
     wait_for_notifications(notifier_sync)
-    assert notification in notifier_sync.get_current_notifications()
+
+    current_notifications = notifier_sync.get_current_notifications()
+    assert dispatched_notification.identifier in current_notifications
 
 
 @pytest.mark.skipif(
@@ -64,14 +69,25 @@ def test_clear(notifier_sync: DesktopNotifierSync) -> None:
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
+
+    assert isinstance(n0, DispatchedNotification)
+    assert isinstance(n1, DispatchedNotification)
+
     wait_for_notifications(notifier_sync, 2)
-    current_notifications = notifier_sync.get_current_notifications()
 
-    assert n0 in current_notifications
-    assert n1 in current_notifications
+    nlist0 = notifier_sync.get_current_notifications()
+    assert len(nlist0) == 2
+    assert n0.identifier in nlist0
+    assert n1.identifier in nlist0
 
-    notifier_sync.clear(n0)
-    assert n0 not in notifier_sync.get_current_notifications()
+    notifier_sync.clear(n0.identifier)
+
+    wait_for_notifications(notifier_sync, 1)
+
+    nlist1 = notifier_sync.get_current_notifications()
+    assert len(nlist1) == 1
+    assert n0.identifier not in nlist1
+    assert n1.identifier in nlist1
 
 
 def test_clear_all(notifier_sync: DesktopNotifierSync) -> None:
@@ -83,11 +99,19 @@ def test_clear_all(notifier_sync: DesktopNotifierSync) -> None:
         title="Julius Caesar",
         message="Et tu, Brute?",
     )
-    wait_for_notifications(notifier_sync, 2)
-    current_notifications = notifier_sync.get_current_notifications()
 
-    assert n0 in current_notifications
-    assert n1 in current_notifications
+    assert isinstance(n0, DispatchedNotification)
+    assert isinstance(n1, DispatchedNotification)
+
+    wait_for_notifications(notifier_sync, 2)
+
+    current_notifications = notifier_sync.get_current_notifications()
+    assert len(current_notifications) == 2
+    assert n0.identifier in current_notifications
+    assert n1.identifier in current_notifications
 
     notifier_sync.clear_all()
+
+    wait_for_notifications(notifier_sync, 0)
+
     assert len(notifier_sync.get_current_notifications()) == 0
