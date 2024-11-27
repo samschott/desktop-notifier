@@ -100,6 +100,11 @@ class Resource(FileResource):
     name: str | None = None
     """Name of the system resource"""
 
+    def as_name(self) -> str:
+        if self.name is not None:
+            return self.name
+        raise AttributeError("No resource name provided")
+
     def is_named(self) -> bool:
         """Returns whether the instance was initialized with ``name``"""
         return self.name is not None

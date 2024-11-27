@@ -62,8 +62,16 @@ class DesktopNotifierSync:
 
     @app_name.setter
     def app_name(self, value: str) -> None:
-        """Setter: app_name"""
         self._async_api.app_name = value
+
+    @property
+    def app_icon(self) -> Icon | None:
+        """The application icon"""
+        return self._async_api.app_icon
+
+    @app_icon.setter
+    def app_icon(self, value: Icon | None) -> None:
+        self._async_api.app_icon = value
 
     def request_authorisation(self) -> bool:
         """See :meth:`desktop_notifier.main.DesktopNotifier.request_authorisation`"""

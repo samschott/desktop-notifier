@@ -11,9 +11,6 @@ from .base import DesktopNotifierBackend
 class DummyNotificationCenter(DesktopNotifierBackend):
     """A dummy backend for unsupported platforms"""
 
-    def __init__(self, app_name: str) -> None:
-        super().__init__(app_name)
-
     async def request_authorisation(self) -> bool:
         """
         Request authorisation to send notifications.

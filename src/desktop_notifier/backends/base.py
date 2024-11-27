@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
-from ..common import Capability, Notification
+from ..common import Capability, Icon, Notification
 
 __all__ = [
     "DesktopNotifierBackend",
@@ -24,8 +24,9 @@ class DesktopNotifierBackend(ABC):
     :param app_name: Name to identify the application in the notification center.
     """
 
-    def __init__(self, app_name: str) -> None:
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
         self.app_name = app_name
+        self.app_icon = app_icon
         self._notification_cache: dict[str, Notification] = dict()
 
         self.on_clicked: Callable[[str], Any] | None = None
