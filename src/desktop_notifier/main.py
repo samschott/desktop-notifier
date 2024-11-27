@@ -311,7 +311,7 @@ class DesktopNotifier:
     @property
     def on_button_pressed(self) -> Callable[[str, str], Any] | None:
         """
-        A method to call when a notification is dismissed
+        A method to call when one of the notification's buttons is clicked
 
         The method must take the notification identifier and the button identifier as
         arguments.

@@ -115,7 +115,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
         if notification.sound:
             if notification.sound.is_named():
-                hints_v["sound-name"] = Variant("s", "message-new-instant")
+                hints_v["sound-name"] = Variant("s", notification.sound.name)
             else:
                 hints_v["sound-file"] = Variant("s", notification.sound.as_uri())
 
@@ -179,7 +179,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         Asynchronously removes a notification from the notification center
         """
         if not self.interface:
-            return
+            self.interface = await self._init_dbus()
 
         platform_id = self._platform_to_interface_notification_identifier.inverse[
             identifier
@@ -206,9 +206,6 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         """
         Asynchronously clears all notifications from notification center
         """
-        if not self.interface:
-            return
-
         for identifier in list(
             self._platform_to_interface_notification_identifier.values()
         ):
