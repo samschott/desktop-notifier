@@ -32,6 +32,7 @@ class DesktopNotifierBackend(ABC):
         self._notification_cache: dict[str, Notification] = dict()
         self._timeout_tasks: dict[str, Task[Any]] = dict()
 
+        self.on_cleared: Callable[[str], Any] | None = None
         self.on_clicked: Callable[[str], Any] | None = None
         self.on_dismissed: Callable[[str], Any] | None = None
         self.on_button_pressed: Callable[[str, str], Any] | None = None
@@ -161,6 +162,13 @@ class DesktopNotifierBackend(ABC):
         the notification server.
         """
         ...
+
+    def handle_cleared(self, identifier: str) -> None:
+        notification = self._clear_notification_from_cache(identifier)
+        if notification and notification.on_cleared:
+            notification.on_cleared()
+        elif self.on_cleared:
+            self.on_cleared(identifier)
 
     def handle_clicked(self, identifier: str) -> None:
         notification = self._clear_notification_from_cache(identifier)

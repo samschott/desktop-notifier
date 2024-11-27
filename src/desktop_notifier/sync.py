@@ -96,6 +96,7 @@ class DesktopNotifierSync:
         icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
+        on_cleared: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
@@ -111,6 +112,7 @@ class DesktopNotifierSync:
             icon=icon,
             buttons=tuple(buttons),
             reply_field=reply_field,
+            on_cleared=on_cleared,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -140,6 +142,23 @@ class DesktopNotifierSync:
         """See :meth:`desktop_notifier.main.DesktopNotifier.get_capabilities`"""
         coro = self._async_api.get_capabilities()
         return self._run_coro_sync(coro)
+
+    @property
+    def on_cleared(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is cleared without user interaction
+        (e.g. after a timeout, or if cleared by another process)
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_cleared handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._async_api.on_cleared
+
+    @on_cleared.setter
+    def on_cleared(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_cleared = handler
 
     @property
     def on_clicked(self) -> Callable[[str], Any] | None:

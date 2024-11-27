@@ -245,6 +245,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
         if reason == NOTIFICATION_CLOSED_DISMISSED:
             self.handle_dismissed(identifier)
+        else:
+            self.handle_cleared(identifier)
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
@@ -255,6 +257,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             Capability.ICON,
             Capability.TITLE,
             Capability.URGENCY,
+            Capability.ON_CLEARED,
             Capability.TIMEOUT,
         }
 
