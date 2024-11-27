@@ -177,8 +177,8 @@ class DesktopNotifierBackend(ABC):
         button_identifier: str,
         notification: Notification | None = None,
     ) -> None:
-        if notification and button_identifier in notification._buttons_dict:
-            button = notification._buttons_dict[button_identifier]
+        if notification and button_identifier in notification.buttons_dict:
+            button = notification.buttons_dict[button_identifier]
         else:
             button = None
 
