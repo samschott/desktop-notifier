@@ -19,6 +19,7 @@ from .common import (
     Attachment,
     Button,
     Capability,
+    DispatchedNotification,
     Icon,
     Notification,
     ReplyField,
@@ -38,6 +39,7 @@ __all__ = [
     "Capability",
     "DEFAULT_SOUND",
     "DEFAULT_ICON",
+    "DispatchedNotification",
 ]
 
 logger = logging.getLogger(__name__)
@@ -182,7 +184,9 @@ class DesktopNotifier:
         """Returns whether we have authorisation to send notifications."""
         return await self._backend.has_authorisation()
 
-    async def send_notification(self, notification: Notification) -> str:
+    async def send_notification(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """
         Sends a desktop notification.
 
@@ -194,7 +198,6 @@ class DesktopNotifier:
         disturb" is enabled on macOS).
 
         :param notification: The notification to send.
-        :returns: An identifier for the scheduled notification.
         """
         # Ask for authorisation if not already done. On some platforms, this will
         # trigger a system dialog to ask the user for permission.
@@ -205,9 +208,7 @@ class DesktopNotifier:
 
         # We attempt to send the notification regardless of authorization.
         # The user may have changed settings in the meantime.
-        await self._backend.send(notification)
-
-        return notification.identifier
+        return await self._backend.send(notification)
 
     async def send(
         self,
@@ -225,15 +226,13 @@ class DesktopNotifier:
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,  # in seconds
-    ) -> str:
+    ) -> DispatchedNotification | None:
         """
         Sends a desktop notification
 
         This is a convenience function which creates a
         :class:`desktop_notifier.base.Notification` with the provided arguments and then
         calls :meth:`send_notification`.
-
-        :returns: An identifier for the scheduled notification.
         """
         notification = Notification(
             title,
@@ -256,6 +255,10 @@ class DesktopNotifier:
     async def get_current_notifications(self) -> list[str]:
         """Returns identifiers of all currently displayed notifications for this app."""
         return await self._backend.get_current_notifications()
+
+    def get_cached_notifications(self) -> dict[str, DispatchedNotification]:
+        """Returns the notifications known to this Desktop Notifier instance."""
+        return self._backend.get_cached_notifications()
 
     async def clear(self, identifier: str) -> None:
         """

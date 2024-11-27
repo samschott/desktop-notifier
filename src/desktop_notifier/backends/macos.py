@@ -22,7 +22,15 @@ from packaging.version import Version
 from rubicon.objc import NSObject, ObjCClass, objc_method, py_from_ns
 from rubicon.objc.runtime import load_library, objc_block, objc_id
 
-from ..common import DEFAULT_SOUND, Capability, Icon, Notification, Urgency
+from ..common import (
+    DEFAULT_SOUND,
+    Capability,
+    DispatchedNotification,
+    Icon,
+    Notification,
+    Urgency,
+    uuid_str,
+)
 from .base import DesktopNotifierBackend
 from .macos_support import macos_version
 
@@ -214,12 +222,24 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
 
         return identifiers
 
-    async def _send(self, notification: Notification) -> None:
+    async def _send(
+        self,
+        notification: Notification,
+        replace_notification: DispatchedNotification | None = None,
+    ) -> str | None:
         """
         Uses UNUserNotificationCenter to schedule a notification.
 
         :param notification: Notification to send.
         """
+        identifier = notification.identifier
+        if replace_notification:
+            await self._clear(replace_notification.identifier)
+            identifier = replace_notification.identifier
+        elif identifier in self._notification_cache:
+            # identifier is already in use, generate a new random identifier
+            identifier = uuid_str()
+
         # On macOS, we need to register a new notification category for every
         # unique set of buttons.
         category_id = await self._find_or_create_notification_category(notification)
@@ -260,7 +280,7 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
                 content.attachments = [attachment]
 
         notification_request = UNNotificationRequest.requestWithIdentifier(
-            notification.identifier, content=content, trigger=None
+            identifier, content=content, trigger=None
         )
 
         future: Future[NSError] = Future()  # type:ignore[valid-type]
@@ -282,6 +302,8 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
         if error:
             log_nserror(error, "Error when scheduling notification")
             error.autorelease()  # type:ignore[attr-defined]
+
+        return identifier
 
     async def _find_or_create_notification_category(
         self, notification: Notification

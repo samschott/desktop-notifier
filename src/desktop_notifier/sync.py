@@ -12,6 +12,7 @@ from .common import (
     Attachment,
     Button,
     Capability,
+    DispatchedNotification,
     Icon,
     Notification,
     ReplyField,
@@ -83,7 +84,9 @@ class DesktopNotifierSync:
         coro = self._async_api.has_authorisation()
         return self._run_coro_sync(coro)
 
-    def send_notification(self, notification: Notification) -> str:
+    def send_notification(
+        self, notification: Notification | DispatchedNotification
+    ) -> DispatchedNotification | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send_notification`"""
         coro = self._async_api.send_notification(notification)
         return self._run_coro_sync(coro)
@@ -104,7 +107,7 @@ class DesktopNotifierSync:
         sound: Sound | None = None,
         thread: str | None = None,
         timeout: int = -1,  # in seconds
-    ) -> str:
+    ) -> DispatchedNotification | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.send`"""
         notification = Notification(
             title,

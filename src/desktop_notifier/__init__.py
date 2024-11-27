@@ -9,6 +9,7 @@ from .main import (
     Button,
     Capability,
     DesktopNotifier,
+    DispatchedNotification,
     Icon,
     Notification,
     ReplyField,
@@ -37,4 +38,5 @@ __all__ = [
     "Capability",
     "DEFAULT_SOUND",
     "DEFAULT_ICON",
+    "DispatchedNotification",
 ]

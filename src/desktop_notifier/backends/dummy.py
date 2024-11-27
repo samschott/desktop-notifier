@@ -4,7 +4,7 @@ Dummy backend for unsupported platforms
 """
 from __future__ import annotations
 
-from ..common import Capability, Notification
+from ..common import Capability, DispatchedNotification, Notification
 from .base import DesktopNotifierBackend
 
 
@@ -25,7 +25,11 @@ class DummyNotificationCenter(DesktopNotifierBackend):
         """
         return True
 
-    async def _send(self, notification: Notification) -> None:
+    async def _send(
+        self,
+        notification: Notification,
+        replace_notification: DispatchedNotification | None = None,
+    ) -> str | None:
         pass
 
     async def _clear(self, identifier: str) -> None:

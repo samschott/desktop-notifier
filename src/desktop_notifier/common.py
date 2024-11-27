@@ -30,6 +30,8 @@ __all__ = [
     "Notification",
     "DEFAULT_ICON",
     "DEFAULT_SOUND",
+    "DispatchedNotification",
+    "uuid_str",
 ]
 
 
@@ -274,6 +276,36 @@ class Notification:
             "buttons_dict",
             immutabledict({button.identifier: button for button in self.buttons}),
         )
+
+
+@dataclass(frozen=True)
+class DispatchedNotification:
+    """A desktop notification that was sent to the notifications server earlier"""
+
+    identifier: str
+    """A platform-dependant unique identifier for this dispatched notification.
+    The format varies from platform to platform. The identifier is unique among
+    the currently active notifications, but might be reused if a notification is
+    replaced. It might be identical to the randomly generated UUID of the source
+    notification, but you must not rely on this"""
+
+    notification: Notification
+    """The notification that was sent to the notifications server"""
+
+    cleared: bool = field(default=False, init=False, repr=False)
+    """Whether the notification has been cleared (both with and without user interaction, updated at runtime)"""
+
+    clicked: bool = field(default=False, init=False, repr=False)
+    """Whether the user clicked on the notification (updated at runtime)"""
+
+    dismissed: bool = field(default=False, init=False, repr=False)
+    """Whether the user dismissed the notification (updated at runtime)"""
+
+    button_clicked: str | None = field(default=None, init=False, repr=False)
+    """The identifier of the button the user clicked on, if applicable (updated at runtime)"""
+
+    replied: str | None = field(default=None, init=False, repr=False)
+    """The text the user entered into the notification's reply field, if applicable (updated at runtime)"""
 
 
 class Capability(Enum):

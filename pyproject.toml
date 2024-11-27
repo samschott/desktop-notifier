@@ -39,7 +39,6 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "bidict",
     "packaging",
     "immutabledict",
     "dbus-fast;sys_platform=='linux'",
