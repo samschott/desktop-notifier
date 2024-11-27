@@ -143,46 +143,36 @@ class DesktopNotifierBackend(ABC):
         """
         ...
 
-    def handle_clicked(
-        self, identifier: str, notification: Notification | None = None
-    ) -> None:
+    def handle_clicked(self, identifier: str) -> None:
+        notification = self._clear_notification_from_cache(identifier)
         if notification and notification.on_clicked:
             notification.on_clicked()
         elif self.on_clicked:
             self.on_clicked(identifier)
 
-    def handle_dismissed(
-        self, identifier: str, notification: Notification | None = None
-    ) -> None:
+    def handle_dismissed(self, identifier: str) -> None:
+        notification = self._clear_notification_from_cache(identifier)
         if notification and notification.on_dismissed:
             notification.on_dismissed()
         elif self.on_dismissed:
             self.on_dismissed(identifier)
 
-    def handle_replied(
-        self, identifier: str, reply_text: str, notification: Notification | None = None
-    ) -> None:
-        if (
-            notification
-            and notification.reply_field
-            and notification.reply_field.on_replied
-        ):
-            notification.reply_field.on_replied(reply_text)
-        elif self.on_replied:
+    def handle_replied(self, identifier: str, reply_text: str) -> None:
+        notification = self._clear_notification_from_cache(identifier)
+        if notification:
+            reply_field = notification.reply_field
+            if reply_field and reply_field.on_replied:
+                reply_field.on_replied(reply_text)
+                return
+        if self.on_replied:
             self.on_replied(identifier, reply_text)
 
-    def handle_button(
-        self,
-        identifier: str,
-        button_identifier: str,
-        notification: Notification | None = None,
-    ) -> None:
+    def handle_button(self, identifier: str, button_identifier: str) -> None:
+        notification = self._clear_notification_from_cache(identifier)
         if notification and button_identifier in notification.buttons_dict:
             button = notification.buttons_dict[button_identifier]
-        else:
-            button = None
-
-        if button and button.on_pressed:
-            button.on_pressed()
-        elif self.on_button_pressed:
+            if button and button.on_pressed:
+                button.on_pressed()
+                return
+        if self.on_button_pressed:
             self.on_button_pressed(identifier, button_identifier)
