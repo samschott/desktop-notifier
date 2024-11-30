@@ -31,7 +31,7 @@ from winrt.windows.ui.notifications import (
 )
 
 # local imports
-from ..common import DEFAULT_SOUND, Capability, Notification, Urgency
+from ..common import DEFAULT_SOUND, Capability, Icon, Notification, Urgency
 from .base import DesktopNotifierBackend
 
 __all__ = ["WinRTDesktopNotifier"]
@@ -69,11 +69,8 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         Urgency.Critical: ToastNotificationPriority.HIGH,
     }
 
-    def __init__(
-        self,
-        app_name: str,
-    ) -> None:
-        super().__init__(app_name)
+    def __init__(self, app_name: str, app_icon: Icon | None = None) -> None:
+        super().__init__(app_name, app_icon)
 
         manager = ToastNotificationManager.get_default()
 
@@ -145,13 +142,18 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         message_xml = SubElement(binding, "text")
         message_xml.text = notification.message
 
-        if notification.icon and notification.icon.is_file():
+        icon_obj: Icon | None = None
+        if notification.icon:
+            icon_obj = notification.icon
+        elif self.app_icon:
+            icon_obj = self.app_icon
+        if icon_obj and icon_obj.is_file():
             SubElement(
                 binding,
                 "image",
                 {
                     "placement": "appLogoOverride",
-                    "src": notification.icon.as_uri(),
+                    "src": icon_obj.as_uri(),
                 },
             )
 
