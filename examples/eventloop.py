@@ -27,9 +27,11 @@ async def main() -> None:
             button_title="Send",
             on_replied=lambda text: print("Brutus replied:", text),
         ),
+        on_cleared=lambda: print("Notification timed out"),
         on_clicked=lambda: print("Notification clicked"),
         on_dismissed=lambda: print("Notification dismissed"),
         sound=DEFAULT_SOUND,
+        timeout=10,
     )
 
     # Run the event loop forever to respond to user interactions with the notification.

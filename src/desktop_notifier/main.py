@@ -217,6 +217,7 @@ class DesktopNotifier:
         icon: Icon | None = None,
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
+        on_cleared: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
@@ -240,6 +241,7 @@ class DesktopNotifier:
             icon=icon,
             buttons=tuple(buttons),
             reply_field=reply_field,
+            on_cleared=on_cleared,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -275,6 +277,23 @@ class DesktopNotifier:
         if not self._capabilities:
             self._capabilities = await self._backend.get_capabilities()
         return self._capabilities
+
+    @property
+    def on_cleared(self) -> Callable[[str], Any] | None:
+        """
+        A method to call when a notification is cleared without user interaction
+        (e.g. after a timeout, or if cleared by another process)
+
+        The method must take the notification identifier as a single argument.
+
+        If the notification itself already specifies an on_cleared handler, it will be
+        used instead of the class-level handler.
+        """
+        return self._backend.on_cleared
+
+    @on_cleared.setter
+    def on_cleared(self, handler: Callable[[str], Any] | None) -> None:
+        self._backend.on_cleared = handler
 
     @property
     def on_clicked(self) -> Callable[[str], Any] | None:
