@@ -29,6 +29,7 @@ class DesktopNotifierBackend(ABC):
         self.app_icon = app_icon
         self._notification_cache: dict[str, Notification] = dict()
 
+        self.on_dispatched: Callable[[str], Any] | None = None
         self.on_clicked: Callable[[str], Any] | None = None
         self.on_dismissed: Callable[[str], Any] | None = None
         self.on_button_pressed: Callable[[str, str], Any] | None = None
@@ -67,6 +68,8 @@ class DesktopNotifierBackend(ABC):
         else:
             logger.debug("Notification sent: %s", notification)
             self._notification_cache[notification.identifier] = notification
+
+            self.handle_dispatched(notification.identifier, notification)
 
     def _clear_notification_from_cache(self, identifier: str) -> Notification | None:
         """
@@ -142,6 +145,14 @@ class DesktopNotifierBackend(ABC):
         the notification server.
         """
         ...
+
+    def handle_dispatched(
+        self, identifier: str, notification: Notification | None = None
+    ) -> None:
+        if notification and notification.on_dispatched:
+            notification.on_dispatched()
+        elif self.on_dispatched:
+            self.on_dispatched(identifier)
 
     def handle_clicked(
         self, identifier: str, notification: Notification | None = None
