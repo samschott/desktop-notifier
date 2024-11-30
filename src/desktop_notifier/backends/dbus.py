@@ -226,16 +226,11 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             ourselves when scheduling the notification.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._clear_notification_from_cache(identifier)
-
-        if not notification:
-            return
 
         if action_key == "default":
-            self.handle_clicked(identifier, notification)
-            return
-
-        self.handle_button(identifier, action_key, notification)
+            self.handle_clicked(identifier)
+        else:
+            self.handle_button(identifier, action_key)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
@@ -246,13 +241,9 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         :param reason: An integer describing the reason why the notification was closed.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._clear_notification_from_cache(identifier)
-
-        if not notification:
-            return
 
         if reason == NOTIFICATION_CLOSED_DISMISSED:
-            self.handle_dismissed(identifier, notification)
+            self.handle_dismissed(identifier)
 
     async def get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
