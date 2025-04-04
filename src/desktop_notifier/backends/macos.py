@@ -84,12 +84,12 @@ class UNNotificationInterruptionLevel(enum.Enum):
 ReplyActionIdentifier = "com.desktop-notifier.ReplyActionIdentifier"
 
 
-class NotificationCenterDelegate(NSObject):  # type:ignore
+class NotificationCenterDelegate(NSObject):  # type:ignore[misc]
     """Delegate to handle user interactions with notifications"""
 
     implementation: CocoaNotificationCenter
 
-    @objc_method  # type:ignore
+    @objc_method  # type:ignore[misc]
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
         self, center: objc_id, response: objc_id, completion_handler: objc_block
     ) -> None:
