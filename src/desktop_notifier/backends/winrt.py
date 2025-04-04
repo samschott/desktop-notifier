@@ -16,9 +16,9 @@ from typing import TypeVar
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 from winrt.system import Object as WinRTObject
+from winrt.system import unbox_string
 from winrt.windows.applicationmodel.core import CoreApplication
 from winrt.windows.data.xml.dom import XmlDocument
-from winrt.windows.foundation.interop import unbox
 from winrt.windows.ui.notifications import (
     NotificationSetting,
     ToastActivatedEventArgs,
@@ -87,7 +87,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             self.app_id = app_name
             register_hkey(app_id=app_name, app_name=app_name)
 
-        notifier = self.manager.create_toast_notifier(self.app_id)
+        notifier = self.manager.create_toast_notifier_with_id(self.app_id)
 
         if not notifier:
             raise RuntimeError(f"Could not get ToastNotifier for app_id: {self.app_id}")
@@ -242,7 +242,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
 
         elif action_id == REPLY_ACTION and activated_args.user_input:
             boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
-            reply = unbox(boxed_reply)
+            reply = unbox_string(boxed_reply)
             self.handle_replied(sender.tag, reply, notification)
 
         elif action_id.startswith(BUTTON_ACTION_PREFIX):
@@ -293,7 +293,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         Asynchronously clears all notifications from notification center.
         """
         if self.manager.history:
-            self.manager.history.clear(self.app_id)
+            self.manager.history.clear_with_id(self.app_id)
 
     async def get_capabilities(self) -> frozenset[Capability]:
         capabilities = {

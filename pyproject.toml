@@ -42,13 +42,13 @@ dependencies = [
     "bidict",
     "packaging",
     "dbus-fast;sys_platform=='linux'",
-    "rubicon-objc;sys_platform=='darwin'",
-    "winrt-windows.applicationmodel.core;sys_platform=='win32'",
-    "winrt-windows.data.xml.dom;sys_platform=='win32'",
-    "winrt-windows.foundation;sys_platform=='win32'",
-    "winrt-windows.foundation.collections;sys_platform=='win32'",
-    "winrt-windows.foundation.interop;sys_platform=='win32'",
-    "winrt-windows.ui.notifications;sys_platform=='win32'",
+    "rubicon-objc>=0.5;sys_platform=='darwin'",
+    "winrt-runtime>=3,<4;sys_platform=='win32'",
+    "winrt-windows.applicationmodel.core>=3,<4;sys_platform=='win32'",
+    "winrt-windows.data.xml.dom>=3,<4;sys_platform=='win32'",
+    "winrt-windows.foundation>=3,<4;sys_platform=='win32'",
+    "winrt-windows.foundation.collections>=3,<4;sys_platform=='win32'",
+    "winrt-windows.ui.notifications>=3,<4;sys_platform=='win32'",
 ]
 
 [project.readme]
