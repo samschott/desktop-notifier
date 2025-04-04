@@ -129,7 +129,7 @@ class DesktopNotifierSync:
         return self._run_coro_sync(coro)
 
     def clear(self, identifier: str) -> None:
-        """See :meth:`desktop_notifier.main.DesktopNotifier.notification`"""
+        """See :meth:`desktop_notifier.main.DesktopNotifier.clear`"""
         coro = self._async_api.clear(identifier)
         return self._run_coro_sync(coro)
 
