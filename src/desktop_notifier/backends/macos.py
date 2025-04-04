@@ -91,7 +91,7 @@ class NotificationCenterDelegate(NSObject):  # type:ignore
 
     @objc_method  # type:ignore
     def userNotificationCenter_didReceiveNotificationResponse_withCompletionHandler_(
-        self, center, response, completion_handler: objc_block
+        self, center: objc_id, response: objc_id, completion_handler: objc_block
     ) -> None:
         identifier = py_from_ns(response.notification.request.identifier)
         notification = self.implementation._clear_notification_from_cache(identifier)
