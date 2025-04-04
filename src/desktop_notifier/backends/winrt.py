@@ -12,13 +12,16 @@ from __future__ import annotations
 import logging
 import sys
 import winreg
+import asyncio
+from collections.abc import Callable
 from typing import TypeVar
+from typing_extensions import ParamSpec
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 from winrt.system import Object as WinRTObject
+from winrt.system import unbox_string
 from winrt.windows.applicationmodel.core import CoreApplication
 from winrt.windows.data.xml.dom import XmlDocument
-from winrt.windows.foundation.interop import unbox
 from winrt.windows.ui.notifications import (
     NotificationSetting,
     ToastActivatedEventArgs,
@@ -39,7 +42,9 @@ __all__ = ["WinRTDesktopNotifier"]
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
+P = ParamSpec("P")
 
+DEFAULT_GROUP = "desktop-notifier-group"
 DEFAULT_ACTION = "default"
 REPLY_ACTION = "action=reply&amp"
 BUTTON_ACTION_PREFIX = "action=button&amp;id="
@@ -87,7 +92,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             self.app_id = app_name
             register_hkey(app_id=app_name, app_name=app_name)
 
-        notifier = self.manager.create_toast_notifier(self.app_id)
+        notifier = self.manager.create_toast_notifier_with_id(self.app_id)
 
         if not notifier:
             raise RuntimeError(f"Could not get ToastNotifier for app_id: {self.app_id}")
@@ -213,11 +218,12 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
 
         native = ToastNotification(xml_document)
         native.tag = notification.identifier
+        native.group = DEFAULT_GROUP
         native.priority = self._to_native_urgency[notification.urgency]
 
-        native.add_activated(self._on_activated)
-        native.add_dismissed(self._on_dismissed)
-        native.add_failed(self._on_failed)
+        native.add_activated(eventloop_wrapper(self._on_activated))
+        native.add_dismissed(eventloop_wrapper(self._on_dismissed))
+        native.add_failed(eventloop_wrapper(self._on_failed))
 
         self.notifier.show(native)
 
@@ -242,7 +248,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
 
         elif action_id == REPLY_ACTION and activated_args.user_input:
             boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
-            reply = unbox(boxed_reply)
+            reply = unbox_string(boxed_reply)
             self.handle_replied(sender.tag, reply, notification)
 
         elif action_id.startswith(BUTTON_ACTION_PREFIX):
@@ -286,14 +292,27 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         Asynchronously removes a notification from the notification center.
         """
         if self.manager.history:
-            self.manager.history.remove(identifier)
+            self.manager.history.remove_grouped_tag_with_id(
+                identifier, DEFAULT_GROUP, self.app_id
+            )
 
     async def _clear_all(self) -> None:
         """
         Asynchronously clears all notifications from notification center.
         """
         if self.manager.history:
-            self.manager.history.clear(self.app_id)
+            self.manager.history.clear_with_id(self.app_id)
+
+    async def get_current_notifications(self) -> list[str]:
+        if self.manager.history:
+            notifications = self.manager.history.get_history_with_id(self.app_id)
+            # Winrt IVectorView crashes on list comprehension in Python 3.13 and does
+            # not reliably iterate on earlier Python versions. Use index access instead.
+            return [
+                notifications[i].tag
+                for i in range(notifications.size)  # type:ignore[attr-defined]
+            ]
+        return await super().get_current_notifications()
 
     async def get_capabilities(self) -> frozenset[Capability]:
         capabilities = {
@@ -316,3 +335,12 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             capabilities.add(Capability.SOUND_FILE)
 
         return frozenset(capabilities)
+
+
+def eventloop_wrapper(function: Callable[P, T]) -> Callable[P, None]:
+    event_loop = asyncio.get_running_loop()
+
+    def wrapped_func(*args: P.args, **kwargs: P.kwargs) -> None:
+        event_loop.call_soon_threadsafe(function, *args)
+
+    return wrapped_func
