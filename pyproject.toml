@@ -41,6 +41,7 @@ requires-python = ">=3.9"
 dependencies = [
     "bidict",
     "packaging",
+    "typing-extensions",
     "dbus-fast;sys_platform=='linux'",
     "rubicon-objc>=0.5;sys_platform=='darwin'",
     "winrt-runtime>=3,<4;sys_platform=='win32'",

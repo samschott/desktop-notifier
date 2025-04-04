@@ -15,6 +15,7 @@ import winreg
 import asyncio
 from collections.abc import Callable
 from typing import TypeVar
+from typing_extensions import ParamSpec
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 from winrt.system import Object as WinRTObject
@@ -41,6 +42,7 @@ __all__ = ["WinRTDesktopNotifier"]
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
+P = ParamSpec("P")
 
 DEFAULT_GROUP = "desktop-notifier-group"
 DEFAULT_ACTION = "default"
@@ -335,7 +337,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         return frozenset(capabilities)
 
 
-def eventloop_wrapper[T, **P](function: Callable[P, T]) -> Callable[P, None]:
+def eventloop_wrapper(function: Callable[P, T]) -> Callable[P, None]:
     event_loop = asyncio.get_running_loop()
 
     def wrapped_func(*args: P.args, **kwargs: P.kwargs) -> None:
