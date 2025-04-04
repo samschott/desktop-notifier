@@ -12,6 +12,8 @@ from __future__ import annotations
 import logging
 import sys
 import winreg
+import asyncio
+from collections.abc import Callable
 from typing import TypeVar
 from xml.etree.ElementTree import Element, SubElement, tostring
 
@@ -215,9 +217,9 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         native.tag = notification.identifier
         native.priority = self._to_native_urgency[notification.urgency]
 
-        native.add_activated(self._on_activated)
-        native.add_dismissed(self._on_dismissed)
-        native.add_failed(self._on_failed)
+        native.add_activated(eventloop_wrapper(self._on_activated))
+        native.add_dismissed(eventloop_wrapper(self._on_dismissed))
+        native.add_failed(eventloop_wrapper(self._on_failed))
 
         self.notifier.show(native)
 
@@ -316,3 +318,12 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             capabilities.add(Capability.SOUND_FILE)
 
         return frozenset(capabilities)
+
+
+def eventloop_wrapper[T, **P](function: Callable[P, T]) -> Callable[P, None]:
+    event_loop = asyncio.get_running_loop()
+
+    def wrapped_func(*args: P.args, **kwargs: P.kwargs) -> None:
+        event_loop.call_soon_threadsafe(function, *args)
+
+    return wrapped_func
