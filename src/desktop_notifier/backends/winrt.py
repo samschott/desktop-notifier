@@ -42,6 +42,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+DEFAULT_GROUP = "desktop-notifier-group"
 DEFAULT_ACTION = "default"
 REPLY_ACTION = "action=reply&amp"
 BUTTON_ACTION_PREFIX = "action=button&amp;id="
@@ -215,6 +216,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
 
         native = ToastNotification(xml_document)
         native.tag = notification.identifier
+        native.group = DEFAULT_GROUP
         native.priority = self._to_native_urgency[notification.urgency]
 
         native.add_activated(eventloop_wrapper(self._on_activated))
@@ -288,7 +290,9 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         Asynchronously removes a notification from the notification center.
         """
         if self.manager.history:
-            self.manager.history.remove(identifier)
+            self.manager.history.remove_grouped_tag_with_id(
+                identifier, DEFAULT_GROUP, self.app_id
+            )
 
     async def _clear_all(self) -> None:
         """
