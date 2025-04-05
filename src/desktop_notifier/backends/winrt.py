@@ -304,12 +304,9 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
     async def get_current_notifications(self) -> list[str]:
         if self.manager.history:
             notifications = self.manager.history.get_history_with_id(self.app_id)
-            # Winrt IVectorView crashes on list comprehension in Python 3.13 and does
-            # not reliably iterate on earlier Python versions. Use index access instead.
-            return [
-                notifications[i].tag
-                for i in range(notifications.size)  # type:ignore[attr-defined]
-            ]
+            # Convert winrt IVectorView to list because the former does crashes on list
+            # comprehension on some Python versions.
+            return [n.tag for n in list(notifications)]
         return await super().get_current_notifications()
 
     async def get_capabilities(self) -> frozenset[Capability]:
