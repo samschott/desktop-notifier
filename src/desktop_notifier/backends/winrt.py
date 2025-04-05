@@ -238,9 +238,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         if not boxed_activated_args:
             return
 
-        activated_args = ToastActivatedEventArgs._from(  # type:ignore[attr-defined]
-            boxed_activated_args
-        )
+        activated_args = boxed_activated_args.as_(ToastActivatedEventArgs)
         action_id = activated_args.arguments
 
         if action_id == DEFAULT_ACTION:
