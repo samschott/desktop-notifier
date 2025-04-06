@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools>=61.2", "build"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "desktop-notifier"
 version = "6.1.0.dev0"
 authors = [{name = "Sam Schott", email = "sam.schott@outlook.com"}]
-license = {text = "MIT"}
+license = "MIT"
 description = "Python library for cross-platform desktop notifications"
 keywords = [
     "desktop-notifier",
@@ -18,7 +18,6 @@ keywords = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
