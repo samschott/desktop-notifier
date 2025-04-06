@@ -1,3 +1,12 @@
+# v6.1.0
+
+## Changed:
+
+* Compatibility with pywinrt 3.0. This release also pins the supported version of 
+  pywinrt to >= 3.0, < 4.0 to prevent breakages from API changes.
+* Updated rubicon-objc dependency to >=0.5 and cleaned up now obsolete manual memory
+  managed in the macOS / iOS backend.
+
 # v6.0.0
 
 ## Added:
