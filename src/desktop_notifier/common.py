@@ -304,8 +304,9 @@ class Capability(Enum):
     """Supports on-dispatched callbacks"""
 
     ON_CLEARED = auto()
-    """Supports distinguishing between an user closing a notification, and clearing a
-    notification programmatically, and consequently supports on-cleared callbacks"""
+    """Supports on-cleared callbacks, which are called if a notification wasn't
+    cleared by user interaction, but programmatically; platforms not supporting
+    this distinction will call on-dismissed callbacks instead"""
 
     ON_CLICKED = auto()
     """Supports on-clicked callbacks"""
