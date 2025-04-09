@@ -24,7 +24,9 @@ notifier.send(
         on_replied=lambda text: print("Brutus replied:", text),
     ),
     on_dispatched=lambda: print("Notification showing"),
+    on_cleared=lambda: print("Notification closed w/o user interaction"),
     on_clicked=lambda: print("Notification clicked"),
-    on_dismissed=lambda: print("Notification dismissed"),
+    on_dismissed=lambda: print("Notification dismissed by user"),
     sound=DEFAULT_SOUND,
+    timeout=10,
 )
