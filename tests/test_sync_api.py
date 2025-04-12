@@ -1,7 +1,4 @@
-import sys
 import time
-
-import pytest
 
 from desktop_notifier import (
     DEFAULT_SOUND,
@@ -51,10 +48,6 @@ def test_send(notifier_sync: DesktopNotifierSync) -> None:
     assert notification in notifier_sync.get_current_notifications()
 
 
-@pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="Clearing individual notifications is broken on Windows",
-)
 def test_clear(notifier_sync: DesktopNotifierSync) -> None:
     n0 = notifier_sync.send(
         title="Julius Caesar",
