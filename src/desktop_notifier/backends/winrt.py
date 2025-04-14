@@ -304,9 +304,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
     async def get_current_notifications(self) -> list[str]:
         if self.manager.history:
             notifications = self.manager.history.get_history_with_id(self.app_id)
-            # Convert winrt IVectorView to list because the former does crashes on list
-            # comprehension on some Python versions.
-            return [n.tag for n in list(notifications)]
+            return [n.tag for n in notifications]
         return await super().get_current_notifications()
 
     async def get_capabilities(self) -> frozenset[Capability]:
