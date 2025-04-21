@@ -270,8 +270,16 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         # Capabilities supported by some notification servers.
         # See https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#protocol.
         if hasattr(self.interface, "on_notification_closed"):
-            capabilities.add(Capability.ON_CLICKED)
             capabilities.add(Capability.ON_DISMISSED)
+
+        server_info = (
+            await self.interface.call_get_server_information()  # type:ignore[attr-defined]
+        )
+
+        # xfce4-notifyd does not support a "default" action when the notification is
+        # clicked. See https://docs.xfce.org/apps/xfce4-notifyd/spec.
+        if server_info[0] != "Xfce Notify Daemon":
+            capabilities.add(Capability.ON_CLICKED)
 
         cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
 
