@@ -1,3 +1,10 @@
+# v6.2.0
+
+## Fixed:
+
+* Fixes the incorrect appearance of a "default" button on Xfce desktop environments and
+  correctly reflect in capabilities that they don't support an ON_CLICKED action. 
+
 # v6.1.0
 
 ## Changed:
