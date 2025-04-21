@@ -83,8 +83,7 @@ class DesktopNotifierBackend(ABC):
     @abstractmethod
     async def _send(self, notification: Notification) -> None:
         """
-        Method to send a notification via the platform. This should be implemented by
-        subclasses.
+        Method to send a notification via the platform.
 
         Implementations must raise an exception when the notification could not be
         delivered. If the notification could be delivered but not fully as intended,
@@ -114,8 +113,7 @@ class DesktopNotifierBackend(ABC):
     @abstractmethod
     async def _clear(self, identifier: str) -> None:
         """
-        Removes the given notification from the notification center. Should be
-        implemented by subclasses.
+        Removes the given notification from the notification center.
 
         :param identifier: Notification identifier.
         """
@@ -135,8 +133,7 @@ class DesktopNotifierBackend(ABC):
     @abstractmethod
     async def _clear_all(self) -> None:
         """
-        Clears all notifications from the notification center. Should be implemented by
-        subclasses.
+        Clears all notifications from the notification center.
         """
         ...
 
