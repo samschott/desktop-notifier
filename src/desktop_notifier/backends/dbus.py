@@ -30,6 +30,8 @@ NOTIFICATION_CLOSED_DISMISSED = 2
 NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
+DEFAULT_ACTION_KEY = "default"
+
 
 class DBusDesktopNotifier(DesktopNotifierBackend):
     """DBus notification backend for Linux
@@ -99,13 +101,11 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not self.interface:
             self.interface = await self._init_dbus()
 
-        # The "default" action is typically invoked when clicking on the
-        # notification body itself, see
-        # https://specifications.freedesktop.org/notification-spec. There are some
-        # exceptions though, such as XFCE, where this will result in a separate
-        # button. If no label name is provided in XFCE, it will result in a default
-        # symbol being used. We therefore don't specify a label name.
-        actions = ["default", ""]
+        actions = []
+
+        # The "default" action is invoked when clicking on the notification body.
+        if Capability.ON_CLICKED in await self.get_capabilities():
+            actions += [DEFAULT_ACTION_KEY, ""]
 
         for button in notification.buttons:
             actions += [button.identifier, button.title]
@@ -231,7 +231,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not notification:
             return
 
-        if action_key == "default":
+        if action_key == DEFAULT_ACTION_KEY:
             self.handle_clicked(identifier, notification)
             return
 
