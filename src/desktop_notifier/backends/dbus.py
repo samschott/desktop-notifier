@@ -254,7 +254,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if reason == NOTIFICATION_CLOSED_DISMISSED:
             self.handle_dismissed(identifier, notification)
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
             self.interface = await self._init_dbus()
 

@@ -35,6 +35,8 @@ class DesktopNotifierBackend(ABC):
         self.on_button_pressed: Callable[[str, str], Any] | None = None
         self.on_replied: Callable[[str, str], Any] | None = None
 
+        self._capabilities: frozenset[Capability] | None = None
+
     @abstractmethod
     async def request_authorisation(self) -> bool:
         """
@@ -139,12 +141,20 @@ class DesktopNotifierBackend(ABC):
         ...
 
     @abstractmethod
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         """
-        Returns the functionality supported by the implementation and, for Linux / dbus,
-        the notification server.
+        Returns the functionality supported by the notification server.
         """
         ...
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        """
+        Returns the functionality supported by the notification server. Caches the
+        result.
+        """
+        if not self._capabilities:
+            self._capabilities = await self._get_capabilities()
+        return self._capabilities
 
     def handle_dispatched(
         self, identifier: str, notification: Notification | None = None
