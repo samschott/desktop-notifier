@@ -34,11 +34,10 @@ async def main() -> None:
             on_replied=lambda text: print(f"Received reply '{text}'"),
         ),
         on_dispatched=lambda: print("Notification is showing now"),
-        on_cleared=lambda: print("Notification timed out"),
+        on_cleared=lambda: print("Notification was closed w/o user interaction"),
         on_clicked=lambda: print("Notification was clicked"),
-        on_dismissed=lambda: print("Notification was dismissed"),
+        on_dismissed=lambda: print("Notification was dismissed by the user"),
         sound=DEFAULT_SOUND,
-        timeout=10,
     )
 
     # Run the event loop forever to respond to user interactions with the notification.

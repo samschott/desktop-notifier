@@ -16,7 +16,7 @@ def on_dispatched(identifier: str) -> None:
 
 
 def on_cleared(identifier: str) -> None:
-    print(f"Notification '{identifier}' was cleared without user interaction")
+    print(f"Notification '{identifier}' was closed w/o user interaction")
 
 
 def on_clicked(identifier: str) -> None:
@@ -24,7 +24,7 @@ def on_clicked(identifier: str) -> None:
 
 
 def on_dismissed(identifier: str) -> None:
-    print(f"Notification '{identifier}' was dismissed")
+    print(f"Notification '{identifier}' was dismissed by the user")
 
 
 def on_button_pressed(identifier: str, button_identifier: str) -> None:
@@ -57,7 +57,6 @@ async def main() -> None:
             button_title="Send",
         ),
         sound=DEFAULT_SOUND,
-        timeout=10,
     )
 
     # Run the event loop forever to respond to user interactions with the notification.

@@ -82,18 +82,23 @@ async def main() -> None:
         buttons=[
             Button(
                 title="Mark as read",
-                on_pressed=lambda: print("Marked as read"),
-            )
+                on_pressed=lambda: print("Button 'Mark as read' was clicked"),
+            ),
+            Button(
+                title="Click me!!",
+                on_pressed=lambda: print("Button 'Click me!!' was clicked"),
+            ),
         ],
         reply_field=ReplyField(
-            on_replied=lambda text: print("Brutus replied:", text),
+            title="Reply",
+            button_title="Send",
+            on_replied=lambda text: print(f"Received reply '{text}'"),
         ),
-        on_dispatched=lambda: print("Notification showing"),
-        on_cleared=lambda: print("Notification timed out"),
-        on_clicked=lambda: print("Notification clicked"),
-        on_dismissed=lambda: print("Notification dismissed"),
+        on_dispatched=lambda: print("Notification is showing now"),
+        on_cleared=lambda: print("Notification was closed w/o user interaction"),
+        on_clicked=lambda: print("Notification was clicked"),
+        on_dismissed=lambda: print("Notification was dismissed by the user"),
         sound=DEFAULT_SOUND,
-        timeout=10,
     )
 
     # Run the event loop forever to respond to user interactions with the notification.
