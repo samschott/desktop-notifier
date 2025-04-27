@@ -379,7 +379,7 @@ class CocoaNotificationCenter(DesktopNotifierBackend):
         """
         self.nc.removeAllDeliveredNotifications()
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         capabilities = {
             Capability.TITLE,
             Capability.MESSAGE,

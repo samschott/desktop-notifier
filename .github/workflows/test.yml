@@ -11,44 +11,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-13, macos-latest, ubuntu-22.04, ubuntu-latest, windows-2019, windows-latest ]
+        os: [ macos-13, macos-latest, ubuntu-latest, windows-2019, windows-latest ]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         include:
         - pre-command: ""
           pytest-run-prefix: ""
 
         - os: "ubuntu-latest"
-          pre-command: |
-            sudo apt update -y
-            sudo apt install -y --no-install-recommends \
-              blackbox \
-              dbus-x11 \
-              dbus-user-session \
-              notification-daemon
-
-            mkdir -p /usr/share/dbus-1/services
-
-            echo '
-            [D-BUS Service]
-            Name=org.freedesktop.Notifications
-            Exec=/usr/lib/notification-daemon/notification-daemon
-            ' > /usr/share/dbus-1/services/org.freedesktop.Notifications.service
-
-            # Start Virtual X server
-            echo "Start X server..."
-            Xvfb :99 -screen 0 2048x1536x24 &
-            sleep 1
-
-            DISPLAY=:99 dbus-launch
-            DISPLAY=:99 systemctl --user daemon-reload
-
-            # Start Window manager
-            echo "Start window manager..."
-            DISPLAY=:99 blackbox &
-            sleep 1
-          pytest-run-prefix: "DISPLAY=:99"
-
-        - os: "ubuntu-22.04"
           pre-command: |
             sudo apt update -y
             sudo apt install -y --no-install-recommends \

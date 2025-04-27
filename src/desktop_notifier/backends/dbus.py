@@ -30,6 +30,8 @@ NOTIFICATION_CLOSED_DISMISSED = 2
 NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
+DEFAULT_ACTION_KEY = "default"
+
 
 class DBusDesktopNotifier(DesktopNotifierBackend):
     """DBus notification backend for Linux
@@ -99,13 +101,11 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not self.interface:
             self.interface = await self._init_dbus()
 
-        # The "default" action is typically invoked when clicking on the
-        # notification body itself, see
-        # https://specifications.freedesktop.org/notification-spec. There are some
-        # exceptions though, such as XFCE, where this will result in a separate
-        # button. If no label name is provided in XFCE, it will result in a default
-        # symbol being used. We therefore don't specify a label name.
-        actions = ["default", ""]
+        actions = []
+
+        # The "default" action is invoked when clicking on the notification body.
+        if Capability.ON_CLICKED in await self.get_capabilities():
+            actions += [DEFAULT_ACTION_KEY, ""]
 
         for button in notification.buttons:
             actions += [button.identifier, button.title]
@@ -231,7 +231,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not notification:
             return
 
-        if action_key == "default":
+        if action_key == DEFAULT_ACTION_KEY:
             self.handle_clicked(identifier, notification)
             return
 
@@ -254,7 +254,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if reason == NOTIFICATION_CLOSED_DISMISSED:
             self.handle_dismissed(identifier, notification)
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
             self.interface = await self._init_dbus()
 
@@ -270,8 +270,16 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         # Capabilities supported by some notification servers.
         # See https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#protocol.
         if hasattr(self.interface, "on_notification_closed"):
-            capabilities.add(Capability.ON_CLICKED)
             capabilities.add(Capability.ON_DISMISSED)
+
+        server_info = (
+            await self.interface.call_get_server_information()  # type:ignore[attr-defined]
+        )
+
+        # xfce4-notifyd does not support a "default" action when the notification is
+        # clicked. See https://docs.xfce.org/apps/xfce4-notifyd/spec.
+        if server_info[0] != "Xfce Notify Daemon":
+            capabilities.add(Capability.ON_CLICKED)
 
         cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
 

@@ -307,7 +307,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             return [n.tag for n in notifications]
         return await super().get_current_notifications()
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         capabilities = {
             Capability.TITLE,
             Capability.MESSAGE,
