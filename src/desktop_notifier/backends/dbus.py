@@ -31,6 +31,7 @@ NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
 DEFAULT_ACTION_KEY = "default"
+INLINE_REPLY_ACTION_KEY = "inline-reply"
 
 
 class DBusDesktopNotifier(DesktopNotifierBackend):
@@ -90,6 +91,9 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if hasattr(self.interface, "on_action_invoked"):
             self.interface.on_action_invoked(self._on_action)
 
+        if hasattr(self.interface, "on_notification_replied"):
+            self.interface.on_notification_replied(self._on_reply)
+
         return self.interface
 
     async def _send(self, notification: Notification) -> None:
@@ -109,6 +113,9 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
         for button in notification.buttons:
             actions += [button.identifier, button.title]
+
+        if notification.reply_field:
+            actions += [INLINE_REPLY_ACTION_KEY, notification.reply_field.title]
 
         hints_v: dict[str, Variant] = dict()
         hints_v["urgency"] = self.to_native_urgency[notification.urgency]
@@ -237,6 +244,22 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
 
         self.handle_button(identifier, action_key, notification)
 
+    def _on_reply(self, nid: int, reply_text: str) -> None:
+        """
+        Called when the user replies to the notification. This will invoke the
+        handler callback.
+
+        :param nid: The platform's notification ID as an integer.
+        :param reply_text: The text of the user's reply.
+        """
+        identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
+        notification = self._clear_notification_from_cache(identifier)
+
+        if not notification:
+            return
+
+        self.handle_replied(identifier, reply_text, notification)
+
     def _on_closed(self, nid: int, reason: int) -> None:
         """
         Called when the user closes a notification. This will invoke the registered
@@ -290,6 +313,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if "sound" in cps:
             capabilities.add(Capability.SOUND)
             capabilities.add(Capability.SOUND_NAME)
+        if "inline-reply" in cps:
+            capabilities.add(Capability.REPLY_FIELD)
 
         hints_signature = get_hints_signature(self.interface)
         if hints_signature not in self.supported_hint_signatures:
