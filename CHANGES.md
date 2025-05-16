@@ -1,6 +1,6 @@
 # v6.2.0
 
-## Added :
+## Added:
 
 * Support for notification reply fields on Linux. Note that this seems to only be
   supported by KNotifications.

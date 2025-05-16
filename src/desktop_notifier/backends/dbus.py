@@ -32,6 +32,7 @@ NOTIFICATION_CLOSED_UNDEFINED = 4
 
 DEFAULT_ACTION_KEY = "default"
 INLINE_REPLY_ACTION_KEY = "inline-reply"
+INLINE_REPLY_BUTTON_TEXT_KEY = "x-kde-reply-submit-button-text"
 
 
 class DBusDesktopNotifier(DesktopNotifierBackend):
@@ -91,10 +92,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if hasattr(self.interface, "on_action_invoked"):
             self.interface.on_action_invoked(self._on_action)
 
-        self.supports_inline_reply = False
         if hasattr(self.interface, "on_notification_replied"):
             self.interface.on_notification_replied(self._on_reply)
-            self.supports_inline_reply = True
 
         return self.interface
 
@@ -117,9 +116,12 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         for button in notification.buttons:
             actions += [button.identifier, button.title]
 
-        if notification.reply_field and self.supports_inline_reply:
+        if (
+            notification.reply_field
+            and Capability.REPLY_FIELD in await self.get_capabilities()
+        ):
             actions += [INLINE_REPLY_ACTION_KEY, notification.reply_field.title]
-            hints_v["x-kde-reply-submit-button-text"] = Variant(
+            hints_v[INLINE_REPLY_BUTTON_TEXT_KEY] = Variant(
                 "s", notification.reply_field.button_title
             )
 

@@ -215,6 +215,8 @@ async def test_button_pressed_fallback_handler_called(
 
 @pytest.mark.asyncio
 async def test_replied_fallback_handler_called(notifier: DesktopNotifier) -> None:
+    await check_supported(notifier, Capability.REPLY_FIELD)
+
     class_handler = Mock()
     notifier.on_replied = class_handler
     notification = Notification(
