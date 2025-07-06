@@ -51,7 +51,7 @@ BUTTON_ACTION_PREFIX = "action=button&amp;id="
 REPLY_TEXTBOX_NAME = "textBox"
 
 
-def register_hkey(app_id: str, app_name: str) -> None:
+def register_hkey(app_id: str, app_name: str, app_icon: Icon | None = None) -> None:
     # mypy type guard
     if not sys.platform == "win32":
         return
@@ -60,6 +60,10 @@ def register_hkey(app_id: str, app_name: str) -> None:
     key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
     with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as master_key:
         winreg.SetValueEx(master_key, "DisplayName", 0, winreg.REG_SZ, app_name)
+        if app_icon is not None and app_icon.is_file():
+            winreg.SetValueEx(
+                master_key, "IconUri", 0, winreg.REG_SZ, app_icon.as_uri()
+            )
 
 
 class WinRTDesktopNotifier(DesktopNotifierBackend):
@@ -90,7 +94,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             self.app_id = CoreApplication.id
         else:
             self.app_id = app_name
-            register_hkey(app_id=app_name, app_name=app_name)
+            register_hkey(app_id=app_name, app_name=app_name, app_icon=app_icon)
 
         notifier = self.manager.create_toast_notifier_with_id(self.app_id)
 
