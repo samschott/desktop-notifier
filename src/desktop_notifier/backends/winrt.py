@@ -60,8 +60,10 @@ def register_hkey(app_id: str, app_name: str, app_icon: Icon | None = None) -> N
     key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
     with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as master_key:
         winreg.SetValueEx(master_key, "DisplayName", 0, winreg.REG_SZ, app_name)
-        if app_icon is not None:
-            winreg.SetValueEx(master_key, "IconUri", 0, winreg.REG_SZ, app_icon.as_uri())
+        if app_icon is not None and app_icon.is_file():
+            winreg.SetValueEx(
+                master_key, "IconUri", 0, winreg.REG_SZ, app_icon.as_uri()
+            )
 
 
 class WinRTDesktopNotifier(DesktopNotifierBackend):
