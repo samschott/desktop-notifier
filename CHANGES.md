@@ -1,5 +1,10 @@
 # v6.2.0
 
+## Changed:
+
+* On Windows, the app icon is now also displayed in the upper-left corner of the
+  noticication.
+
 ## Added:
 
 * Support for notification reply fields on Linux. Note that this seems to only be
