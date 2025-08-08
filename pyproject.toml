@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "desktop-notifier"
-version = "6.1.1"
+version = "6.2.0.dev0"
 authors = [{name = "Sam Schott", email = "sam.schott@outlook.com"}]
 license = "MIT"
 description = "Python library for cross-platform desktop notifications"
