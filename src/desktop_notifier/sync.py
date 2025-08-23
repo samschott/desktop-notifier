@@ -97,6 +97,7 @@ class DesktopNotifierSync:
         buttons: Sequence[Button] = (),
         reply_field: ReplyField | None = None,
         on_dispatched: Callable[[], Any] | None = None,
+        on_cleared: Callable[[], Any] | None = None,
         on_clicked: Callable[[], Any] | None = None,
         on_dismissed: Callable[[], Any] | None = None,
         attachment: Attachment | None = None,
@@ -113,6 +114,7 @@ class DesktopNotifierSync:
             buttons=tuple(buttons),
             reply_field=reply_field,
             on_dispatched=on_dispatched,
+            on_cleared=on_cleared,
             on_clicked=on_clicked,
             on_dismissed=on_dismissed,
             attachment=attachment,
@@ -151,6 +153,15 @@ class DesktopNotifierSync:
     @on_dispatched.setter
     def on_dispatched(self, handler: Callable[[str], Any] | None) -> None:
         self._async_api.on_dispatched = handler
+
+    @property
+    def on_cleared(self) -> Callable[[str], Any] | None:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.on_cleared`"""
+        return self._async_api.on_cleared
+
+    @on_cleared.setter
+    def on_cleared(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_cleared = handler
 
     @property
     def on_clicked(self) -> Callable[[str], Any] | None:
