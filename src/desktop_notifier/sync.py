@@ -153,15 +153,6 @@ class DesktopNotifierSync:
         self._async_api.on_dispatched = handler
 
     @property
-    def on_cleared(self) -> Callable[[str], Any] | None:
-        """See :meth:`desktop_notifier.main.DesktopNotifier.on_cleared`"""
-        return self._async_api.on_dismissed
-
-    @on_cleared.setter
-    def on_cleared(self, handler: Callable[[str], Any] | None) -> None:
-        self._async_api.on_cleared = handler
-
-    @property
     def on_clicked(self) -> Callable[[str], Any] | None:
         """See :meth:`desktop_notifier.main.DesktopNotifier.on_clicked`"""
         return self._async_api.on_clicked
