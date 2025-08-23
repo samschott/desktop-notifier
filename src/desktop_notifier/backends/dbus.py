@@ -256,12 +256,7 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         :param reply_text: The text of the user's reply.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._clear_notification_from_cache(identifier)
-
-        if not notification:
-            return
-
-        self.handle_replied(identifier, reply_text, notification)
+        self.handle_replied(identifier, reply_text)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
