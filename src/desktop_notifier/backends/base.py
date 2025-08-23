@@ -147,12 +147,10 @@ class DesktopNotifierBackend(ABC):
         ...
 
     def handle_dispatched(self, identifier: str) -> None:
-        if identifier in self._notification_cache:
-            notification = self._notification_cache[identifier]
-            if notification.on_dispatched:
-                notification.on_dispatched()
-                return
-        if self.on_dispatched:
+        notification = self._notification_cache.get(identifier)
+        if notification and notification.on_dispatched:
+            notification.on_dispatched()
+        elif self.on_dispatched:
             self.on_dispatched(identifier)
 
     def handle_clicked(self, identifier: str) -> None:
