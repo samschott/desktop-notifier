@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "desktop-notifier"
-version = "6.1.0"
+version = "6.2.0"
 authors = [{name = "Sam Schott", email = "sam.schott@outlook.com"}]
 license = "MIT"
 description = "Python library for cross-platform desktop notifications"
@@ -43,12 +43,12 @@ dependencies = [
     "immutabledict",
     "dbus-fast;sys_platform=='linux'",
     "rubicon-objc>=0.5;sys_platform=='darwin'",
-    "winrt-runtime>=3,<4;sys_platform=='win32'",
-    "winrt-windows.applicationmodel.core>=3,<4;sys_platform=='win32'",
-    "winrt-windows.data.xml.dom>=3,<4;sys_platform=='win32'",
-    "winrt-windows.foundation>=3,<4;sys_platform=='win32'",
-    "winrt-windows.foundation.collections>=3,<4;sys_platform=='win32'",
-    "winrt-windows.ui.notifications>=3,<4;sys_platform=='win32'",
+    "winrt-runtime>=3.1;sys_platform=='win32'",
+    "winrt-windows.applicationmodel.core>=3.1;sys_platform=='win32'",
+    "winrt-windows.data.xml.dom>=3.1;sys_platform=='win32'",
+    "winrt-windows.foundation>=3.1;sys_platform=='win32'",
+    "winrt-windows.foundation.collections>=3.1;sys_platform=='win32'",
+    "winrt-windows.ui.notifications>=3.1;sys_platform=='win32'",
 ]
 
 [project.readme]
@@ -71,7 +71,7 @@ dev = [
     "pytest-cov",
 ]
 docs = [
-    "furo==2024.8.6",
+    "furo==2025.7.19",
     "sphinx==8.1.3",
     "sphinx-autoapi==3.6.0",
     "sphinx-mdinclude==0.6.2",

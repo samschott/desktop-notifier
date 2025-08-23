@@ -51,7 +51,7 @@ BUTTON_ACTION_PREFIX = "action=button&amp;id="
 REPLY_TEXTBOX_NAME = "textBox"
 
 
-def register_hkey(app_id: str, app_name: str) -> None:
+def register_hkey(app_id: str, app_name: str, app_icon: Icon | None = None) -> None:
     # mypy type guard
     if not sys.platform == "win32":
         return
@@ -60,6 +60,10 @@ def register_hkey(app_id: str, app_name: str) -> None:
     key_path = f"SOFTWARE\\Classes\\AppUserModelId\\{app_id}"
     with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as master_key:
         winreg.SetValueEx(master_key, "DisplayName", 0, winreg.REG_SZ, app_name)
+        if app_icon is not None and app_icon.is_file():
+            winreg.SetValueEx(
+                master_key, "IconUri", 0, winreg.REG_SZ, app_icon.as_uri()
+            )
 
 
 class WinRTDesktopNotifier(DesktopNotifierBackend):
@@ -90,7 +94,7 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
             self.app_id = CoreApplication.id
         else:
             self.app_id = app_name
-            register_hkey(app_id=app_name, app_name=app_name)
+            register_hkey(app_id=app_name, app_name=app_name, app_icon=app_icon)
 
         notifier = self.manager.create_toast_notifier_with_id(self.app_id)
 
@@ -233,8 +237,6 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         if not sender:
             return
 
-        notification = self._clear_notification_from_cache(sender.tag)
-
         if not boxed_activated_args:
             return
 
@@ -242,16 +244,14 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         action_id = activated_args.arguments
 
         if action_id == DEFAULT_ACTION:
-            self.handle_clicked(sender.tag, notification)
-
+            self.handle_clicked(sender.tag)
         elif action_id == REPLY_ACTION and activated_args.user_input:
             boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
             reply = unbox_string(boxed_reply)
-            self.handle_replied(sender.tag, reply, notification)
-
+            self.handle_replied(sender.tag, reply)
         elif action_id.startswith(BUTTON_ACTION_PREFIX):
             button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
-            self.handle_button(sender.tag, button_id, notification)
+            self.handle_button(sender.tag, button_id)
 
     def _on_dismissed(
         self,
@@ -261,13 +261,11 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         if not sender:
             return
 
-        notification = self._clear_notification_from_cache(sender.tag)
-
         if (
             dismissed_args
             and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
         ):
-            self.handle_dismissed(sender.tag, notification)
+            self.handle_dismissed(sender.tag)
 
     def _on_failed(
         self, sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None
@@ -304,12 +302,10 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
     async def get_current_notifications(self) -> list[str]:
         if self.manager.history:
             notifications = self.manager.history.get_history_with_id(self.app_id)
-            # Convert winrt IVectorView to list because the former does crashes on list
-            # comprehension on some Python versions.
-            return [n.tag for n in list(notifications)]
+            return [n.tag for n in notifications]
         return await super().get_current_notifications()
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         capabilities = {
             Capability.TITLE,
             Capability.MESSAGE,

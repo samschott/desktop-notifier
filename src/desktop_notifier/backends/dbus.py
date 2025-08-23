@@ -30,6 +30,10 @@ NOTIFICATION_CLOSED_DISMISSED = 2
 NOTIFICATION_CLOSED_PROGRAMMATICALLY = 3
 NOTIFICATION_CLOSED_UNDEFINED = 4
 
+DEFAULT_ACTION_KEY = "default"
+INLINE_REPLY_ACTION_KEY = "inline-reply"
+INLINE_REPLY_BUTTON_TEXT_KEY = "x-kde-reply-submit-button-text"
+
 
 class DBusDesktopNotifier(DesktopNotifierBackend):
     """DBus notification backend for Linux
@@ -88,6 +92,9 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if hasattr(self.interface, "on_action_invoked"):
             self.interface.on_action_invoked(self._on_action)
 
+        if hasattr(self.interface, "on_notification_replied"):
+            self.interface.on_notification_replied(self._on_reply)
+
         return self.interface
 
     async def _send(self, notification: Notification) -> None:
@@ -99,18 +106,25 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if not self.interface:
             self.interface = await self._init_dbus()
 
-        # The "default" action is typically invoked when clicking on the
-        # notification body itself, see
-        # https://specifications.freedesktop.org/notification-spec. There are some
-        # exceptions though, such as XFCE, where this will result in a separate
-        # button. If no label name is provided in XFCE, it will result in a default
-        # symbol being used. We therefore don't specify a label name.
-        actions = ["default", ""]
+        actions = []
+        hints_v: dict[str, Variant] = dict()
+
+        # The "default" action is invoked when clicking on the notification body.
+        if Capability.ON_CLICKED in await self.get_capabilities():
+            actions += [DEFAULT_ACTION_KEY, ""]
 
         for button in notification.buttons:
             actions += [button.identifier, button.title]
 
-        hints_v: dict[str, Variant] = dict()
+        if (
+            notification.reply_field
+            and Capability.REPLY_FIELD in await self.get_capabilities()
+        ):
+            actions += [INLINE_REPLY_ACTION_KEY, notification.reply_field.title]
+            hints_v[INLINE_REPLY_BUTTON_TEXT_KEY] = Variant(
+                "s", notification.reply_field.button_title
+            )
+
         hints_v["urgency"] = self.to_native_urgency[notification.urgency]
 
         if notification.sound:
@@ -226,16 +240,23 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
             ourselves when scheduling the notification.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._clear_notification_from_cache(identifier)
 
-        if not notification:
+        if action_key == DEFAULT_ACTION_KEY:
+            self.handle_clicked(identifier)
             return
 
-        if action_key == "default":
-            self.handle_clicked(identifier, notification)
-            return
+        self.handle_button(identifier, action_key)
 
-        self.handle_button(identifier, action_key, notification)
+    def _on_reply(self, nid: int, reply_text: str) -> None:
+        """
+        Called when the user replies to the notification. This will invoke the
+        handler callback.
+
+        :param nid: The platform's notification ID as an integer.
+        :param reply_text: The text of the user's reply.
+        """
+        identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
+        self.handle_replied(identifier, reply_text)
 
     def _on_closed(self, nid: int, reason: int) -> None:
         """
@@ -246,15 +267,11 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         :param reason: An integer describing the reason why the notification was closed.
         """
         identifier = self._platform_to_interface_notification_identifier.pop(nid, "")
-        notification = self._clear_notification_from_cache(identifier)
-
-        if not notification:
-            return
 
         if reason == NOTIFICATION_CLOSED_DISMISSED:
-            self.handle_dismissed(identifier, notification)
+            self.handle_dismissed(identifier)
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         if not self.interface:
             self.interface = await self._init_dbus()
 
@@ -270,8 +287,16 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         # Capabilities supported by some notification servers.
         # See https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#protocol.
         if hasattr(self.interface, "on_notification_closed"):
-            capabilities.add(Capability.ON_CLICKED)
             capabilities.add(Capability.ON_DISMISSED)
+
+        server_info = (
+            await self.interface.call_get_server_information()  # type:ignore[attr-defined]
+        )
+
+        # xfce4-notifyd does not support a "default" action when the notification is
+        # clicked. See https://docs.xfce.org/apps/xfce4-notifyd/spec.
+        if server_info[0] != "Xfce Notify Daemon":
+            capabilities.add(Capability.ON_CLICKED)
 
         cps = await self.interface.call_get_capabilities()  # type:ignore[attr-defined]
 
@@ -282,6 +307,8 @@ class DBusDesktopNotifier(DesktopNotifierBackend):
         if "sound" in cps:
             capabilities.add(Capability.SOUND)
             capabilities.add(Capability.SOUND_NAME)
+        if "inline-reply" in cps:
+            capabilities.add(Capability.REPLY_FIELD)
 
         hints_signature = get_hints_signature(self.interface)
         if hints_signature not in self.supported_hint_signatures:
