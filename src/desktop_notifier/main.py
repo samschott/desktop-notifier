@@ -143,8 +143,6 @@ class DesktopNotifier:
         self._backend = backend(app_name, app_icon)
         self._did_request_authorisation = False
 
-        self._capabilities: frozenset[Capability] | None = None
-
     @property
     def app_name(self) -> str:
         """The application name"""
@@ -276,9 +274,7 @@ class DesktopNotifier:
         """
         Returns which functionality is supported by the implementation.
         """
-        if not self._capabilities:
-            self._capabilities = await self._backend.get_capabilities()
-        return self._capabilities
+        return await self._backend.get_capabilities()
 
     @property
     def on_dispatched(self) -> Callable[[str], Any] | None:
@@ -306,6 +302,9 @@ class DesktopNotifier:
 
         If the notification itself already specifies an on_cleared handler, it will be
         used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_cleared
 
@@ -322,6 +321,9 @@ class DesktopNotifier:
 
         If the notification itself already specifies an on_clicked handler, it will be
         used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_clicked
 
@@ -338,6 +340,9 @@ class DesktopNotifier:
 
         If the notification itself already specifies an on_dismissed handler, it will be
         used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_dismissed
 
@@ -355,6 +360,9 @@ class DesktopNotifier:
 
         If the notification button itself already specifies an on_pressed handler, it
         will be used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_button_pressed
 
@@ -371,6 +379,9 @@ class DesktopNotifier:
 
         If the notification's reply field itself already specifies an on_replied
         handler, it will be used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_replied
 

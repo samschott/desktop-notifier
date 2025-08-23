@@ -34,5 +34,5 @@ class DummyNotificationCenter(DesktopNotifierBackend):
     async def _clear_all(self) -> None:
         pass
 
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         return frozenset()
