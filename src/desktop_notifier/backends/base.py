@@ -186,8 +186,8 @@ class DesktopNotifierBackend(ABC):
 
     def handle_button(self, identifier: str, button_identifier: str) -> None:
         notification = self._clear_notification_from_cache(identifier)
-        if notification and button_identifier in notification._buttons_dict:
-            button = notification._buttons_dict[button_identifier]
+        if notification and button_identifier in notification.buttons_dict:
+            button = notification.buttons_dict[button_identifier]
             if button and button.on_pressed:
                 button.on_pressed()
                 return
