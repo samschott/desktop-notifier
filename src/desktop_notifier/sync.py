@@ -142,3 +142,48 @@ class DesktopNotifierSync:
         """See :meth:`desktop_notifier.main.DesktopNotifier.get_capabilities`"""
         coro = self._async_api.get_capabilities()
         return self._run_coro_sync(coro)
+
+    @property
+    def on_dispatched(self) -> Callable[[str], Any] | None:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.on_dispatched`"""
+        return self._async_api.on_dispatched
+
+    @on_dispatched.setter
+    def on_dispatched(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_dispatched = handler
+
+    @property
+    def on_clicked(self) -> Callable[[str], Any] | None:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.on_clicked`"""
+        return self._async_api.on_clicked
+
+    @on_clicked.setter
+    def on_clicked(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_clicked = handler
+
+    @property
+    def on_dismissed(self) -> Callable[[str], Any] | None:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.on_dismissed`"""
+        return self._async_api.on_dismissed
+
+    @on_dismissed.setter
+    def on_dismissed(self, handler: Callable[[str], Any] | None) -> None:
+        self._async_api.on_dismissed = handler
+
+    @property
+    def on_button_pressed(self) -> Callable[[str, str], Any] | None:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.on_button_pressed`"""
+        return self._async_api.on_button_pressed
+
+    @on_button_pressed.setter
+    def on_button_pressed(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._async_api.on_button_pressed = handler
+
+    @property
+    def on_replied(self) -> Callable[[str, str], Any] | None:
+        """See :meth:`desktop_notifier.main.DesktopNotifier.on_replied`"""
+        return self._async_api.on_replied
+
+    @on_replied.setter
+    def on_replied(self, handler: Callable[[str, str], Any] | None) -> None:
+        self._async_api.on_replied = handler
