@@ -35,6 +35,8 @@ class DesktopNotifierBackend(ABC):
         self.on_button_pressed: Callable[[str, str], Any] | None = None
         self.on_replied: Callable[[str, str], Any] | None = None
 
+        self._capabilities: frozenset[Capability] | None = None
+
     @abstractmethod
     async def request_authorisation(self) -> bool:
         """
@@ -81,8 +83,7 @@ class DesktopNotifierBackend(ABC):
     @abstractmethod
     async def _send(self, notification: Notification) -> None:
         """
-        Method to send a notification via the platform. This should be implemented by
-        subclasses.
+        Method to send a notification via the platform.
 
         Implementations must raise an exception when the notification could not be
         delivered. If the notification could be delivered but not fully as intended,
@@ -112,8 +113,7 @@ class DesktopNotifierBackend(ABC):
     @abstractmethod
     async def _clear(self, identifier: str) -> None:
         """
-        Removes the given notification from the notification center. Should be
-        implemented by subclasses.
+        Removes the given notification from the notification center.
 
         :param identifier: Notification identifier.
         """
@@ -133,18 +133,25 @@ class DesktopNotifierBackend(ABC):
     @abstractmethod
     async def _clear_all(self) -> None:
         """
-        Clears all notifications from the notification center. Should be implemented by
-        subclasses.
+        Clears all notifications from the notification center.
         """
         ...
 
     @abstractmethod
-    async def get_capabilities(self) -> frozenset[Capability]:
+    async def _get_capabilities(self) -> frozenset[Capability]:
         """
-        Returns the functionality supported by the implementation and, for Linux / dbus,
-        the notification server.
+        Returns the functionality supported by the notification server.
         """
         ...
+
+    async def get_capabilities(self) -> frozenset[Capability]:
+        """
+        Returns the functionality supported by the notification server. Caches the
+        result.
+        """
+        if not self._capabilities:
+            self._capabilities = await self._get_capabilities()
+        return self._capabilities
 
     def handle_dispatched(self, identifier: str) -> None:
         notification = self._notification_cache.get(identifier)

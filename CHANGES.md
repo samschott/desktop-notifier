@@ -1,3 +1,22 @@
+# v6.2.0
+
+## Changed:
+
+* On Windows, the app icon is now also displayed in the upper-left corner of the
+  noticication.
+
+## Added:
+
+* Support for notification reply fields on Linux. Note that this seems to only be
+  supported by KNotifications.
+
+# v6.1.1
+
+## Fixed:
+
+* Fixes the incorrect appearance of a "default" button on Xfce desktop environments and
+  correctly reflect in capabilities that they don't support an ON_CLICKED action. 
+
 # v6.1.0
 
 ## Changed:

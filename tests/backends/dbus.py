@@ -43,4 +43,9 @@ def simulate_button_pressed(
 
 
 def simulate_replied(notifier: DesktopNotifier, identifier: str, reply: str) -> None:
-    raise NotImplementedError("Relied callbacks on supported on Linux")
+    assert isinstance(notifier._backend, DBusDesktopNotifier)
+
+    nid = notifier._backend._platform_to_interface_notification_identifier.inverse[
+        identifier
+    ]
+    notifier._backend._on_reply(nid, reply)

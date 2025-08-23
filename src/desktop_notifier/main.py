@@ -143,8 +143,6 @@ class DesktopNotifier:
         self._backend = backend(app_name, app_icon)
         self._did_request_authorisation = False
 
-        self._capabilities: frozenset[Capability] | None = None
-
     @property
     def app_name(self) -> str:
         """The application name"""
@@ -274,9 +272,7 @@ class DesktopNotifier:
         """
         Returns which functionality is supported by the implementation.
         """
-        if not self._capabilities:
-            self._capabilities = await self._backend.get_capabilities()
-        return self._capabilities
+        return await self._backend.get_capabilities()
 
     @property
     def on_dispatched(self) -> Callable[[str], Any] | None:

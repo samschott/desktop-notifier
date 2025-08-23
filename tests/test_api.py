@@ -1,5 +1,4 @@
 import asyncio
-import sys
 import time
 from pathlib import Path
 
@@ -129,10 +128,6 @@ async def test_attachment_uri(notifier: DesktopNotifier) -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="Clearing individual notifications is broken on Windows",
-)
 async def test_clear(notifier: DesktopNotifier) -> None:
     n0 = await notifier.send(
         title="Julius Caesar",
