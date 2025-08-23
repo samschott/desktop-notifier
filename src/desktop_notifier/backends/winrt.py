@@ -237,8 +237,6 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         if not sender:
             return
 
-        notification = self._clear_notification_from_cache(sender.tag)
-
         if not boxed_activated_args:
             return
 
@@ -246,16 +244,14 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         action_id = activated_args.arguments
 
         if action_id == DEFAULT_ACTION:
-            self.handle_clicked(sender.tag, notification)
-
+            self.handle_clicked(sender.tag)
         elif action_id == REPLY_ACTION and activated_args.user_input:
             boxed_reply = activated_args.user_input[REPLY_TEXTBOX_NAME]
             reply = unbox_string(boxed_reply)
-            self.handle_replied(sender.tag, reply, notification)
-
+            self.handle_replied(sender.tag, reply)
         elif action_id.startswith(BUTTON_ACTION_PREFIX):
             button_id = action_id.replace(BUTTON_ACTION_PREFIX, "")
-            self.handle_button(sender.tag, button_id, notification)
+            self.handle_button(sender.tag, button_id)
 
     def _on_dismissed(
         self,
@@ -265,13 +261,11 @@ class WinRTDesktopNotifier(DesktopNotifierBackend):
         if not sender:
             return
 
-        notification = self._clear_notification_from_cache(sender.tag)
-
         if (
             dismissed_args
             and dismissed_args.reason == ToastDismissalReason.USER_CANCELED
         ):
-            self.handle_dismissed(sender.tag, notification)
+            self.handle_dismissed(sender.tag)
 
     def _on_failed(
         self, sender: ToastNotification | None, failed_args: ToastFailedEventArgs | None

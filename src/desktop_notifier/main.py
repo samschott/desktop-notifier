@@ -299,6 +299,9 @@ class DesktopNotifier:
 
         If the notification itself already specifies an on_clicked handler, it will be
         used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_clicked
 
@@ -315,6 +318,9 @@ class DesktopNotifier:
 
         If the notification itself already specifies an on_dismissed handler, it will be
         used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_dismissed
 
@@ -332,6 +338,9 @@ class DesktopNotifier:
 
         If the notification button itself already specifies an on_pressed handler, it
         will be used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_button_pressed
 
@@ -348,6 +357,9 @@ class DesktopNotifier:
 
         If the notification's reply field itself already specifies an on_replied
         handler, it will be used instead of the class-level handler.
+
+        ..note:: On Linux, notifications servers might signal events of other
+          applications as well and will lead to executing this callback.
         """
         return self._backend.on_replied
 
