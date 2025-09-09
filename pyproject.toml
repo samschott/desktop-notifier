@@ -41,6 +41,7 @@ dependencies = [
     "packaging",
     "typing-extensions",
     "immutabledict",
+    "aiosqlite;sys_platform=='linux'",
     "dbus-fast;sys_platform=='linux'",
     "rubicon-objc>=0.5;sys_platform=='darwin'",
     "winrt-runtime>=3.1;sys_platform=='win32'",
