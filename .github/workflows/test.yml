@@ -49,7 +49,7 @@ jobs:
           pytest-run-prefix: "DISPLAY=:99"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: set up python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.0.0
