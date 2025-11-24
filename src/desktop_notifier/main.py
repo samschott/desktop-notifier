@@ -4,7 +4,6 @@ Asynchronous desktop notification API
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 import platform
 import warnings
@@ -43,9 +42,6 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
-
-
-default_event_loop_policy = asyncio.DefaultEventLoopPolicy()
 
 
 def get_backend_class() -> Type[DesktopNotifierBackend]:
