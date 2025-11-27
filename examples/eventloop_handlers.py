@@ -15,12 +15,16 @@ def on_dispatched(identifier: str) -> None:
     print(f"Notification '{identifier}' is showing now")
 
 
+def on_cleared(identifier: str) -> None:
+    print(f"Notification '{identifier}' was closed w/o user interaction")
+
+
 def on_clicked(identifier: str) -> None:
     print(f"Notification '{identifier}' was clicked")
 
 
 def on_dismissed(identifier: str) -> None:
-    print(f"Notification '{identifier}' was dismissed")
+    print(f"Notification '{identifier}' was dismissed by the user")
 
 
 def on_button_pressed(identifier: str, button_identifier: str) -> None:
@@ -34,6 +38,7 @@ def on_replied(identifier: str, reply: str) -> None:
 async def main() -> None:
     notifier = DesktopNotifier(app_name="Sample App")
     notifier.on_dispatched = on_dispatched
+    notifier.on_cleared = on_cleared
     notifier.on_clicked = on_clicked
     notifier.on_dismissed = on_dismissed
     notifier.on_button_pressed = on_button_pressed
