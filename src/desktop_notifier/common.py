@@ -240,6 +240,9 @@ class Notification:
     on_dispatched: Callable[[], Any] | None = field(default=None, repr=False)
     """Method to call when the notification was sent to the notifications server for display"""
 
+    on_cleared: Callable[[], Any] | None = field(default=None, repr=False)
+    """Method to call when the notification is cleared without user interaction"""
+
     on_clicked: Callable[[], Any] | None = field(default=None, repr=False)
     """Method to call when the notification is clicked"""
 
@@ -308,6 +311,11 @@ class Capability(Enum):
 
     ON_DISPATCHED = auto()
     """Supports on-dispatched callbacks"""
+
+    ON_CLEARED = auto()
+    """Supports on-cleared callbacks, which are called if a notification wasn't
+    cleared by user interaction, but programmatically; platforms not supporting
+    this distinction will call on-dismissed callbacks instead"""
 
     ON_CLICKED = auto()
     """Supports on-clicked callbacks"""
