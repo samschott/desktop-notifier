@@ -39,6 +39,17 @@ Please refer to the platform documentation for more detailed information:
 .. [#f5] macOS only supports named sounds, e.g., from `/System/Library/Sounds`.
 .. [#f6] Limitations on file types exist for each platform. See section below.
 
+Terminal notifications (macOS)
+******************************
+
+On macOS, notifications can only be sent by signed app bundles. When the process does
+not run from an app bundle, for instance with a Python installation from Homebrew or
+conda, desktop-notifier asks the terminal emulator to display a notification instead.
+This uses the *OSC 9* or *OSC 777* escape sequence and requires a terminal emulator
+which supports them (Ghostty, iTerm2, kitty, WezTerm and Warp do). The fallback
+supports a notification title and message only; interaction callbacks, buttons, reply
+fields, sounds and attachments are unavailable.
+
 Callbacks
 *********
 

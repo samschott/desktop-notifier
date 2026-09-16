@@ -73,6 +73,12 @@ def get_backend_class() -> Type[DesktopNotifierBackend]:
             else:
                 logger.warning("Only macOS 10.14 and later are supported")
 
+            from .backends.osc import OSCNotificationCenter, is_available
+
+            if is_available():
+                logger.info("Falling back to terminal notifications")
+                return OSCNotificationCenter
+
             from .backends.dummy import DummyNotificationCenter
 
             return DummyNotificationCenter

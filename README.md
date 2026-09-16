@@ -149,6 +149,13 @@ the resulting app bundle for notifications to work. An ad-hoc signature will be
 sufficient but signing with an Apple developer certificate is recommended for
 distribution and may be required on future releases of macOS.
 
+When running from outside an app bundle, for instance with a Python installation from
+Homebrew or conda, macOS does not allow sending notifications through the
+`UNUserNotificationCenter`. In this case, desktop-notifier falls back to sending an
+`OSC 9` or `OSC 777` escape sequence to the terminal emulator, which displays a
+notification if it supports them (Ghostty, iTerm2, kitty, WezTerm and Warp do). This
+fallback supports a notification title and message only.
+
 ## Design choices
 
 This package is opinionated in a few ways:
